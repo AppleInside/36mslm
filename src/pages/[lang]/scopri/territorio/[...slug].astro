@@ -1,0 +1,30 @@
+---
+import Base from '../../../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import type { Lang } from '../../../../i18n/ui';
+
+export async function getStaticPaths() {
+  const all = await getCollection('itineraries');
+  return all.map((entry) => {
+    const [lang, ...rest] = entry.slug.split('/');
+    return { params: { lang, slug: rest.join('/') }, props: { entry } };
+  });
+}
+
+const { entry } = Astro.props;
+const _lang = Astro.params.lang as Lang;
+const { Content } = await entry.render();
+---
+<Base title={entry.data.title}>
+  <article class="mx-auto max-w-prose">
+    <p class="text-xs uppercase tracking-wider text-po">{entry.data.distanceKm} km · {entry.data.durationMin} min · {entry.data.difficulty}</p>
+    <h1 class="mt-2 text-5xl">{entry.data.title}</h1>
+    <div class="prose mt-8"><Content /></div>
+    {(entry.data.gpx || entry.data.pdf) && (
+      <ul class="mt-8 flex gap-4 text-sm">
+        {entry.data.gpx && <li><a href={entry.data.gpx}>GPX</a></li>}
+        {entry.data.pdf && <li><a href={entry.data.pdf}>PDF</a></li>}
+      </ul>
+    )}
+  </article>
+</Base>
