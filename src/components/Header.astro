@@ -1,24 +1,486 @@
 ---
 import { getLangFromUrl, useTranslations, localizedPath } from '../i18n/utils';
-import LangSwitcher from './LangSwitcher.astro';
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
-const nav = [
-  { href: localizedPath(lang, 'eventi'), label: t('nav.events') },
-  { href: localizedPath(lang, 'scopri'), label: t('nav.discover') },
-  { href: localizedPath(lang, 'partecipa'), label: t('nav.participate') },
-  { href: localizedPath(lang, 'chi-siamo'), label: t('nav.about') },
-  { href: localizedPath(lang, 'contatti'), label: t('nav.contact') },
+const otherLang = lang === 'it' ? 'en' : 'it';
+const otherPath = Astro.url.pathname.replace(/^\/(it|en)/, `/${otherLang}`) || `/${otherLang}/`;
+
+const home = localizedPath(lang, '');
+const navItems = [
+  {
+    key: 'eventi',
+    href: localizedPath(lang, 'eventi'),
+    label: t('nav.events'),
+    lead: {
+      eyebrow: lang === 'it' ? 'Prossimo evento · 10 maggio' : 'Next event · May 10',
+      headline: lang === 'it'
+        ? 'Camminata in <em>golena</em> al risveglio del Po'
+        : 'Walk in the <em>floodplain</em> at the river\'s awakening',
+      blurb: lang === 'it'
+        ? "Sei chilometri tra pioppi e meandri, partenza all'argine alle 06:30."
+        : 'Six kilometres among poplars and meanders, leaving from the embankment at 06:30.',
+      img: '/media/legacy/wp-content_uploads_2021_09_cercavano-il-fresco-destate-sulla-Via-Alzaia-FILEminimizer.jpg',
+      href: localizedPath(lang, 'eventi/2026-05-10-camminata-golena'),
+    },
+    cols: [
+      {
+        title: lang === 'it' ? 'Calendario' : 'Calendar',
+        links: [
+          { label: lang === 'it' ? 'Tutti gli <em>eventi</em>' : 'All <em>events</em>', href: localizedPath(lang, 'eventi') },
+          { label: lang === 'it' ? 'Bacheca <em>e avvisi</em>' : 'Notice <em>board</em>', href: localizedPath(lang, 'partecipa/bacheca') },
+        ],
+      },
+      {
+        title: lang === 'it' ? 'Per chi viene da fuori' : 'If you come from out of town',
+        links: [
+          { label: lang === 'it' ? 'Come <em>arrivare</em>' : 'How to <em>get here</em>', href: localizedPath(lang, 'contatti') },
+          { label: lang === 'it' ? 'Dove <em>mangiare</em>' : 'Where to <em>eat</em>', href: localizedPath(lang, 'scopri/territorio/dove') },
+        ],
+      },
+    ],
+  },
+  {
+    key: 'scopri',
+    href: localizedPath(lang, 'scopri/territorio'),
+    label: lang === 'it' ? 'Scopri il Po' : t('nav.discover'),
+    lead: {
+      eyebrow: lang === 'it' ? 'Storia in evidenza' : 'Featured story',
+      headline: lang === 'it'
+        ? 'I nomi dei pioppi nel <em>dialetto</em> di Polesine'
+        : 'The names of poplars in the Polesine <em>dialect</em>',
+      blurb: lang === 'it'
+        ? 'Dal pioppo cipressino al pioppo nero: come li chiamavano i nostri nonni.'
+        : 'From the cypress poplar to the black poplar: how our grandparents named them.',
+      img: '/media/legacy/wp-content_uploads_2021_09_1953-Giovannino-Guareschi-Polesine-Due-Torri-1.jpg',
+      href: localizedPath(lang, 'scopri/storie'),
+    },
+    cols: [
+      {
+        title: lang === 'it' ? 'Territorio' : 'Territory',
+        links: [
+          { label: lang === 'it' ? 'Itinerari <em>del fiume</em>' : 'River <em>itineraries</em>', href: localizedPath(lang, 'scopri/territorio') },
+          { label: lang === 'it' ? 'Luoghi <em>e tappe</em>' : 'Places <em>and stops</em>', href: localizedPath(lang, 'scopri/territorio/dove') },
+        ],
+      },
+      {
+        title: lang === 'it' ? 'Memoria' : 'Memory',
+        links: [
+          { label: lang === 'it' ? 'Ricettario <em>di casa</em>' : 'Home <em>recipes</em>', href: localizedPath(lang, 'scopri/ricettario') },
+          { label: lang === 'it' ? 'Storie <em>di nonni</em>' : 'Grandparents\' <em>stories</em>', href: localizedPath(lang, 'scopri/storie') },
+        ],
+      },
+    ],
+  },
+  {
+    key: 'partecipa',
+    href: localizedPath(lang, 'partecipa'),
+    label: t('nav.participate'),
+    lead: {
+      eyebrow: lang === 'it' ? 'Modi per esserci' : 'Ways to be there',
+      headline: lang === 'it'
+        ? "Diventa <em>volontario</em> dell'associazione"
+        : 'Become an association <em>volunteer</em>',
+      blurb: lang === 'it'
+        ? "Una mano in più a un evento, un'idea per la bacheca, una segnalazione: tutto conta."
+        : 'A spare hand at an event, an idea for the notice board, a tip: it all counts.',
+      img: '/media/legacy/wp-content_uploads_2021_09_Tortelli-1959-.jpg',
+      href: localizedPath(lang, 'partecipa/volontari'),
+    },
+    cols: [
+      {
+        title: lang === 'it' ? 'Sostieni' : 'Support',
+        links: [
+          { label: lang === 'it' ? '<em>5×1000</em> all\'associazione' : '<em>5×1000</em> to the association', href: localizedPath(lang, 'partecipa/5x1000') },
+          { label: lang === 'it' ? '<em>Volontari</em> per gli eventi' : '<em>Volunteers</em> for events', href: localizedPath(lang, 'partecipa/volontari') },
+        ],
+      },
+      {
+        title: lang === 'it' ? 'Contribuisci' : 'Contribute',
+        links: [
+          { label: lang === 'it' ? 'Bacheca <em>e avvisi</em>' : 'Notice <em>board</em>', href: localizedPath(lang, 'partecipa/bacheca') },
+          { label: lang === 'it' ? 'Segnala <em>un evento</em>' : 'Report <em>an event</em>', href: localizedPath(lang, 'contatti') },
+        ],
+      },
+    ],
+  },
+  {
+    key: 'chisiamo',
+    href: localizedPath(lang, 'chi-siamo'),
+    label: t('nav.about'),
+    lead: {
+      eyebrow: lang === 'it' ? "L'associazione" : 'The association',
+      headline: lang === 'it'
+        ? 'Una APS che <em>misura</em> il proprio paese in metri sul mare'
+        : 'An association that <em>measures</em> its town in metres above sea level',
+      blurb: lang === 'it'
+        ? 'Statuto, persone, trasparenza, press kit: tutto quello che ci riguarda.'
+        : 'Bylaws, people, transparency, press kit: everything about us.',
+      img: '/media/legacy/wp-content_uploads_2021_09_Giovanni-Guareschi-al-bar-in-piazza.jpg',
+      href: localizedPath(lang, 'chi-siamo'),
+    },
+    cols: [
+      {
+        title: lang === 'it' ? 'Documenti' : 'Documents',
+        links: [
+          { label: lang === 'it' ? 'La <em>storia</em>' : 'Our <em>story</em>', href: localizedPath(lang, 'chi-siamo/storia') },
+          { label: lang === 'it' ? 'Lo <em>statuto</em>' : 'The <em>bylaws</em>', href: localizedPath(lang, 'chi-siamo/statuto') },
+          { label: lang === 'it' ? '<em>Trasparenza</em>' : '<em>Transparency</em>', href: localizedPath(lang, 'chi-siamo/trasparenza') },
+        ],
+      },
+      {
+        title: lang === 'it' ? 'Stampa' : 'Press',
+        links: [
+          { label: lang === 'it' ? '<em>Press kit</em>' : '<em>Press kit</em>', href: localizedPath(lang, 'chi-siamo/press-kit') },
+        ],
+      },
+    ],
+  },
+  {
+    key: 'contatti',
+    href: localizedPath(lang, 'contatti'),
+    label: t('nav.contact'),
+    lead: {
+      eyebrow: lang === 'it' ? 'Scrivici' : 'Write to us',
+      headline: lang === 'it' ? 'Tre minuti, una <em>email</em>' : 'Three minutes, one <em>email</em>',
+      blurb: lang === 'it'
+        ? 'Per qualsiasi cosa — eventi, foto, segnalazioni — rispondiamo nel giro di qualche giorno.'
+        : 'For anything — events, photos, tips — we reply within a few days.',
+      img: '/media/legacy/wp-content_uploads_2021_09_Guareschi-sul-Po.jpg',
+      href: localizedPath(lang, 'contatti'),
+    },
+    cols: [
+      {
+        title: lang === 'it' ? 'Recapiti' : 'Contacts',
+        links: [
+          { label: 'info@polesineparmense36.it', href: 'mailto:info@polesineparmense36.it' },
+          { label: lang === 'it' ? 'Sede <em>e indirizzo</em>' : 'Office <em>and address</em>', href: localizedPath(lang, 'contatti') },
+        ],
+      },
+      {
+        title: lang === 'it' ? 'Sui social' : 'On social',
+        links: [
+          { label: 'Instagram', href: 'https://instagram.com/' },
+          { label: 'Facebook', href: 'https://facebook.com/' },
+        ],
+      },
+    ],
+  },
 ];
 ---
-<header class="border-b border-argento/60 bg-sabbia">
-  <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-    <a href={localizedPath(lang, '')} class="no-underline" aria-label="36 m s.l.m.">
-      <img src="/logo.jpg" alt="36 m s.l.m." class="h-10 w-auto md:h-12" />
-    </a>
-    <nav class="hidden gap-6 md:flex">
-      {nav.map((n) => <a href={n.href} class="no-underline hover:text-pioppo">{n.label}</a>)}
-    </nav>
-    <LangSwitcher />
+
+<header class="topbar">
+  <a class="marca" href={home} aria-label="36 m s.l.m.">
+    <img src="/logo.jpg" alt="36 m s.l.m." />
+  </a>
+
+  <nav class="nav" id="nav">
+    {navItems.map((item) => (
+      <div class="nav-item" data-pane={item.key}>
+        <a href={item.href}><span class="label">{item.label}</span></a>
+      </div>
+    ))}
+    <span class="indicator" id="indicator"></span>
+  </nav>
+
+  <div class="lang">
+    <a href={Astro.url.pathname} class={lang === 'it' ? 'on' : ''}>IT</a>
+    <a href={otherPath} class={lang === 'en' ? 'on' : ''}>EN</a>
+  </div>
+
+  <button class="burger" id="burger" aria-label="Menu"><span></span></button>
+
+  <div class="megapanel" id="megapanel">
+    {navItems.map((item) => (
+      <div class="pane" data-pane={item.key}>
+        <a class="lead" href={item.lead.href}>
+          <p class="eyebrow">{item.lead.eyebrow}</p>
+          <h4 set:html={item.lead.headline}></h4>
+          <p class="blurb">{item.lead.blurb}</p>
+          <div class="pic"><img src={item.lead.img} alt="" loading="lazy" /></div>
+        </a>
+        {item.cols.map((col) => (
+          <div class="links">
+            <h5>{col.title}</h5>
+            {col.links.map((l) => (
+              <a href={l.href}><span set:html={l.label}></span><span class="arrow">→</span></a>
+            ))}
+          </div>
+        ))}
+      </div>
+    ))}
   </div>
 </header>
+
+<div class="drawer" id="drawer">
+  <button class="close" id="drawerClose" aria-label="Close">×</button>
+  <ol>
+    {navItems.map((item) => (
+      <li><a href={item.href}>{item.label}</a></li>
+    ))}
+  </ol>
+  <div class="drawer-foot">
+    <span>IT · EN</span>
+    <span>info@polesineparmense36.it</span>
+  </div>
+</div>
+
+<style>
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    gap: 2rem;
+    padding: 1.1rem 2rem;
+    background: rgba(244,235,217,0.78);
+    backdrop-filter: blur(10px) saturate(1.1);
+    -webkit-backdrop-filter: blur(10px) saturate(1.1);
+    border-bottom: 1px solid theme('colors.rule');
+  }
+  .marca { display: inline-flex; align-items: center; text-decoration: none; color: theme('colors.ink'); }
+  .marca img {
+    height: 44px; width: auto; display: block;
+    transition: transform .5s cubic-bezier(.2,.7,.2,1);
+  }
+  .marca:hover img { transform: rotate(-2deg) scale(1.03); }
+
+  .nav {
+    display: flex; justify-content: center; align-items: stretch;
+    gap: 0; position: relative;
+  }
+  .nav-item { position: relative; padding: .75rem 1.4rem; }
+  .nav-item > a {
+    text-decoration: none;
+    color: theme('colors.ink-soft');
+    display: inline-flex; align-items: baseline;
+    font-family: theme('fontFamily.serif');
+    font-size: 1.08rem; line-height: 1;
+    transition: color .25s ease;
+  }
+  .nav-item > a .label { position: relative; }
+  .nav-item > a .label::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -.45rem; height: 6px;
+    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 6'><path d='M0 3 Q 25 0 50 3 T 100 3' fill='none' stroke='%230F71B8' stroke-width='1.6'/></svg>") repeat-x;
+    opacity: 0;
+    transform: translateY(4px) scaleX(.6);
+    transform-origin: left center;
+    transition: opacity .35s ease, transform .45s cubic-bezier(.2,.7,.2,1);
+  }
+  .nav-item:hover > a, .nav-item.active > a { color: theme('colors.ink'); }
+  .nav-item:hover > a .label::after,
+  .nav-item.active > a .label::after { opacity: 1; transform: translateY(0) scaleX(1); }
+
+  .nav .indicator {
+    position: absolute; bottom: -1.1rem; height: 2px;
+    background: theme('colors.brand'); pointer-events: none;
+    transition: left .45s cubic-bezier(.2,.7,.2,1), width .45s cubic-bezier(.2,.7,.2,1), opacity .25s ease;
+    opacity: 0;
+  }
+  .nav:hover .indicator { opacity: 1; }
+
+  .megapanel {
+    position: absolute; left: 0; right: 0; top: 100%;
+    background: theme('colors.paper');
+    border-bottom: 1px solid theme('colors.rule');
+    box-shadow: 0 24px 40px -20px rgba(31,42,42,0.18);
+    transform: translateY(-12px); opacity: 0; pointer-events: none;
+    transition: transform .35s cubic-bezier(.2,.7,.2,1), opacity .25s ease;
+  }
+  .megapanel.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
+  .pane {
+    display: none;
+    grid-template-columns: 1.1fr 1fr 1fr;
+    gap: 3rem; padding: 2.75rem 3rem 3rem;
+    max-width: 1400px; margin: 0 auto;
+  }
+  .pane.show { display: grid; }
+  .lead {
+    border-right: 1px dashed theme('colors.rule');
+    padding-right: 2rem; text-decoration: none; color: inherit;
+  }
+  .lead .eyebrow {
+    font-family: theme('fontFamily.mono');
+    font-size: .72rem; text-transform: uppercase; letter-spacing: .22em;
+    color: theme('colors.brand'); margin-bottom: .85rem;
+  }
+  .lead h4 {
+    font-family: theme('fontFamily.serif');
+    font-weight: 300; font-size: 2rem; line-height: 1.05;
+    margin: 0 0 .85rem 0; letter-spacing: -0.01em;
+  }
+  .lead h4 :global(em) { font-style: italic; color: theme('colors.acquadeep'); }
+  .lead .blurb { font-style: italic; color: theme('colors.ink-soft'); max-width: 36ch; margin: 0 0 1.5rem 0; }
+  .lead .pic { aspect-ratio: 5 / 3; overflow: hidden; border-radius: 4px; background: theme('colors.paper-2'); }
+  .lead .pic img {
+    width: 100%; height: 100%; object-fit: cover;
+    filter: saturate(.9);
+    transition: transform .9s cubic-bezier(.2,.7,.2,1);
+  }
+  .lead:hover .pic img { transform: scale(1.04); }
+
+  .links { display: flex; flex-direction: column; gap: .25rem; }
+  .links h5 {
+    font-family: theme('fontFamily.mono');
+    font-size: .7rem; text-transform: uppercase; letter-spacing: .22em;
+    color: theme('colors.ink-soft'); margin: 0 0 .75rem 0; font-weight: 500;
+  }
+  .links a {
+    text-decoration: none; color: theme('colors.ink');
+    font-family: theme('fontFamily.serif');
+    font-size: 1.1rem; padding: .55rem 0;
+    border-bottom: 1px solid theme('colors.rule');
+    display: flex; justify-content: space-between; align-items: center;
+    transition: padding .25s ease, color .25s ease;
+  }
+  .links a:hover { padding-left: .5rem; color: theme('colors.brand'); }
+  .links a :global(em) { font-style: italic; color: theme('colors.acquadeep'); }
+  .links a .arrow {
+    font-family: theme('fontFamily.mono'); color: theme('colors.brand');
+    opacity: 0; transform: translateX(-6px);
+    transition: opacity .25s ease, transform .3s ease;
+  }
+  .links a:hover .arrow { opacity: 1; transform: translateX(0); }
+
+  .lang {
+    display: flex; gap: .15rem;
+    font-family: theme('fontFamily.mono'); font-size: .78rem;
+    background: theme('colors.paper-2');
+    border: 1px solid theme('colors.rule');
+    border-radius: 999px; padding: .2rem;
+  }
+  .lang a {
+    padding: .35rem .75rem; text-decoration: none;
+    color: theme('colors.ink-soft');
+    border-radius: 999px;
+    transition: all .25s ease;
+  }
+  .lang a.on { background: theme('colors.brand'); color: theme('colors.paper'); }
+  .lang a:not(.on):hover { color: theme('colors.ink'); }
+
+  .burger {
+    display: none;
+    width: 44px; height: 44px;
+    align-items: center; justify-content: center;
+    background: transparent; border: 1px solid theme('colors.rule');
+    border-radius: 999px; cursor: pointer;
+  }
+  .burger span {
+    display: block; width: 18px; height: 1.5px;
+    background: theme('colors.ink'); position: relative;
+    transition: transform .3s ease;
+  }
+  .burger span::before, .burger span::after {
+    content: ""; position: absolute; left: 0; width: 18px; height: 1.5px;
+    background: theme('colors.ink');
+    transition: transform .3s ease;
+  }
+  .burger span::before { top: -6px; }
+  .burger span::after { top: 6px; }
+  .burger.open span { background: transparent; }
+  .burger.open span::before { transform: translateY(6px) rotate(45deg); }
+  .burger.open span::after { transform: translateY(-6px) rotate(-45deg); }
+
+  .drawer {
+    position: fixed; inset: 0;
+    background: theme('colors.paper');
+    z-index: 60; padding: 5rem 1.5rem 2rem;
+    transform: translateY(-100%);
+    transition: transform .45s cubic-bezier(.2,.7,.2,1);
+    overflow: auto;
+  }
+  .drawer.open { transform: translateY(0); }
+  .drawer .close {
+    position: absolute; top: 1.1rem; right: 1.5rem;
+    background: transparent; border: 1px solid theme('colors.rule');
+    border-radius: 999px; width: 44px; height: 44px;
+    font-size: 1.4rem; color: theme('colors.ink'); cursor: pointer;
+  }
+  .drawer ol { list-style: none; padding: 0; margin: 0; }
+  .drawer li { border-bottom: 1px solid theme('colors.rule'); }
+  .drawer li a {
+    display: flex; padding: 1.4rem 0;
+    text-decoration: none; color: theme('colors.ink');
+    font-family: theme('fontFamily.serif');
+    font-size: 2rem; font-weight: 300;
+  }
+  .drawer-foot {
+    margin-top: 2rem;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: theme('fontFamily.mono');
+    font-size: .75rem; color: theme('colors.ink-soft');
+    text-transform: uppercase; letter-spacing: .18em;
+  }
+
+  @media (max-width: 1000px) {
+    .topbar { grid-template-columns: auto 1fr auto; padding: 1rem 1.25rem; }
+    .nav, .lang, .megapanel { display: none !important; }
+    .burger { display: inline-flex; }
+  }
+</style>
+
+<script>
+  (function () {
+    const nav = document.getElementById('nav');
+    if (!nav) return;
+    const items = nav.querySelectorAll('.nav-item');
+    const indicator = document.getElementById('indicator') as HTMLElement | null;
+    const panel = document.getElementById('megapanel');
+    const panes = panel?.querySelectorAll('.pane') ?? [];
+    const topbar = document.querySelector('.topbar');
+    let hoverTimer: number | null = null;
+
+    function showPane(key: string | null) {
+      panes.forEach((p) => p.classList.toggle('show', (p as HTMLElement).dataset.pane === key));
+      panel?.classList.add('open');
+    }
+    function closePanel() { panel?.classList.remove('open'); }
+    function moveIndicator(item: Element) {
+      if (!indicator) return;
+      const navRect = nav.getBoundingClientRect();
+      const r = item.getBoundingClientRect();
+      indicator.style.left = (r.left - navRect.left + r.width * 0.18) + 'px';
+      indicator.style.width = (r.width * 0.64) + 'px';
+    }
+
+    items.forEach((item) => {
+      item.addEventListener('mouseenter', () => {
+        if (hoverTimer) { clearTimeout(hoverTimer); hoverTimer = null; }
+        moveIndicator(item);
+        showPane((item as HTMLElement).dataset.pane ?? null);
+      });
+    });
+    topbar?.addEventListener('mouseleave', () => {
+      hoverTimer = window.setTimeout(closePanel, 120);
+    });
+    panel?.addEventListener('mouseenter', () => { if (hoverTimer) { clearTimeout(hoverTimer); hoverTimer = null; } });
+    panel?.addEventListener('mouseleave', () => { hoverTimer = window.setTimeout(closePanel, 120); });
+
+    const path = window.location.pathname;
+    let activeEl: Element | null = null;
+    items.forEach((item) => {
+      const a = item.querySelector('a') as HTMLAnchorElement | null;
+      if (!a) return;
+      const href = a.getAttribute('href') || '';
+      if (href !== '/' && path.startsWith(href)) { item.classList.add('active'); activeEl = item; }
+    });
+    if (activeEl && indicator) {
+      requestAnimationFrame(() => { moveIndicator(activeEl!); indicator.style.opacity = '1'; });
+    }
+    window.addEventListener('resize', () => {
+      const a = nav.querySelector('.nav-item.active');
+      if (a) moveIndicator(a);
+    });
+
+    const burger = document.getElementById('burger');
+    const drawer = document.getElementById('drawer');
+    const closeBtn = document.getElementById('drawerClose');
+    burger?.addEventListener('click', () => {
+      drawer?.classList.add('open');
+      burger.classList.add('open');
+    });
+    closeBtn?.addEventListener('click', () => {
+      drawer?.classList.remove('open');
+      burger?.classList.remove('open');
+    });
+  })();
+</script>

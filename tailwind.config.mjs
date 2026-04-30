@@ -4,6 +4,18 @@ export default {
   theme: {
     extend: {
       colors: {
+        paper:    '#F4EBD9',
+        'paper-2':'#EFE3CB',
+        ink:      '#1F2A2A',
+        'ink-soft':'#3A4747',
+        gold:     '#D8A14A',
+        'gold-deep':'#B5802A',
+        alga:     '#7B8F6F',
+        acquadeep:'#4A6670',
+        brand:    '#0F71B8',
+        'brand-deep':'#0A578F',
+        rule:     'rgba(31,42,42,0.18)',
+
         pioppo: '#A8B89B',
         argento: '#C9D4BD',
         po: '#9BAFB5',
@@ -13,7 +25,9 @@ export default {
       },
       fontFamily: {
         hand: ['Caveat', 'cursive'],
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        serif: ['Fraunces', 'Iowan Old Style', 'Georgia', 'serif'],
+        sans: ['Fraunces', 'Iowan Old Style', 'Georgia', 'serif'],
+        mono: ['IBM Plex Mono', 'ui-monospace', 'monospace'],
       },
       maxWidth: { prose: '68ch' },
     },

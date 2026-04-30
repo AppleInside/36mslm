@@ -4,20 +4,94 @@ import { getLangFromUrl, useTranslations, localizedPath } from '../i18n/utils';
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 ---
-<footer class="mt-20 border-t border-argento/60 bg-sabbia">
-  <div class="mx-auto grid max-w-6xl gap-6 px-4 py-10 text-sm md:grid-cols-3">
-    <div>
-      <p class="font-hand text-xl">{SITE.name}</p>
-      <p class="opacity-80">{SITE.longName}</p>
-      <p class="opacity-80">{SITE.address}</p>
-      <p class="opacity-80">CF {SITE.codiceFiscale}</p>
-    </div>
-    <div>
-      <p class="font-semibold">{t('nav.contact')}</p>
-      <p><a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
-    </div>
-    <div>
-      <p><a href={localizedPath(lang, 'chi-siamo/press-kit')}>{t('footer.press')}</a></p>
-    </div>
+<footer class="site-footer">
+  <div class="marca">
+    <em>36</em> m s.l.m.
+    <small>{SITE.longName}<br />{SITE.address}</small>
+  </div>
+  <div>
+    <h4>{t('nav.events')}</h4>
+    <ul>
+      <li><a href={localizedPath(lang, 'eventi')}>{t('common.allEvents')}</a></li>
+      <li><a href={localizedPath(lang, 'partecipa/bacheca')}>{lang === 'it' ? 'Bacheca' : 'Notice board'}</a></li>
+      <li><a href={localizedPath(lang, 'partecipa/volontari')}>{t('nav.participate.volunteers')}</a></li>
+    </ul>
+  </div>
+  <div>
+    <h4>{t('nav.discover')}</h4>
+    <ul>
+      <li><a href={localizedPath(lang, 'scopri/itinerari')}>{lang === 'it' ? 'Itinerari' : 'Itineraries'}</a></li>
+      <li><a href={localizedPath(lang, 'scopri/ricettario')}>{t('nav.discover.recipes')}</a></li>
+      <li><a href={localizedPath(lang, 'scopri/storie')}>{t('nav.discover.stories')}</a></li>
+    </ul>
+  </div>
+  <div>
+    <h4>{t('nav.about')}</h4>
+    <ul>
+      <li><a href={localizedPath(lang, 'chi-siamo')}>{t('nav.about')}</a></li>
+      <li><a href={localizedPath(lang, 'chi-siamo/statuto')}>{lang === 'it' ? 'Statuto' : 'Bylaws'}</a></li>
+      <li><a href={localizedPath(lang, 'chi-siamo/trasparenza')}>{lang === 'it' ? 'Trasparenza' : 'Transparency'}</a></li>
+      <li><a href={localizedPath(lang, 'chi-siamo/press-kit')}>Press kit</a></li>
+    </ul>
+  </div>
+  <div class="colofon">
+    <span>© {new Date().getFullYear()} — APS «{SITE.name}» · CF {SITE.codiceFiscale}</span>
+    <span><a href={`mailto:${SITE.email}`}>{SITE.email}</a></span>
   </div>
 </footer>
+
+<style>
+  .site-footer {
+    padding: 4rem 4rem 3rem;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    gap: 3rem;
+    background: theme('colors.ink');
+    color: theme('colors.paper');
+  }
+  .marca {
+    font-family: theme('fontFamily.serif');
+    font-weight: 300;
+    font-size: 2.2rem;
+    line-height: 1.1;
+  }
+  .marca em { font-style: italic; color: theme('colors.gold'); }
+  .marca small {
+    display: block;
+    font-family: theme('fontFamily.mono');
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    color: rgba(244,235,217,0.55);
+    margin-top: .75rem;
+  }
+  h4 {
+    font-family: theme('fontFamily.mono');
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .2em;
+    color: theme('colors.gold');
+    margin: 0 0 1rem 0;
+    font-weight: 500;
+  }
+  ul { list-style: none; padding: 0; margin: 0; }
+  li { padding: .35rem 0; }
+  a { color: theme('colors.paper'); text-decoration: none; opacity: .85; }
+  a:hover { opacity: 1; color: theme('colors.gold'); }
+  .colofon {
+    grid-column: 1 / -1;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(244,235,217,0.15);
+    display: flex; justify-content: space-between;
+    font-family: theme('fontFamily.mono');
+    font-size: .72rem;
+    color: rgba(244,235,217,0.55);
+    text-transform: uppercase;
+    letter-spacing: .15em;
+  }
+  @media (max-width: 1000px) {
+    .site-footer { grid-template-columns: 1fr; padding: 3rem 1.5rem; }
+    .colofon { flex-direction: column; gap: .75rem; }
+  }
+</style>

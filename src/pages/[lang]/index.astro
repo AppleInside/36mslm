@@ -1,7 +1,5 @@
 ---
 import Base from '../../layouts/Base.astro';
-import HeroEvent from '../../components/HeroEvent.astro';
-import EventCard from '../../components/EventCard.astro';
 import { getCollection } from 'astro:content';
 import { useTranslations, localizedPath } from '../../i18n/utils';
 import type { Lang } from '../../i18n/ui';
@@ -12,33 +10,463 @@ export function getStaticPaths() {
 const lang = Astro.params.lang as Lang;
 const t = useTranslations(lang);
 const now = new Date();
-const all = await getCollection('events', (e) => e.slug.startsWith(`${lang}/`) && !e.data.draft && e.data.date >= now);
-all.sort((a, b) => a.data.date.getTime() - b.data.date.getTime());
-const [next, ...rest] = all;
-const upcoming = rest.slice(0, 3);
+
+const allEvents = await getCollection('events', (e) =>
+  e.slug.startsWith(`${lang}/`) && !e.data.draft && e.data.date >= now
+);
+allEvents.sort((a, b) => a.data.date.getTime() - b.data.date.getTime());
+const events = allEvents.slice(0, 3);
+
+const allNotices = await getCollection('notices', (n) =>
+  n.slug.startsWith(`${lang}/`) && !n.data.draft
+);
+allNotices.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const notices = allNotices.slice(0, 3);
+
+function fmtDay(d: Date) { return d.getDate().toString(); }
+function fmtMonth(d: Date) {
+  return d.toLocaleDateString(lang === 'it' ? 'it-IT' : 'en-GB', { month: 'short' });
+}
+function fmtDateShort(d: Date) {
+  return d.toLocaleDateString(lang === 'it' ? 'it-IT' : 'en-GB', { day: 'numeric', month: 'long' });
+}
 ---
-<Base title={t('nav.events')}>
-  {next && <HeroEvent entry={next} />}
-  {upcoming.length > 0 && (
-    <section class="mt-12">
-      <h2 class="text-3xl">{t('common.allEvents')}</h2>
-      <div class="mt-4 grid gap-4 md:grid-cols-3">{upcoming.map((e) => <EventCard entry={e} />)}</div>
-    </section>
-  )}
-  <section class="mt-12 grid gap-4 md:grid-cols-3">
-    <a href={localizedPath(lang, 'scopri/territorio')} class="rounded-2xl bg-acqua/40 p-6 no-underline">
-      <h3 class="text-2xl">{t('nav.discover.territory')}</h3>
+<Base title={lang === 'it' ? 'Diario di golena' : 'Riverside Journal'} description={lang === 'it' ? 'Polesine Parmense vista dall\'argine: eventi, ricette, storie e itinerari.' : 'Polesine Parmense from the embankment: events, recipes, stories and itineraries.'}>
+
+<!-- ─── Hero ─────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-text">
+    <p class="meta"><span class="dot"></span>{lang === 'it' ? 'Diario di golena · primavera 2026' : 'Riverside Journal · spring 2026'}</p>
+    <h1>
+      <span class="hand">{lang === 'it' ? 'Trentasei metri' : 'Thirty-six metres'}</span><br />
+      {lang === 'it' ? 'sopra il livello' : 'above the level'}<br />
+      {lang === 'it' ? <span>del <em>fiume.</em></span> : <span>of the <em>river.</em></span>}
+    </h1>
+    <p class="kicker">
+      {lang === 'it'
+        ? 'Polesine Parmense vista dall\'argine: eventi, ricette, storie e itinerari di un paese che si misura — da sempre — con il Po.'
+        : 'Polesine Parmense from the embankment: events, recipes, stories and itineraries of a village that has always measured itself against the Po.'}
+    </p>
+    <div class="ctas">
+      <a class="btn primary" href={localizedPath(lang, 'eventi')}>
+        {lang === 'it' ? 'Cosa succede ora' : "What’s on now"} <span class="arrow">→</span>
+      </a>
+      <a class="btn ghost" href={localizedPath(lang, 'partecipa')}>
+        {lang === 'it' ? 'Sostieni l\'associazione' : 'Support the association'}
+      </a>
+    </div>
+  </div>
+  <div class="hero-image">
+    <img
+      src="/media/legacy/wp-content_uploads_2021_09_cercavano-il-fresco-destate-sulla-Via-Alzaia-FILEminimizer.jpg"
+      alt={lang === 'it' ? 'La Via Alzaia in estate' : 'The Via Alzaia in summer'}
+    />
+    <div class="quota">36<small>{lang === 'it' ? 'metri sul mare' : 'metres above sea'}</small></div>
+  </div>
+</section>
+
+<!-- ─── Waterline ─────────────────────────────────────────── -->
+<div class="waterline" aria-hidden="true"></div>
+
+<!-- ─── Eventi ───────────────────────────────────────────── -->
+{events.length > 0 && (
+<section class="sec-events">
+  <div class="sec-head">
+    <div>
+      <p class="eyebrow">— {lang === 'it' ? 'Cosa succede' : "What's on"} —</p>
+      <h2>{lang === 'it' ? <>Le prossime <em>uscite</em></> : <>Upcoming <em>events</em></>}</h2>
+    </div>
+    <p class="hand-note">{lang === 'it' ? 'tre date in calendario ↘' : 'three dates ahead ↘'}</p>
+  </div>
+  <div class="events-grid">
+    {events.map((ev, i) => (
+      <a class={`ev-card${i === 0 ? ' big' : ''}`} href={localizedPath(lang, `eventi/${ev.slug.replace(`${lang}/`, '')}`)}>
+        <div class="ev-pic">
+          {ev.data.cover && <img src={ev.data.cover} alt={ev.data.title} loading={i === 0 ? 'eager' : 'lazy'} />}
+          <div class="stamp">
+            <span class="d">{fmtDay(ev.data.date)}</span>
+            <span class="m">{fmtMonth(ev.data.date)}</span>
+          </div>
+        </div>
+        <h3>{ev.data.title}</h3>
+        <p class="where">{ev.data.location}</p>
+        {ev.data.signupRequired && (
+          <span class="signup">→ {lang === 'it' ? 'iscrizione richiesta' : 'registration required'}</span>
+        )}
+      </a>
+    ))}
+  </div>
+</section>
+)}
+
+<!-- ─── Annunci ───────────────────────────────────────────── -->
+{notices.length > 0 && (
+<section class="sec-notices">
+  <div class="sec-head">
+    <div>
+      <p class="eyebrow">— {lang === 'it' ? 'Bacheca' : 'Notice board'} —</p>
+      <h2>{lang === 'it' ? <>Annunci <em>e avvisi</em></> : <>Notices <em>and updates</em></>}</h2>
+    </div>
+    <a class="sec-all" href={localizedPath(lang, 'partecipa/bacheca')}>
+      {lang === 'it' ? 'tutti gli avvisi' : 'all notices'} →
     </a>
-    <a href={localizedPath(lang, 'scopri/ricettario')} class="rounded-2xl bg-argento/50 p-6 no-underline">
-      <h3 class="text-2xl">{t('nav.discover.recipes')}</h3>
+  </div>
+  <div class="notices-list">
+    {notices.map((n) => (
+      <a class="notice-row" href={localizedPath(lang, `partecipa/bacheca/${n.slug.replace(`${lang}/`, '')}`)}>
+        <span class="notice-date">{fmtDateShort(n.data.date)}</span>
+        <span class="notice-title">{n.data.title}</span>
+        <span class="notice-arrow">→</span>
+      </a>
+    ))}
+  </div>
+</section>
+)}
+
+<!-- ─── Tre canali ────────────────────────────────────────── -->
+<section class="threecol">
+  <a class="col" href={localizedPath(lang, 'scopri/territorio')}>
+    <div class="num">i.</div>
+    <h3>{lang === 'it' ? <>Itinerari del <em>fiume</em></> : <>River <em>itineraries</em></>}</h3>
+    <p>{lang === 'it' ? 'Anelli in golena, lance, capanni di caccia, traghetti scomparsi.' : 'Flood-plain loops, punts, hunting blinds, lost ferry crossings.'}</p>
+    <span class="arrow-link">{lang === 'it' ? 'cammina con noi →' : 'walk with us →'}</span>
+  </a>
+  <a class="col" href={localizedPath(lang, 'scopri/ricettario')}>
+    <div class="num">ii.</div>
+    <h3>{lang === 'it' ? <>Ricettario di <em>casa</em></> : <>Home <em>recipes</em></>}</h3>
+    <p>{lang === 'it' ? 'Risòt ad süca, tortelli del 1959, dolce di zucca: cucina di paese.' : 'Risòt ad süca, 1959 tortelli, pumpkin cake: village cooking.'}</p>
+    <span class="arrow-link">{lang === 'it' ? 'apri il quaderno →' : 'open the notebook →'}</span>
+  </a>
+  <a class="col" href={localizedPath(lang, 'scopri/storie')}>
+    <div class="num">iii.</div>
+    <h3>{lang === 'it' ? <>Storie di <em>nonni</em></> : <>Grandparents' <em>stories</em></>}</h3>
+    <p>{lang === 'it' ? 'Andavano a pomodori nel 1983, all\'asilo nel 1974, in piazza con Guareschi.' : 'Picking tomatoes in 1983, at nursery school in 1974, in the piazza with Guareschi.'}</p>
+    <span class="arrow-link">{lang === 'it' ? 'ascolta →' : 'listen →'}</span>
+  </a>
+</section>
+
+<!-- ─── Pull quote ────────────────────────────────────────── -->
+<section class="pull">
+  <blockquote>
+    {lang === 'it'
+      ? <>Qui il fiume non è uno sfondo: è il <em>protagonista</em>.<br />Ogni cosa, ogni storia, ogni ricetta, comincia dall'argine.</>
+      : <>Here the river is not a backdrop: it is the <em>protagonist</em>.<br />Everything — every story, every recipe — begins at the embankment.</>}
+  </blockquote>
+</section>
+
+<!-- ─── CTA Partecipa ─────────────────────────────────────── -->
+<section class="cta">
+  <h2>{lang === 'it' ? <>Partecipa al <em>diario</em>.</> : <>Join the <em>journal</em>.</>}</h2>
+  <div class="opts">
+    <a class="opt" href={localizedPath(lang, 'partecipa/volontari')}>
+      <span class="opt-label"><em>{lang === 'it' ? 'Volontari' : 'Volunteers'}</em> — {lang === 'it' ? 'dai una mano a un evento' : 'lend a hand at an event'}</span>
+      <span class="opt-arrow">→</span>
     </a>
-    <a href={localizedPath(lang, 'scopri/storie')} class="rounded-2xl bg-pioppo/30 p-6 no-underline">
-      <h3 class="text-2xl">{t('nav.discover.stories')}</h3>
+    <a class="opt" href={localizedPath(lang, 'partecipa/5x1000')}>
+      <span class="opt-label"><em>5×1000</em> — {lang === 'it' ? 'destinaci la tua firma' : 'donate your signature'}</span>
+      <span class="opt-arrow">→</span>
     </a>
-  </section>
-  <section class="mt-12 grid gap-4">
-    <a href={localizedPath(lang, 'partecipa/volontari')} class="rounded-2xl border border-po p-6 no-underline">
-      <h3 class="text-2xl">{t('nav.participate.volunteers')}</h3>
+    <a class="opt" href={localizedPath(lang, 'partecipa/bacheca')}>
+      <span class="opt-label"><em>{lang === 'it' ? 'Bacheca' : 'Notice board'}</em> — {lang === 'it' ? 'avvisi e comunicazioni' : 'notices and updates'}</span>
+      <span class="opt-arrow">→</span>
     </a>
-  </section>
+    <a class="opt" href={localizedPath(lang, 'contatti')}>
+      <span class="opt-label"><em>{lang === 'it' ? 'Segnalazioni' : 'Tips'}</em> — {lang === 'it' ? 'proponi un evento o una storia' : 'suggest an event or story'}</span>
+      <span class="opt-arrow">→</span>
+    </a>
+  </div>
+</section>
+
 </Base>
+
+<style>
+/* ─── Hero ──────────────────────────────────────────────── */
+.hero {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  min-height: 88vh;
+  border-bottom: 1px solid theme('colors.rule');
+}
+.hero-text {
+  padding: 5rem 3rem 4rem 4rem;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.meta {
+  font-family: theme('fontFamily.mono');
+  font-size: .78rem; text-transform: uppercase; letter-spacing: .2em;
+  color: theme('colors.ink-soft');
+  margin-bottom: 1.5rem;
+  display: flex; align-items: center; gap: 1rem;
+}
+.dot {
+  width: 6px; height: 6px; border-radius: 50%; background: theme('colors.gold');
+  box-shadow: 0 0 0 4px rgba(216,161,74,0.18);
+  flex-shrink: 0;
+}
+h1 {
+  font-family: theme('fontFamily.serif');
+  font-weight: 300;
+  font-size: clamp(3.2rem, 6.6vw, 6.8rem);
+  line-height: .96; letter-spacing: -0.02em;
+  margin: 0 0 .5rem 0;
+}
+h1 em { font-style: italic; color: theme('colors.acquadeep'); font-weight: 400; }
+.hand {
+  font-family: theme('fontFamily.hand');
+  font-weight: 700; color: theme('colors.gold-deep'); font-size: 1em; line-height: 1;
+  display: inline-block;
+  transform: rotate(-2deg) translateY(-.05em);
+  margin-right: .15em;
+}
+.kicker {
+  font-style: italic; font-size: 1.25rem; max-width: 38ch;
+  color: theme('colors.ink-soft'); margin-top: 1.75rem;
+}
+.ctas { display: flex; gap: 1rem; margin-top: 2.5rem; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: .6rem;
+  padding: .9rem 1.4rem;
+  font-family: theme('fontFamily.mono'); font-size: .82rem;
+  text-transform: uppercase; letter-spacing: .14em;
+  text-decoration: none;
+  border: 1.5px solid theme('colors.ink');
+  border-radius: 999px;
+  transition: all .25s ease;
+}
+.btn.primary { background: theme('colors.ink'); color: theme('colors.paper'); }
+.btn.primary:hover { background: theme('colors.gold-deep'); border-color: theme('colors.gold-deep'); }
+.btn.ghost { background: transparent; color: theme('colors.ink'); }
+.btn.ghost:hover { background: theme('colors.ink'); color: theme('colors.paper'); }
+.btn .arrow { transition: transform .25s ease; }
+.btn:hover .arrow { transform: translateX(4px); }
+
+.hero-image {
+  position: relative; overflow: hidden; background: theme('colors.ink');
+}
+.hero-image img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; filter: saturate(.92) contrast(1.02);
+  mix-blend-mode: multiply; opacity: .92;
+}
+.hero-image::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 60%, rgba(31,42,42,0.35) 100%);
+}
+.quota {
+  position: absolute; right: 2rem; bottom: 2rem; z-index: 2;
+  font-family: theme('fontFamily.serif');
+  font-style: italic; font-weight: 300;
+  font-size: 11rem; line-height: .85;
+  color: theme('colors.paper');
+  text-shadow: 0 4px 30px rgba(0,0,0,.35);
+  pointer-events: none; letter-spacing: -0.04em;
+}
+.quota small {
+  font-size: 1.4rem; font-style: normal;
+  font-family: theme('fontFamily.mono');
+  letter-spacing: .15em; text-transform: uppercase;
+  display: block; margin-top: .5rem; opacity: .85;
+}
+
+/* ─── Section header shared ─────────────────────────────── */
+.sec-events, .sec-notices { padding: 6rem 4rem; border-bottom: 1px solid theme('colors.rule'); }
+.sec-head {
+  display: grid; grid-template-columns: 1fr auto;
+  align-items: end; gap: 2rem;
+  margin-bottom: 3rem; padding-bottom: 1.5rem;
+  border-bottom: 1px dashed theme('colors.rule');
+}
+.eyebrow {
+  font-family: theme('fontFamily.mono');
+  font-size: .78rem; text-transform: uppercase; letter-spacing: .22em;
+  color: theme('colors.ink-soft');
+}
+.sec-head h2 {
+  font-family: theme('fontFamily.serif');
+  font-weight: 300;
+  font-size: clamp(2.4rem, 4.5vw, 4rem);
+  line-height: 1; letter-spacing: -0.02em;
+  margin: .5rem 0 0 0;
+}
+.sec-head h2 em { font-style: italic; color: theme('colors.acquadeep'); }
+.hand-note {
+  font-family: theme('fontFamily.hand');
+  color: theme('colors.gold-deep'); font-size: 1.6rem;
+  transform: rotate(-3deg); line-height: 1;
+}
+
+/* ─── Events grid ────────────────────────────────────────── */
+.events-grid {
+  display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 2.5rem;
+}
+.ev-card {
+  text-decoration: none; color: inherit;
+  display: flex; flex-direction: column;
+  transition: transform .3s ease;
+}
+.ev-card:hover { transform: translateY(-4px); }
+.ev-pic {
+  aspect-ratio: 4 / 3;
+  overflow: hidden; position: relative;
+  background: theme('colors.paper-2');
+  border: 1px solid theme('colors.rule');
+  margin-bottom: 1.25rem;
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 75' preserveAspectRatio='none'><path d='M1 2 Q 25 0 50 2 T 99 2 L 99 73 Q 75 75 50 73 T 1 73 Z' fill='black'/></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 75' preserveAspectRatio='none'><path d='M1 2 Q 25 0 50 2 T 99 2 L 99 73 Q 75 75 50 73 T 1 73 Z' fill='black'/></svg>");
+}
+.ev-card.big .ev-pic { aspect-ratio: 4 / 3.5; }
+.ev-pic img {
+  width: 100%; height: 100%; object-fit: cover;
+  filter: saturate(.92);
+  transition: transform .8s cubic-bezier(.2,.7,.2,1);
+}
+.ev-card:hover .ev-pic img { transform: scale(1.04); }
+.stamp {
+  position: absolute; top: 1rem; left: 1rem;
+  background: theme('colors.paper'); color: theme('colors.ink');
+  font-family: theme('fontFamily.serif');
+  padding: .5rem .75rem; line-height: 1; text-align: center;
+  box-shadow: 0 1px 0 rgba(0,0,0,.05), 0 8px 16px rgba(0,0,0,.08);
+  transform: rotate(-2deg);
+}
+.stamp .d { font-size: 1.8rem; font-weight: 300; display: block; font-style: italic; }
+.stamp .m { font-family: theme('fontFamily.mono'); font-size: .68rem; text-transform: uppercase; letter-spacing: .18em; margin-top: .15rem; }
+.ev-card h3 {
+  font-weight: 400; font-size: 1.55rem; line-height: 1.15;
+  margin: .25rem 0 .5rem 0; letter-spacing: -.005em;
+}
+.ev-card.big h3 { font-size: 2.1rem; }
+.where {
+  font-family: theme('fontFamily.mono'); font-size: .75rem;
+  text-transform: uppercase; letter-spacing: .18em;
+  color: theme('colors.ink-soft');
+}
+.signup {
+  margin-top: .75rem; display: inline-flex; align-items: center; gap: .4rem;
+  color: theme('colors.gold-deep'); font-style: italic;
+}
+
+/* ─── Notices list ───────────────────────────────────────── */
+.sec-all {
+  font-family: theme('fontFamily.mono'); font-size: .78rem;
+  text-transform: uppercase; letter-spacing: .18em;
+  color: theme('colors.gold-deep'); text-decoration: none;
+  align-self: end;
+}
+.sec-all:hover { color: theme('colors.brand'); }
+.notices-list { display: flex; flex-direction: column; }
+.notice-row {
+  display: grid; grid-template-columns: 12ch 1fr auto;
+  align-items: baseline; gap: 2rem;
+  padding: 1.35rem 0;
+  border-bottom: 1px solid theme('colors.rule');
+  text-decoration: none; color: theme('colors.ink');
+  transition: padding .2s ease;
+}
+.notice-row:first-child { border-top: 1px solid theme('colors.rule'); }
+.notice-row:hover { padding-left: .75rem; }
+.notice-date {
+  font-family: theme('fontFamily.mono'); font-size: .78rem;
+  text-transform: uppercase; letter-spacing: .12em;
+  color: theme('colors.ink-soft'); white-space: nowrap;
+}
+.notice-title { font-size: 1.2rem; font-weight: 400; line-height: 1.3; }
+.notice-row:hover .notice-title { color: theme('colors.brand'); }
+.notice-arrow {
+  font-family: theme('fontFamily.mono'); color: theme('colors.brand');
+  opacity: 0; transform: translateX(-6px);
+  transition: opacity .2s ease, transform .25s ease;
+}
+.notice-row:hover .notice-arrow { opacity: 1; transform: translateX(0); }
+
+/* ─── Tre canali ─────────────────────────────────────────── */
+.threecol {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid theme('colors.rule');
+  border-bottom: 1px solid theme('colors.rule');
+}
+.col {
+  padding: 4.5rem 2.5rem;
+  border-right: 1px dashed theme('colors.rule');
+  text-decoration: none; color: inherit;
+  transition: background .3s ease;
+}
+.col:last-child { border-right: none; }
+.col:hover { background: theme('colors.paper-2'); }
+.num {
+  font-family: theme('fontFamily.serif');
+  font-style: italic; font-weight: 300;
+  color: theme('colors.gold'); font-size: 4rem; line-height: 1;
+  margin-bottom: 1rem;
+}
+.col h3 { font-weight: 400; font-size: 2rem; line-height: 1.1; margin: 0 0 .75rem 0; }
+.col h3 em { font-style: italic; color: theme('colors.acquadeep'); }
+.col p { font-style: italic; color: theme('colors.ink-soft'); max-width: 32ch; margin: 0 0 1.5rem 0; }
+.arrow-link {
+  font-family: theme('fontFamily.mono'); font-size: .78rem;
+  text-transform: uppercase; letter-spacing: .18em;
+  color: theme('colors.gold-deep');
+  display: inline-flex; gap: .5rem;
+}
+
+/* ─── Pull quote ─────────────────────────────────────────── */
+.pull {
+  padding: 7rem 4rem;
+  display: grid; grid-template-columns: 1fr 1.6fr 1fr;
+  gap: 3rem; align-items: center;
+  border-bottom: 1px solid theme('colors.rule');
+  background: linear-gradient(180deg, transparent, rgba(123,143,111,0.07));
+}
+blockquote {
+  grid-column: 2 / 3; margin: 0;
+  font-style: italic; font-weight: 300;
+  font-size: clamp(2rem, 3.6vw, 3.2rem);
+  line-height: 1.1; text-align: center;
+  color: theme('colors.ink'); position: relative;
+}
+blockquote::before {
+  content: "\201C";
+  position: absolute; top: -3rem; left: -1.5rem;
+  font-size: 8rem; color: theme('colors.gold');
+  line-height: 1; font-style: normal; opacity: .55;
+}
+blockquote em { font-style: italic; color: theme('colors.acquadeep'); }
+
+/* ─── CTA ────────────────────────────────────────────────── */
+.cta {
+  padding: 6rem 4rem;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 4rem; align-items: center;
+  border-bottom: 1px solid theme('colors.rule');
+}
+.cta h2 { font-weight: 300; font-size: clamp(2.4rem, 4.5vw, 4rem); line-height: 1; margin: 0; }
+.cta h2 em { font-style: italic; color: theme('colors.gold-deep'); }
+.opts { display: grid; gap: 0; }
+.opt {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1.5rem 0; border-bottom: 1px solid theme('colors.rule');
+  text-decoration: none; color: inherit;
+  transition: padding .25s ease;
+}
+.opt:hover { padding-left: .75rem; }
+.opt-label { font-size: 1.6rem; font-weight: 400; }
+.opt-label em { font-style: italic; color: theme('colors.acquadeep'); }
+.opt-arrow { font-family: theme('fontFamily.mono'); font-size: .9rem; color: theme('colors.gold-deep'); }
+
+/* ─── Responsive ─────────────────────────────────────────── */
+@media (max-width: 1000px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-text { padding: 3rem 1.5rem; }
+  .hero-image { aspect-ratio: 4/3; min-height: 280px; }
+  .quota { font-size: 6rem; right: 1rem; bottom: 1rem; }
+  .events-grid { grid-template-columns: 1fr; }
+  .threecol { grid-template-columns: 1fr; }
+  .col { border-right: none; border-bottom: 1px dashed theme('colors.rule'); }
+  .sec-events, .sec-notices { padding: 3.5rem 1.5rem; }
+  .pull { padding: 3.5rem 1.5rem; grid-template-columns: 1fr; }
+  blockquote { grid-column: 1 / -1; }
+  .cta { grid-template-columns: 1fr; padding: 3.5rem 1.5rem; }
+  .notice-row { grid-template-columns: 1fr auto; }
+  .notice-date { display: none; }
+}
+</style>
