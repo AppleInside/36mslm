@@ -1,0 +1,39 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { useTranslations, localizedPath } from '../../../i18n/utils';
+import type { Lang } from '../../../i18n/ui';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'it' } }, { params: { lang: 'en' } }];
+}
+
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+
+const cards = lang === 'it'
+  ? [
+    { href: 'partecipa/tessera', title: 'Tessera', body: 'Diventa socio per sostenere l\'associazione.' },
+    { href: 'partecipa/5x1000', title: '5×1000', body: 'Destinaci il tuo 5×1000.' },
+    { href: 'partecipa/volontari', title: 'Volontari', body: 'Dai una mano a un evento.' },
+    { href: 'partecipa/bacheca', title: 'Bacheca', body: 'Avvisi e comunicazioni.' },
+    { href: 'partecipa/segnalazioni', title: 'Segnalazioni', body: 'Proponi un evento o una storia.' },
+  ]
+  : [
+    { href: 'partecipa/tessera', title: 'Membership', body: 'Become a member.' },
+    { href: 'partecipa/5x1000', title: '5×1000', body: 'Donate your 5×1000.' },
+    { href: 'partecipa/volontari', title: 'Volunteers', body: 'Help out at an event.' },
+    { href: 'partecipa/bacheca', title: 'Notice board', body: 'Notices and announcements.' },
+    { href: 'partecipa/segnalazioni', title: 'Reports', body: 'Suggest an event or story.' },
+  ];
+---
+<Base title={t('nav.participate')}>
+  <h1 class="text-5xl">{t('nav.participate')}</h1>
+  <div class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    {cards.map((c) => (
+      <a href={localizedPath(lang, c.href)} class="block rounded-2xl border border-argento bg-sabbia p-5 no-underline transition hover:bg-argento/40">
+        <h2 class="text-2xl">{c.title}</h2>
+        <p class="mt-1 text-sm opacity-80">{c.body}</p>
+      </a>
+    ))}
+  </div>
+</Base>

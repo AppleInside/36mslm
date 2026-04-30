@@ -1,0 +1,35 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { SITE } from '../../../consts';
+import type { Lang } from '../../../i18n/ui';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'it' } }, { params: { lang: 'en' } }];
+}
+
+const lang = Astro.params.lang as Lang;
+const title = lang === 'it' ? 'Segnalazioni' : 'Reports';
+const subject = encodeURIComponent(lang === 'it' ? 'Segnalazione' : 'Report');
+---
+<Base title={title}>
+  <article class="mx-auto max-w-prose">
+    <h1 class="text-5xl">{title}</h1>
+    {lang === 'it' ? (
+      <div class="prose mt-8">
+        <p>Hai un evento da proporre, una storia da raccontare o una foto storica da condividere?</p>
+        <ul>
+          <li><strong>Proponi un evento</strong>: ci vuole il titolo, una data ipotetica, il luogo e due righe.</li>
+          <li><strong>Segnala una storia</strong>: titolo, fonte e perché vale la pena raccontarla.</li>
+          <li><strong>Condividi una foto</strong>: indica autore, anno e un consenso esplicito alla pubblicazione con attribuzione.</li>
+        </ul>
+      </div>
+    ) : (
+      <div class="prose mt-8">
+        <p>Got an event to suggest, a story to tell, or a historic photo to share? Drop us a line.</p>
+      </div>
+    )}
+    <a href={`mailto:${SITE.email}?subject=${subject}`} class="mt-10 inline-block rounded-full bg-pioppo px-5 py-2 text-white no-underline">
+      {lang === 'it' ? 'Scrivi una segnalazione' : 'Send a report'}
+    </a>
+  </article>
+</Base>

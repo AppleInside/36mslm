@@ -1,0 +1,44 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { SITE } from '../../../consts';
+import type { Lang } from '../../../i18n/ui';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'it' } }, { params: { lang: 'en' } }];
+}
+
+const lang = Astro.params.lang as Lang;
+const title = lang === 'it' ? 'Tessera' : 'Membership';
+const subject = encodeURIComponent(lang === 'it' ? 'Richiesta tessera' : 'Membership request');
+---
+<Base title={title}>
+  <article class="mx-auto max-w-prose">
+    <h1 class="text-5xl">{title}</h1>
+    {lang === 'it' ? (
+      <div class="prose mt-8">
+        <p>La tessera annuale sostiene le attività dell'Associazione di Promozione Sociale «36 m s.l.m.»: organizzazione eventi, manutenzione del sito, promozione del territorio.</p>
+        <h2>Come tesserarsi</h2>
+        <ol>
+          <li>Scrivi a <a href={`mailto:${SITE.email}?subject=${subject}`}>{SITE.email}</a> indicando nome, cognome e codice fiscale.</li>
+          <li>Riceverai le coordinate per il bonifico della quota associativa.</li>
+          <li>A pagamento ricevuto ti viene rilasciata la tessera.</li>
+        </ol>
+        <p>Quota e modalità sono pubblicate ogni anno in <a href="bacheca/">Bacheca</a>.</p>
+      </div>
+    ) : (
+      <div class="prose mt-8">
+        <p>The annual membership supports the activities of the «36 m s.l.m.» social promotion association: events, the website, territorial promotion.</p>
+        <h2>How to join</h2>
+        <ol>
+          <li>Write to <a href={`mailto:${SITE.email}?subject=${subject}`}>{SITE.email}</a> with your full name and tax code.</li>
+          <li>You will receive bank-transfer details.</li>
+          <li>Once payment is received, your membership card is issued.</li>
+        </ol>
+        <p>Annual fee and terms are posted each year on the <a href="bacheca/">Notice board</a>.</p>
+      </div>
+    )}
+    <a href={`mailto:${SITE.email}?subject=${subject}`} class="mt-10 inline-block rounded-full bg-pioppo px-5 py-2 text-white no-underline">
+      {lang === 'it' ? 'Scrivi per la tessera' : 'Email to join'}
+    </a>
+  </article>
+</Base>
