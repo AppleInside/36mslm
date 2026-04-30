@@ -1,0 +1,9 @@
+---
+import { getLangFromUrl } from '../i18n/utils';
+const current = getLangFromUrl(Astro.url);
+const other = current === 'it' ? 'en' : 'it';
+const path = Astro.url.pathname.replace(/^\/(it|en)/, `/${other}`) || `/${other}/`;
+---
+<a href={path} class="text-sm uppercase tracking-wide no-underline hover:text-pioppo" aria-label={`Switch to ${other}`}>
+  {other}
+</a>
