@@ -1,0 +1,36 @@
+---
+import Base from '../../../layouts/Base.astro';
+import EventCard from '../../../components/EventCard.astro';
+import { getCollection } from 'astro:content';
+import { useTranslations } from '../../../i18n/utils';
+import { byLang, splitFutureFromPast } from '../../../lib/content';
+import type { Lang } from '../../../i18n/ui';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'it' } }, { params: { lang: 'en' } }];
+}
+
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+const all = await getCollection('events');
+const { future, past } = splitFutureFromPast(byLang(all, lang), new Date());
+---
+<Base title={t('nav.events')}>
+  <h1 class="text-5xl">{t('nav.events')}</h1>
+
+  {future.length > 0 ? (
+    <section class="mt-8">
+      <h2 class="text-2xl">{t('common.allEvents')}</h2>
+      <div class="mt-4 grid gap-4 md:grid-cols-3">{future.map((e) => <EventCard entry={e} />)}</div>
+    </section>
+  ) : (
+    <p class="mt-8 opacity-70">—</p>
+  )}
+
+  {past.length > 0 && (
+    <section class="mt-12 opacity-80">
+      <h2 class="text-2xl">Archivio</h2>
+      <div class="mt-4 grid gap-4 md:grid-cols-3">{past.map((e) => <EventCard entry={e} />)}</div>
+    </section>
+  )}
+</Base>
