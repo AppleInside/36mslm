@@ -85,7 +85,7 @@ import node from '@astrojs/node';
 
 export default defineConfig({
   site: 'https://www.polesineparmense36.it',
-  output: 'hybrid',
+  output: 'static', // Astro 5: 'hybrid' removed; 'static' + adapter + per-route prerender=false is the equivalent
   adapter: node({ mode: 'standalone' }),
   integrations: [mdx(), tailwind({ applyBaseStyles: false })],
   i18n: {
