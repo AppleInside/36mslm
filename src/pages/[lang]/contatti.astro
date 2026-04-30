@@ -16,8 +16,8 @@ const t = useTranslations(lang);
     <h1 class="text-5xl">{t('nav.contact')}</h1>
     <div class="prose mt-8">
       <p>{lang === 'it'
-        ? 'Per qualsiasi domanda — eventi, tessera, foto, segnalazioni — scrivici. Rispondiamo nel giro di qualche giorno.'
-        : 'Any question — events, membership, photos, reports — drop us a line. We reply within a few days.'}</p>
+        ? 'Per qualsiasi domanda — eventi, foto, segnalazioni — scrivici. Rispondiamo nel giro di qualche giorno.'
+        : 'Any question — events, photos, reports — drop us a line. We reply within a few days.'}</p>
       <ul>
         <li>Email: <a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
         <li>{lang === 'it' ? 'Sede' : 'Office'}: {SITE.address}</li>
