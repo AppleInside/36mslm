@@ -1,0 +1,34 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { SITE } from '../../../consts';
+import type { Lang } from '../../../i18n/ui';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'it' } }, { params: { lang: 'en' } }];
+}
+
+const lang = Astro.params.lang as Lang;
+const title = 'Press kit';
+const subject = encodeURIComponent(lang === 'it' ? 'Richiesta foto alta risoluzione' : 'High-res photo request');
+---
+<Base title={title}>
+  <article class="mx-auto max-w-prose">
+    <h1 class="text-5xl">{title}</h1>
+    {lang === 'it' ? (
+      <div class="prose mt-8">
+        <p>Se sei della stampa o stai realizzando un articolo / un servizio su Polesine Parmense e ti servono <strong>foto in alta risoluzione</strong>, contattaci. Sul sito pubblichiamo solo versioni con watermark per tutelare gli autori.</p>
+        <p>Nella richiesta indica: testata, autore, motivo dell'utilizzo e quali foto ti servono. Risponderemo con un link temporaneo agli originali.</p>
+        <p class="opacity-70"><em>La galleria pubblica con watermark sarà collegata qui appena disponibile.</em></p>
+      </div>
+    ) : (
+      <div class="prose mt-8">
+        <p>Press? Need <strong>high-resolution photos</strong> for an article? Contact us. On the site we publish watermarked previews to protect authors.</p>
+        <p>In your request include: outlet, author, intended use, and which photos you need. We reply with a temporary link to the originals.</p>
+        <p class="opacity-70"><em>The public watermarked gallery will be linked here when ready.</em></p>
+      </div>
+    )}
+    <a href={`mailto:${SITE.email}?subject=${subject}`} class="mt-10 inline-block rounded-full bg-pioppo px-5 py-2 text-white no-underline">
+      {lang === 'it' ? 'Richiedi alta risoluzione' : 'Request high-res'}
+    </a>
+  </article>
+</Base>

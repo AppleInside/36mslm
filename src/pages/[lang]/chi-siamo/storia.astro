@@ -1,0 +1,28 @@
+---
+import Base from '../../../layouts/Base.astro';
+import type { Lang } from '../../../i18n/ui';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'it' } }, { params: { lang: 'en' } }];
+}
+
+const lang = Astro.params.lang as Lang;
+const title = lang === 'it' ? 'Storia' : 'History';
+---
+<Base title={title}>
+  <article class="mx-auto max-w-prose">
+    <h1 class="text-5xl">{title}</h1>
+    {lang === 'it' ? (
+      <div class="prose mt-8">
+        <p>«36 m s.l.m.» è la quota di Polesine Parmense, paese di pianura tra Po e pioppi. Nasce come Associazione di Promozione Sociale per tenere viva la memoria del territorio e per promuovere chi lo abita oggi.</p>
+        <p>Lavoriamo per due tipi di pubblico: i polesinesi che vogliono partecipare alle attività dell'associazione, e chi visita il paese per la prima volta — turisti, ciclisti, curiosi della cucina del Po.</p>
+        <p>La sede è in paese, le riunioni sono aperte, i contatti sono nel <a href="../../contatti/">footer</a>.</p>
+      </div>
+    ) : (
+      <div class="prose mt-8">
+        <p>«36 m s.l.m.» is the elevation of Polesine Parmense, a riverbank village in the Po plain. We are a social-promotion association keeping the local memory alive and promoting the people who live here today.</p>
+        <p>Two audiences: locals who want to take part, and visitors discovering the village for the first time.</p>
+      </div>
+    )}
+  </article>
+</Base>

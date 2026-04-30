@@ -1,0 +1,44 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { SITE } from '../../../consts';
+import type { Lang } from '../../../i18n/ui';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'it' } }, { params: { lang: 'en' } }];
+}
+
+const lang = Astro.params.lang as Lang;
+const title = lang === 'it' ? 'Trasparenza' : 'Transparency';
+---
+<Base title={title}>
+  <article class="mx-auto max-w-prose">
+    <h1 class="text-5xl">{title}</h1>
+    {lang === 'it' ? (
+      <div class="prose mt-8">
+        <h2>Identità</h2>
+        <ul>
+          <li>Denominazione: {SITE.longName}</li>
+          <li>Sede: {SITE.address}</li>
+          <li>Codice fiscale: {SITE.codiceFiscale}</li>
+        </ul>
+        <h2>Organi sociali</h2>
+        <p class="opacity-70"><em>Composizione del consiglio direttivo e delle altre cariche aggiornata dopo ogni assemblea — sezione in arrivo.</em></p>
+        <h2>Bilanci</h2>
+        <p class="opacity-70"><em>I bilanci di esercizio (obbligo APS) saranno pubblicati qui in formato PDF.</em></p>
+      </div>
+    ) : (
+      <div class="prose mt-8">
+        <h2>Identity</h2>
+        <ul>
+          <li>Legal name: {SITE.longName}</li>
+          <li>Address: {SITE.address}</li>
+          <li>Tax code: {SITE.codiceFiscale}</li>
+        </ul>
+        <h2>Officers</h2>
+        <p class="opacity-70"><em>Board composition is updated after each general meeting — section coming.</em></p>
+        <h2>Balance sheets</h2>
+        <p class="opacity-70"><em>Annual balance sheets (APS duty) will be posted here as PDF.</em></p>
+      </div>
+    )}
+  </article>
+</Base>

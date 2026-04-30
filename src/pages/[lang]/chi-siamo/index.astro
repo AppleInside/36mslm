@@ -1,0 +1,37 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { useTranslations, localizedPath } from '../../../i18n/utils';
+import type { Lang } from '../../../i18n/ui';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'it' } }, { params: { lang: 'en' } }];
+}
+
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+
+const cards = lang === 'it'
+  ? [
+    { href: 'chi-siamo/storia', title: 'Storia', body: 'Da dove veniamo, perché esistiamo.' },
+    { href: 'chi-siamo/statuto', title: 'Statuto', body: 'Atto costitutivo e regolamento.' },
+    { href: 'chi-siamo/trasparenza', title: 'Trasparenza', body: 'Organi sociali, bilanci, obblighi APS.' },
+    { href: 'chi-siamo/press-kit', title: 'Press kit', body: 'Foto e materiali per la stampa.' },
+  ]
+  : [
+    { href: 'chi-siamo/storia', title: 'History', body: 'Who we are and why.' },
+    { href: 'chi-siamo/statuto', title: 'Bylaws', body: 'Founding act and regulations.' },
+    { href: 'chi-siamo/trasparenza', title: 'Transparency', body: 'Officers, balance sheets, APS duties.' },
+    { href: 'chi-siamo/press-kit', title: 'Press kit', body: 'Photos and materials for press.' },
+  ];
+---
+<Base title={t('nav.about')}>
+  <h1 class="text-5xl">{t('nav.about')}</h1>
+  <div class="mt-8 grid gap-4 md:grid-cols-2">
+    {cards.map((c) => (
+      <a href={localizedPath(lang, c.href)} class="block rounded-2xl border border-argento bg-sabbia p-5 no-underline transition hover:bg-argento/40">
+        <h2 class="text-2xl">{c.title}</h2>
+        <p class="mt-1 text-sm opacity-80">{c.body}</p>
+      </a>
+    ))}
+  </div>
+</Base>

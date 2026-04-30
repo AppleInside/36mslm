@@ -1,0 +1,27 @@
+---
+import Base from '../../../layouts/Base.astro';
+import type { Lang } from '../../../i18n/ui';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'it' } }, { params: { lang: 'en' } }];
+}
+
+const lang = Astro.params.lang as Lang;
+const title = lang === 'it' ? 'Statuto' : 'Bylaws';
+---
+<Base title={title}>
+  <article class="mx-auto max-w-prose">
+    <h1 class="text-5xl">{title}</h1>
+    {lang === 'it' ? (
+      <div class="prose mt-8">
+        <p>L'atto costitutivo e lo statuto dell'associazione sono depositati e disponibili in formato PDF.</p>
+        <p class="opacity-70"><em>Il documento PDF sarà collegato qui non appena la digitalizzazione sarà completata.</em></p>
+      </div>
+    ) : (
+      <div class="prose mt-8">
+        <p>Founding act and bylaws are deposited and available in PDF.</p>
+        <p class="opacity-70"><em>The PDF document will be linked here as soon as digitization is complete.</em></p>
+      </div>
+    )}
+  </article>
+</Base>
