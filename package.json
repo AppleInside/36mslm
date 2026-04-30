@@ -21,7 +21,8 @@
     "@astrojs/mdx": "^4.3.14",
     "@astrojs/node": "^9.5.5",
     "@astrojs/tailwind": "^6.0.2",
-    "astro": "^5.18.1"
+    "astro": "^5.18.1",
+    "postgres": "^3.4.9"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
