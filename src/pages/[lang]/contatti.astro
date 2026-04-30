@@ -1,0 +1,28 @@
+---
+import Base from '../../layouts/Base.astro';
+import { SITE } from '../../consts';
+import { useTranslations } from '../../i18n/utils';
+import type { Lang } from '../../i18n/ui';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'it' } }, { params: { lang: 'en' } }];
+}
+
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+---
+<Base title={t('nav.contact')}>
+  <article class="mx-auto max-w-prose">
+    <h1 class="text-5xl">{t('nav.contact')}</h1>
+    <div class="prose mt-8">
+      <p>{lang === 'it'
+        ? 'Per qualsiasi domanda — eventi, tessera, foto, segnalazioni — scrivici. Rispondiamo nel giro di qualche giorno.'
+        : 'Any question — events, membership, photos, reports — drop us a line. We reply within a few days.'}</p>
+      <ul>
+        <li>Email: <a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
+        <li>{lang === 'it' ? 'Sede' : 'Office'}: {SITE.address}</li>
+        <li>{lang === 'it' ? 'Codice fiscale' : 'Tax code'}: {SITE.codiceFiscale}</li>
+      </ul>
+    </div>
+  </article>
+</Base>
