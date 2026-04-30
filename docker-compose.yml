@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: polesine36-db
+    environment:
+      POSTGRES_USER: polesine
+      POSTGRES_PASSWORD: polesine
+      POSTGRES_DB: polesine36
+    ports:
+      - "5433:5432"
+    volumes:
+      - polesine36_pgdata:/var/lib/postgresql/data
+      - ./db/migrations:/docker-entrypoint-initdb.d:ro
+
+volumes:
+  polesine36_pgdata:
