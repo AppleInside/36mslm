@@ -27,3 +27,7 @@ pnpm-debug.log*
 .brainstorm/
 .claude/settings.local.json
 *.pid
+
+# legacy scraping artifacts (pre-migration data, kept locally)
+scraped_media/
+scrape_media.py
