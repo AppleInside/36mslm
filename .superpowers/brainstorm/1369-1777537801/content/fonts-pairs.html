@@ -1,0 +1,82 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=Homemade+Apple&family=Lora:wght@400;500;600&family=Spectral:wght@400;500;600&family=Inter:wght@400;500;600&display=swap');
+
+  .pair-a h3.demo { font-family: 'Caveat', cursive; font-weight: 700; font-size: 38px; line-height: 1; }
+  .pair-a .demo-body, .pair-a button { font-family: 'Lora', Georgia, serif; }
+
+  .pair-b h3.demo { font-family: 'Kalam', cursive; font-weight: 700; font-size: 32px; line-height: 1.1; }
+  .pair-b .demo-body, .pair-b button { font-family: 'Spectral', Georgia, serif; }
+
+  .pair-c h3.demo { font-family: 'Patrick Hand', cursive; font-weight: 400; font-size: 32px; line-height: 1.1; }
+  .pair-c .demo-body, .pair-c button { font-family: 'Inter', system-ui, sans-serif; }
+
+  .pair h3.demo { color:#2c3530; margin: 0 0 8px; }
+</style>
+
+<h2>Titoli handwritten + corpo leggibile</h2>
+<p class="subtitle">Tre accoppiate. In tutte il titolo è "scritto a mano", il corpo è un font studiato per leggere a lungo senza affaticare.</p>
+
+<div class="cards" data-multiselect>
+
+  <!-- A: Caveat + Lora -->
+  <div class="card pair pair-a" data-choice="caveat-lora" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;background:#f2ede0;">
+      <div style="background:linear-gradient(180deg,#f2ede0 0%,#e3e8d8 100%);padding:30px 24px 32px;">
+        <div class="demo-body" style="font-size:11px;color:#2c3530;font-weight:700;letter-spacing:0.5px;">36 m s.l.m.</div>
+        <div style="margin-top:18px;">
+          <div class="demo-body" style="display:inline-block;background:#c9d4bd;color:#2c3530;font-size:10px;letter-spacing:0.5px;padding:3px 9px;border-radius:14px;text-transform:uppercase;font-weight:600;">10 maggio</div>
+          <h3 class="demo">Camminata in golena<br/>al risveglio del Po</h3>
+          <p class="demo-body" style="font-size:13px;color:#3a4540;margin:6px 0 14px;line-height:1.6;">Un percorso di sei chilometri tra i pioppi e i meandri del fiume, accompagnati dai volontari dell'associazione. Si parte all'alba, quando la nebbia si stacca dall'acqua e gli aironi cominciano a battere le ali. Ritrovo all'argine, alle sei e mezza.</p>
+          <button style="background:#a8b89b;border:none;padding:8px 16px;border-radius:20px;color:#fff;font-size:12px;font-weight:600;">Iscriviti →</button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Caveat + Lora</h3>
+      <p>Titolo a penna, scorrevole. Corpo Lora: serif morbida e <strong>fatta per leggere paragrafi lunghi</strong>. Combinazione calda, accogliente, comunitaria.</p>
+    </div>
+  </div>
+
+  <!-- B: Kalam + Spectral -->
+  <div class="card pair pair-b" data-choice="kalam-spectral" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;background:#f2ede0;">
+      <div style="background:linear-gradient(180deg,#f2ede0 0%,#e3e8d8 100%);padding:30px 24px 32px;">
+        <div class="demo-body" style="font-size:11px;color:#2c3530;font-weight:700;letter-spacing:0.5px;">36 m s.l.m.</div>
+        <div style="margin-top:18px;">
+          <div class="demo-body" style="display:inline-block;background:#c9d4bd;color:#2c3530;font-size:10px;letter-spacing:0.5px;padding:3px 9px;border-radius:14px;text-transform:uppercase;font-weight:600;">10 maggio</div>
+          <h3 class="demo">Camminata in golena<br/>al risveglio del Po</h3>
+          <p class="demo-body" style="font-size:13px;color:#3a4540;margin:6px 0 14px;line-height:1.6;">Un percorso di sei chilometri tra i pioppi e i meandri del fiume, accompagnati dai volontari dell'associazione. Si parte all'alba, quando la nebbia si stacca dall'acqua e gli aironi cominciano a battere le ali. Ritrovo all'argine, alle sei e mezza.</p>
+          <button style="background:#a8b89b;border:none;padding:8px 16px;border-radius:20px;color:#fff;font-size:12px;font-weight:600;">Iscriviti →</button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Kalam + Spectral</h3>
+      <p>Titolo a mano più "disciplinato" di Caveat. Corpo Spectral: serif <strong>pulita, pensata per testi lunghi su schermo</strong>. Tono editoriale, da rivista locale.</p>
+    </div>
+  </div>
+
+  <!-- C: Patrick Hand + Inter -->
+  <div class="card pair pair-c" data-choice="patrick-inter" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;background:#f2ede0;">
+      <div style="background:linear-gradient(180deg,#f2ede0 0%,#e3e8d8 100%);padding:30px 24px 32px;">
+        <div class="demo-body" style="font-size:11px;color:#2c3530;font-weight:700;letter-spacing:0.5px;">36 m s.l.m.</div>
+        <div style="margin-top:18px;">
+          <div class="demo-body" style="display:inline-block;background:#c9d4bd;color:#2c3530;font-size:10px;letter-spacing:0.5px;padding:3px 9px;border-radius:14px;text-transform:uppercase;font-weight:600;">10 maggio</div>
+          <h3 class="demo">Camminata in golena<br/>al risveglio del Po</h3>
+          <p class="demo-body" style="font-size:13px;color:#3a4540;margin:6px 0 14px;line-height:1.6;">Un percorso di sei chilometri tra i pioppi e i meandri del fiume, accompagnati dai volontari dell'associazione. Si parte all'alba, quando la nebbia si stacca dall'acqua e gli aironi cominciano a battere le ali. Ritrovo all'argine, alle sei e mezza.</p>
+          <button style="background:#a8b89b;border:none;padding:8px 16px;border-radius:20px;color:#fff;font-size:12px;font-weight:600;">Iscriviti →</button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Patrick Hand + Inter</h3>
+      <p>Titolo a stampatello (più ordinato). Corpo Inter: <strong>la sans-serif più leggibile in circolazione</strong>, niente fronzoli, vista riposata anche su mobile. Tono moderno, pulito.</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="section" style="margin-top:20px;padding:14px 16px;background:#f4f1e8;border-left:3px solid #8a9c87;border-radius:6px;font-size:13px;color:#3a3a35;">
+  <strong>Su Marcellus per il corpo:</strong> sconsigliato. È un display alto e sottile — bello per loghi e titoli brevi, ma su paragrafi lunghi (es. una ricetta o la storia di un evento) stanca davvero la lettura. Se ti piace il <em>look</em> di Marcellus, possiamo usarlo come <strong>accento decorativo</strong> (sottotitoli, etichette) e tenere il corpo in Lora/Spectral/Inter. Dimmi se ti interessa questo compromesso.
+</div>

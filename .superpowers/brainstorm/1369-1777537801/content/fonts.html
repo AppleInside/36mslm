@@ -1,0 +1,75 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700&family=Lora:wght@400;600;700&family=DM+Serif+Display&family=Inter:wght@400;500;600&display=swap');
+  .font-card-newsreader h3.demo { font-family: 'Newsreader', Georgia, serif; }
+  .font-card-lora h3.demo { font-family: 'Lora', Georgia, serif; }
+  .font-card-dmserif h3.demo { font-family: 'DM Serif Display', Georgia, serif; }
+  .font-card .demo-body { font-family: 'Inter', system-ui, sans-serif; }
+</style>
+
+<h2>Tre serif diversi — quale ha il carattere giusto?</h2>
+<p class="subtitle">Stesso titolo, stessa palette. Cambia solo il font dei titoli (corpo testo Inter in tutti e tre).</p>
+
+<div class="cards" data-multiselect>
+
+  <!-- A: NEWSREADER -->
+  <div class="card font-card font-card-newsreader" data-choice="newsreader" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;background:#f2ede0;">
+      <div style="background:linear-gradient(180deg,#f2ede0 0%,#e3e8d8 100%);padding:32px 24px 36px;">
+        <div class="demo-body" style="font-size:11px;color:#2c3530;font-weight:700;letter-spacing:0.5px;">36 m s.l.m.</div>
+        <div style="margin-top:22px;">
+          <div class="demo-body" style="display:inline-block;background:#c9d4bd;color:#2c3530;font-size:10px;letter-spacing:0.5px;padding:3px 9px;border-radius:14px;text-transform:uppercase;font-weight:600;">10 maggio</div>
+          <h3 class="demo" style="font-size:26px;color:#2c3530;margin:10px 0 6px;line-height:1.15;font-weight:600;">Camminata in golena<br/>al risveglio del Po</h3>
+          <p class="demo-body" style="font-size:12px;color:#4a5450;margin:0 0 14px;line-height:1.5;">Tra pioppi e meandri, guidati dai volontari.</p>
+          <button class="demo-body" style="background:#a8b89b;border:none;padding:8px 16px;border-radius:20px;color:#fff;font-size:11px;font-weight:600;">Iscriviti →</button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Newsreader</h3>
+      <p>Pensata per leggere — sa di rivista letteraria. <strong>Calda, contemporanea, perfetta per "Storie & memoria"</strong>. Tono editoriale ma non polveroso.</p>
+    </div>
+  </div>
+
+  <!-- B: LORA -->
+  <div class="card font-card font-card-lora" data-choice="lora" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;background:#f2ede0;">
+      <div style="background:linear-gradient(180deg,#f2ede0 0%,#e3e8d8 100%);padding:32px 24px 36px;">
+        <div class="demo-body" style="font-size:11px;color:#2c3530;font-weight:700;letter-spacing:0.5px;">36 m s.l.m.</div>
+        <div style="margin-top:22px;">
+          <div class="demo-body" style="display:inline-block;background:#c9d4bd;color:#2c3530;font-size:10px;letter-spacing:0.5px;padding:3px 9px;border-radius:14px;text-transform:uppercase;font-weight:600;">10 maggio</div>
+          <h3 class="demo" style="font-size:26px;color:#2c3530;margin:10px 0 6px;line-height:1.15;font-weight:600;">Camminata in golena<br/>al risveglio del Po</h3>
+          <p class="demo-body" style="font-size:12px;color:#4a5450;margin:0 0 14px;line-height:1.5;">Tra pioppi e meandri, guidati dai volontari.</p>
+          <button class="demo-body" style="background:#a8b89b;border:none;padding:8px 16px;border-radius:20px;color:#fff;font-size:11px;font-weight:600;">Iscriviti →</button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Lora</h3>
+      <p>Più morbida, meno "stampata". <strong>Sicura, accogliente, classica senza essere antica</strong>. Buona per un sito che mette al centro la comunità.</p>
+    </div>
+  </div>
+
+  <!-- C: DM SERIF DISPLAY -->
+  <div class="card font-card font-card-dmserif" data-choice="dmserif" onclick="toggleSelect(this)">
+    <div class="card-image" style="padding:0;background:#f2ede0;">
+      <div style="background:linear-gradient(180deg,#f2ede0 0%,#e3e8d8 100%);padding:32px 24px 36px;">
+        <div class="demo-body" style="font-size:11px;color:#2c3530;font-weight:700;letter-spacing:0.5px;">36 m s.l.m.</div>
+        <div style="margin-top:22px;">
+          <div class="demo-body" style="display:inline-block;background:#c9d4bd;color:#2c3530;font-size:10px;letter-spacing:0.5px;padding:3px 9px;border-radius:14px;text-transform:uppercase;font-weight:600;">10 maggio</div>
+          <h3 class="demo" style="font-size:28px;color:#2c3530;margin:10px 0 6px;line-height:1.1;font-weight:400;">Camminata in golena<br/>al risveglio del Po</h3>
+          <p class="demo-body" style="font-size:12px;color:#4a5450;margin:0 0 14px;line-height:1.5;">Tra pioppi e meandri, guidati dai volontari.</p>
+          <button class="demo-body" style="background:#a8b89b;border:none;padding:8px 16px;border-radius:20px;color:#fff;font-size:11px;font-weight:600;">Iscriviti →</button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — DM Serif Display</h3>
+      <p>Grazie alte e contrasti netti. <strong>Tono moderno e di carattere, quasi "manifesto"</strong>. Ottima per dare un'identità forte, meno indicata se i titoli sono lunghi.</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="section" style="margin-top:20px;padding:14px 16px;background:#f4f1e8;border-left:3px solid #8a9c87;border-radius:6px;font-size:13px;color:#3a3a35;">
+  <strong>Promemoria:</strong> il corpo del testo resta <em>Inter</em> (sans neutra) in tutte le opzioni. Se nessuna ti convince dimmi <em>come</em> la vorresti diversa (più moderna, più rustica, più sottile, più squadrata) e ne propongo altre.
+</div>

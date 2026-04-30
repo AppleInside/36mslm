@@ -1,0 +1,102 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Marcellus&family=Italiana&family=Quattrocento:wght@400;700&family=Frank+Ruhl+Libre:wght@400;500;700&family=Spectral:wght@400;500;600&family=Vollkorn:wght@400;600;700&family=Cardo:wght@400;700&family=Bricolage+Grotesque:wght@500;700&family=Caveat:wght@500;700&family=Inter:wght@400;500;600&display=swap');
+  .ff-cormorant h3.demo { font-family: 'Cormorant Garamond', serif; font-weight:600; letter-spacing:-0.01em; }
+  .ff-marcellus h3.demo { font-family: 'Marcellus', serif; font-weight:400; }
+  .ff-italiana h3.demo { font-family: 'Italiana', serif; font-weight:400; letter-spacing:0.01em; }
+  .ff-quattrocento h3.demo { font-family: 'Quattrocento', serif; font-weight:700; }
+  .ff-frankruhl h3.demo { font-family: 'Frank Ruhl Libre', serif; font-weight:500; }
+  .ff-spectral h3.demo { font-family: 'Spectral', serif; font-weight:600; }
+  .ff-vollkorn h3.demo { font-family: 'Vollkorn', serif; font-weight:700; }
+  .ff-cardo h3.demo { font-family: 'Cardo', serif; font-weight:700; }
+  .ff-bricolage h3.demo { font-family: 'Bricolage Grotesque', sans-serif; font-weight:700; letter-spacing:-0.02em; }
+  .ff-caveat h3.demo { font-family: 'Caveat', cursive; font-weight:700; font-size:32px !important; }
+  .font-card .demo-body { font-family: 'Inter', system-ui, sans-serif; }
+  .font-card h3.demo { font-size: 22px; line-height: 1.15; color:#2c3530; margin: 8px 0 4px; }
+  .font-mini { padding: 18px !important; min-height: auto !important; }
+  .font-card .card-body { padding: 12px 16px 16px !important; }
+  .font-card .card-body h3 { font-size: 14px !important; margin: 0 0 4px !important; }
+  .font-card .card-body p { font-size: 12px !important; line-height: 1.4 !important; margin: 0 !important; color:#4a5450; }
+  .grid-10 { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (min-width: 1100px) { .grid-10 { grid-template-columns: 1fr 1fr 1fr; } }
+</style>
+
+<h2>10 font — pesca quello con il carattere giusto</h2>
+<p class="subtitle">Stesso titolo, palette identica. Clicca quello che ti convince (o più di uno). Mix di serif classici, eleganti, e un paio di scelte non-serif per uscire dallo schema.</p>
+
+<div class="cards grid-10" data-multiselect>
+
+  <div class="card font-card ff-cormorant" data-choice="cormorant" onclick="toggleSelect(this)">
+    <div class="card-image font-mini" style="background:#f2ede0;">
+      <h3 class="demo">Camminata in golena al risveglio del Po</h3>
+    </div>
+    <div class="card-body"><h3>1 — Cormorant Garamond</h3><p>Eleganza alta, classica, sottile. Tono "ristorante stellato".</p></div>
+  </div>
+
+  <div class="card font-card ff-marcellus" data-choice="marcellus" onclick="toggleSelect(this)">
+    <div class="card-image font-mini" style="background:#f2ede0;">
+      <h3 class="demo">Camminata in golena al risveglio del Po</h3>
+    </div>
+    <div class="card-body"><h3>2 — Marcellus</h3><p>Romana sottile e raffinata. Sa di lapide e museo, in senso buono.</p></div>
+  </div>
+
+  <div class="card font-card ff-italiana" data-choice="italiana" onclick="toggleSelect(this)">
+    <div class="card-image font-mini" style="background:#f2ede0;">
+      <h3 class="demo">Camminata in golena al risveglio del Po</h3>
+    </div>
+    <div class="card-body"><h3>3 — Italiana</h3><p>Display alta e sottilissima. Italianità di nome e di fatto, audace.</p></div>
+  </div>
+
+  <div class="card font-card ff-quattrocento" data-choice="quattrocento" onclick="toggleSelect(this)">
+    <div class="card-image font-mini" style="background:#f2ede0;">
+      <h3 class="demo">Camminata in golena al risveglio del Po</h3>
+    </div>
+    <div class="card-body"><h3>4 — Quattrocento</h3><p>Storica italiana, calda e robusta. Sa di antica tipografia.</p></div>
+  </div>
+
+  <div class="card font-card ff-frankruhl" data-choice="frankruhl" onclick="toggleSelect(this)">
+    <div class="card-image font-mini" style="background:#f2ede0;">
+      <h3 class="demo">Camminata in golena al risveglio del Po</h3>
+    </div>
+    <div class="card-body"><h3>5 — Frank Ruhl Libre</h3><p>Moderna ed elegante. Bilanciatissima, "rivista contemporanea".</p></div>
+  </div>
+
+  <div class="card font-card ff-spectral" data-choice="spectral" onclick="toggleSelect(this)">
+    <div class="card-image font-mini" style="background:#f2ede0;">
+      <h3 class="demo">Camminata in golena al risveglio del Po</h3>
+    </div>
+    <div class="card-body"><h3>6 — Spectral</h3><p>Pulita, leggibilissima, poetica. Pensata per leggere a lungo.</p></div>
+  </div>
+
+  <div class="card font-card ff-vollkorn" data-choice="vollkorn" onclick="toggleSelect(this)">
+    <div class="card-image font-mini" style="background:#f2ede0;">
+      <h3 class="demo">Camminata in golena al risveglio del Po</h3>
+    </div>
+    <div class="card-body"><h3>7 — Vollkorn</h3><p>Robusta, calda, "pane integrale" (è il significato). Artigianale.</p></div>
+  </div>
+
+  <div class="card font-card ff-cardo" data-choice="cardo" onclick="toggleSelect(this)">
+    <div class="card-image font-mini" style="background:#f2ede0;">
+      <h3 class="demo">Camminata in golena al risveglio del Po</h3>
+    </div>
+    <div class="card-body"><h3>8 — Cardo</h3><p>Da manoscritto, libresca, antica. Sa di archivio e biblioteca.</p></div>
+  </div>
+
+  <div class="card font-card ff-bricolage" data-choice="bricolage" onclick="toggleSelect(this)">
+    <div class="card-image font-mini" style="background:#f2ede0;">
+      <h3 class="demo">Camminata in golena al risveglio del Po</h3>
+    </div>
+    <div class="card-body"><h3>9 — Bricolage Grotesque <span style="color:#9bafb5">(sans!)</span></h3><p>Non-serif, ma con anima artigianale. Moderna e di carattere.</p></div>
+  </div>
+
+  <div class="card font-card ff-caveat" data-choice="caveat" onclick="toggleSelect(this)">
+    <div class="card-image font-mini" style="background:#f2ede0;">
+      <h3 class="demo">Camminata in golena al risveglio del Po</h3>
+    </div>
+    <div class="card-body"><h3>10 — Caveat <span style="color:#9bafb5">(handwritten!)</span></h3><p>Scritto a mano, caldo, comunità. Più adatto come <em>accento</em> che testo principale.</p></div>
+  </div>
+
+</div>
+
+<div class="section" style="margin-top:20px;padding:14px 16px;background:#f4f1e8;border-left:3px solid #8a9c87;border-radius:6px;font-size:13px;color:#3a3a35;">
+  <strong>Suggerimento:</strong> per un sito di promozione territoriale, le scelte più "sicure ma con carattere" sono <em>Frank Ruhl Libre</em> (5), <em>Spectral</em> (6), <em>Vollkorn</em> (7). Più audaci: <em>Italiana</em> (3) o <em>Bricolage Grotesque</em> (9). Più classico-letterarie: <em>Cormorant</em> (1), <em>Marcellus</em> (2), <em>Cardo</em> (8). <em>Caveat</em> (10) ti consiglio di usarlo solo come accento (firma, citazioni), non per i titoli principali.
+</div>
