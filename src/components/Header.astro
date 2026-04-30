@@ -13,7 +13,9 @@ const nav = [
 ---
 <header class="border-b border-argento/60 bg-sabbia">
   <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-    <a href={localizedPath(lang, '')} class="font-hand text-2xl no-underline">36 m s.l.m.</a>
+    <a href={localizedPath(lang, '')} class="no-underline" aria-label="36 m s.l.m.">
+      <img src="/logo.jpg" alt="36 m s.l.m." class="h-10 w-auto md:h-12" />
+    </a>
     <nav class="hidden gap-6 md:flex">
       {nav.map((n) => <a href={n.href} class="no-underline hover:text-pioppo">{n.label}</a>)}
     </nav>
