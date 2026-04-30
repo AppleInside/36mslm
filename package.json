@@ -23,7 +23,8 @@
     "@astrojs/tailwind": "^6.0.2",
     "astro": "^5.18.1",
     "postgres": "^3.4.9",
-    "resend": "^6.12.2"
+    "resend": "^6.12.2",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
