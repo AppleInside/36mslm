@@ -1,0 +1,48 @@
+---
+import { getLangFromUrl } from '../i18n/utils';
+const { eventSlug } = Astro.props as { eventSlug: string };
+const lang = getLangFromUrl(Astro.url);
+const url = new URL(Astro.url);
+const justSent = url.searchParams.get('signup') === 'ok';
+
+const labels = lang === 'it'
+  ? { title: 'Iscriviti all\'evento', name: 'Nome e cognome', email: 'Email', phone: 'Telefono (facoltativo)', size: 'Quante persone', notes: 'Note (facoltativo)', send: 'Invia iscrizione', ok: 'Iscrizione ricevuta. Ti scriviamo a conferma.' }
+  : { title: 'Sign up for this event', name: 'Full name', email: 'Email', phone: 'Phone (optional)', size: 'How many people', notes: 'Notes (optional)', send: 'Send signup', ok: 'Signup received. We will email you to confirm.' };
+---
+<section id="iscrivimi" class="mt-10 rounded-2xl border border-pioppo p-5">
+  <h2 class="font-hand text-3xl">{labels.title}</h2>
+
+  {justSent && <p class="mt-3 rounded-lg bg-argento/60 p-3">{labels.ok}</p>}
+
+  <form method="post" action="/api/event-signup" class="mt-4 grid gap-3">
+    <input type="hidden" name="eventSlug" value={eventSlug} />
+    <input type="hidden" name="sourceLang" value={lang} />
+
+    <label class="grid gap-1 text-sm">
+      <span>{labels.name}</span>
+      <input name="name" required maxlength="120" class="rounded border border-argento bg-sabbia px-3 py-2" />
+    </label>
+
+    <label class="grid gap-1 text-sm">
+      <span>{labels.email}</span>
+      <input name="email" type="email" required maxlength="200" class="rounded border border-argento bg-sabbia px-3 py-2" />
+    </label>
+
+    <label class="grid gap-1 text-sm">
+      <span>{labels.phone}</span>
+      <input name="phone" maxlength="40" class="rounded border border-argento bg-sabbia px-3 py-2" />
+    </label>
+
+    <label class="grid gap-1 text-sm">
+      <span>{labels.size}</span>
+      <input name="partySize" type="number" min="1" max="20" value="1" required class="rounded border border-argento bg-sabbia px-3 py-2" />
+    </label>
+
+    <label class="grid gap-1 text-sm">
+      <span>{labels.notes}</span>
+      <textarea name="notes" rows="3" maxlength="2000" class="rounded border border-argento bg-sabbia px-3 py-2"></textarea>
+    </label>
+
+    <button type="submit" class="mt-2 inline-block rounded-full bg-pioppo px-5 py-2 text-white">{labels.send}</button>
+  </form>
+</section>
