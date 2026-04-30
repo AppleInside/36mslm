@@ -1,0 +1,29 @@
+---
+import Base from '../../../../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import type { Lang } from '../../../../../i18n/ui';
+
+export async function getStaticPaths() {
+  const all = await getCollection('places');
+  return all.map((entry) => {
+    const [lang, ...rest] = entry.slug.split('/');
+    return { params: { lang, slug: rest.join('/') }, props: { entry } };
+  });
+}
+
+const { entry } = Astro.props;
+const _lang = Astro.params.lang as Lang;
+const { Content } = await entry.render();
+---
+<Base title={entry.data.title}>
+  <article class="mx-auto max-w-prose">
+    <p class="text-xs uppercase tracking-wider text-po">{entry.data.kind}</p>
+    <h1 class="mt-2 text-5xl">{entry.data.title}</h1>
+    <p class="mt-2 opacity-80">{entry.data.address}</p>
+    <div class="prose mt-8"><Content /></div>
+    <ul class="mt-8 space-y-1 text-sm">
+      {entry.data.phone && <li>Tel: <a href={`tel:${entry.data.phone}`}>{entry.data.phone}</a></li>}
+      {entry.data.website && <li>Web: <a href={entry.data.website}>{entry.data.website}</a></li>}
+    </ul>
+  </article>
+</Base>

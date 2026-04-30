@@ -18,5 +18,12 @@ const itineraries = sortByDateDesc(byLang(all, lang));
 <Base title={t('nav.discover.territory')}>
   <h1 class="text-5xl">{t('nav.discover.territory')}</h1>
   <p class="mt-3 max-w-prose opacity-80">Itinerari a piedi e in bicicletta tra il Po e i pioppi.</p>
+
+  <div class="mt-6">
+    <a href={`/${lang}/scopri/territorio/dove/`} class="inline-block rounded-full border border-pioppo px-5 py-2 no-underline">
+      {lang === 'it' ? 'Dove mangiare e dormire →' : 'Where to eat & stay →'}
+    </a>
+  </div>
+
   <div class="mt-8 grid gap-4 md:grid-cols-2">{itineraries.map((e) => <ItineraryCard entry={e} />)}</div>
 </Base>
