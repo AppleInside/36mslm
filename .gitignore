@@ -31,3 +31,4 @@ pnpm-debug.log*
 # legacy scraping artifacts (pre-migration data, kept locally)
 scraped_media/
 scrape_media.py
+public/media/legacy/
