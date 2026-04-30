@@ -1,0 +1,11 @@
+---
+import { getLangFromUrl, localizedPath } from '../i18n/utils';
+const { entry } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const slug = entry.slug.replace(/^(it|en)\//, '');
+---
+<a href={localizedPath(lang, `scopri/ricettario/${slug}`)} class="block rounded-2xl border border-argento bg-sabbia p-5 no-underline transition hover:bg-argento/40">
+  <p class="text-xs uppercase tracking-wider text-po">{entry.data.course}{entry.data.seasons.length > 0 && ` · ${entry.data.seasons.join(', ')}`}</p>
+  <h3 class="mt-1 text-2xl">{entry.data.title}</h3>
+  {entry.data.dialectName && <p class="mt-1 font-hand text-xl opacity-80">{entry.data.dialectName}</p>}
+</a>
