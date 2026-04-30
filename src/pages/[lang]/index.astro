@@ -1,0 +1,47 @@
+---
+import Base from '../../layouts/Base.astro';
+import HeroEvent from '../../components/HeroEvent.astro';
+import EventCard from '../../components/EventCard.astro';
+import { getCollection } from 'astro:content';
+import { useTranslations, localizedPath } from '../../i18n/utils';
+import type { Lang } from '../../i18n/ui';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'it' } }, { params: { lang: 'en' } }];
+}
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+const now = new Date();
+const all = await getCollection('events', (e) => e.slug.startsWith(`${lang}/`) && !e.data.draft && e.data.date >= now);
+all.sort((a, b) => a.data.date.getTime() - b.data.date.getTime());
+const [next, ...rest] = all;
+const upcoming = rest.slice(0, 3);
+---
+<Base title={t('nav.events')}>
+  {next && <HeroEvent entry={next} />}
+  {upcoming.length > 0 && (
+    <section class="mt-12">
+      <h2 class="text-3xl">{t('common.allEvents')}</h2>
+      <div class="mt-4 grid gap-4 md:grid-cols-3">{upcoming.map((e) => <EventCard entry={e} />)}</div>
+    </section>
+  )}
+  <section class="mt-12 grid gap-4 md:grid-cols-3">
+    <a href={localizedPath(lang, 'scopri/territorio')} class="rounded-2xl bg-acqua/40 p-6 no-underline">
+      <h3 class="text-2xl">{t('nav.discover.territory')}</h3>
+    </a>
+    <a href={localizedPath(lang, 'scopri/ricettario')} class="rounded-2xl bg-argento/50 p-6 no-underline">
+      <h3 class="text-2xl">{t('nav.discover.recipes')}</h3>
+    </a>
+    <a href={localizedPath(lang, 'scopri/storie')} class="rounded-2xl bg-pioppo/30 p-6 no-underline">
+      <h3 class="text-2xl">{t('nav.discover.stories')}</h3>
+    </a>
+  </section>
+  <section class="mt-12 grid gap-4 md:grid-cols-2">
+    <a href={localizedPath(lang, 'partecipa/tessera')} class="rounded-2xl border border-pioppo p-6 no-underline">
+      <h3 class="text-2xl">{t('nav.participate.membership')}</h3>
+    </a>
+    <a href={localizedPath(lang, 'partecipa/volontari')} class="rounded-2xl border border-po p-6 no-underline">
+      <h3 class="text-2xl">{t('nav.participate.volunteers')}</h3>
+    </a>
+  </section>
+</Base>
