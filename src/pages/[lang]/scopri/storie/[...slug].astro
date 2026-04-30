@@ -1,0 +1,26 @@
+---
+import Base from '../../../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import { formatEventDate } from '../../../../lib/dates';
+import type { Lang } from '../../../../i18n/ui';
+
+export async function getStaticPaths() {
+  const all = await getCollection('stories');
+  return all.map((entry) => {
+    const [lang, ...rest] = entry.slug.split('/');
+    return { params: { lang, slug: rest.join('/') }, props: { entry } };
+  });
+}
+
+const { entry } = Astro.props;
+const lang = Astro.params.lang as Lang;
+const { Content } = await entry.render();
+---
+<Base title={entry.data.title}>
+  <article class="mx-auto max-w-prose">
+    <p class="text-xs uppercase tracking-wider text-po">{formatEventDate(entry.data.date, lang)}{entry.data.author && ` · ${entry.data.author}`}</p>
+    <h1 class="mt-2 text-5xl">{entry.data.title}</h1>
+    {entry.data.excerpt && <p class="mt-3 max-w-prose opacity-80">{entry.data.excerpt}</p>}
+    <div class="prose mt-8"><Content /></div>
+  </article>
+</Base>

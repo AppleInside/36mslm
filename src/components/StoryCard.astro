@@ -1,0 +1,12 @@
+---
+import { getLangFromUrl, localizedPath } from '../i18n/utils';
+import { formatEventDate } from '../lib/dates';
+const { entry } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const slug = entry.slug.replace(/^(it|en)\//, '');
+---
+<a href={localizedPath(lang, `scopri/storie/${slug}`)} class="block rounded-2xl border border-argento bg-sabbia p-5 no-underline transition hover:bg-argento/40">
+  <p class="text-xs uppercase tracking-wider text-po">{formatEventDate(entry.data.date, lang)}{entry.data.author && ` · ${entry.data.author}`}</p>
+  <h3 class="mt-1 text-2xl">{entry.data.title}</h3>
+  {entry.data.excerpt && <p class="mt-1 text-sm opacity-80">{entry.data.excerpt}</p>}
+</a>
