@@ -114,16 +114,19 @@ const recipesJson = Object.fromEntries(
   /* ── Grid ── */
   .recipes-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.25rem;
-    padding: 1.25rem 1.25rem 5rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: .75rem;
+    padding: 1rem 1.25rem 4rem;
   }
   @media (min-width: 560px) {
-    .recipes-grid { grid-template-columns: repeat(2, 1fr); }
+    .recipes-grid { grid-template-columns: repeat(3, 1fr); gap: .9rem; }
   }
-  @media (min-width: 900px) {
-    .filters-bar { padding: 1.5rem 4rem .5rem; }
-    .recipes-grid { grid-template-columns: repeat(3, 1fr); gap: 1.75rem; padding: 1.5rem 4rem 6rem; }
+  @media (min-width: 780px) {
+    .recipes-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+  @media (min-width: 1050px) {
+    .filters-bar { padding: 1.25rem 4rem .4rem; }
+    .recipes-grid { grid-template-columns: repeat(5, 1fr); gap: 1rem; padding: 1.25rem 4rem 5rem; }
   }
 
   /* ── Modal overlay ── */
