@@ -463,9 +463,6 @@ const navItems = [
       const href = a.getAttribute('href') || '';
       if (href !== '/' && path.startsWith(href)) { item.classList.add('active'); activeEl = item; }
     });
-    if (activeEl && indicator) {
-      requestAnimationFrame(() => { moveIndicator(activeEl!); indicator.style.opacity = '1'; });
-    }
     window.addEventListener('resize', () => {
       const a = nav.querySelector('.nav-item.active');
       if (a) moveIndicator(a);
