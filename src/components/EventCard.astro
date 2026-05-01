@@ -1,12 +1,145 @@
 ---
-import { formatEventDate } from '../lib/dates';
+import { formatEventDate, formatTime } from '../lib/dates';
 import { getLangFromUrl, localizedPath } from '../i18n/utils';
+import type { Lang } from '../i18n/ui';
 const { entry } = Astro.props;
-const lang = getLangFromUrl(Astro.url);
+const lang = getLangFromUrl(Astro.url) as Lang;
 const slug = entry.slug.replace(/^(it|en)\//, '');
+const href = localizedPath(lang, `eventi/${slug}`);
+
+const d = entry.data.date;
+const day = d.getDate();
+const months = lang === 'it'
+  ? ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic']
+  : ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+const mon = months[d.getMonth()];
 ---
-<a href={localizedPath(lang, `eventi/${slug}`)} class="block rounded-2xl border border-argento bg-sabbia p-5 no-underline transition hover:bg-argento/40">
-  <p class="text-xs uppercase tracking-wider text-po">{formatEventDate(entry.data.date, lang)}</p>
-  <h3 class="mt-1 text-2xl">{entry.data.title}</h3>
-  <p class="mt-1 text-sm opacity-80">{entry.data.location}</p>
+
+<a href={href} class="ev-card">
+  <div class="ev-pic">
+    {entry.data.cover
+      ? <img src={entry.data.cover} alt={entry.data.title} loading="lazy" />
+      : <div class="ev-placeholder" aria-hidden="true"></div>
+    }
+    <div class="ev-stamp">
+      <span class="ev-d">{day}</span>
+      <span class="ev-m">{mon}</span>
+    </div>
+  </div>
+  <div class="ev-body">
+    <p class="ev-where">{entry.data.location}</p>
+    <h3 class="ev-title">{entry.data.title}</h3>
+    {entry.data.signupRequired && (
+      <span class="ev-badge">
+        {lang === 'it' ? 'Iscrizione richiesta' : 'Registration required'}
+      </span>
+    )}
+  </div>
 </a>
+
+<style>
+  .ev-card {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: theme('colors.ink');
+    border-radius: 10px;
+    overflow: hidden;
+    background: theme('colors.paper');
+    border: 1px solid theme('colors.rule');
+    box-shadow: 0 2px 12px rgba(31,42,42,0.07);
+    transition: transform .3s ease, box-shadow .3s ease;
+  }
+  .ev-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 32px rgba(31,42,42,0.14);
+    color: theme('colors.ink');
+  }
+
+  .ev-pic {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: theme('colors.paper-2');
+  }
+  .ev-pic img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    filter: saturate(.88) contrast(1.02);
+    transition: transform .8s cubic-bezier(.2,.7,.2,1);
+  }
+  .ev-card:hover .ev-pic img { transform: scale(1.06); }
+
+  .ev-placeholder {
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, theme('colors.paper-2'), theme('colors.acqua') 80%);
+    opacity: .5;
+  }
+
+  .ev-stamp {
+    position: absolute;
+    top: .9rem; left: .9rem;
+    background: theme('colors.paper');
+    color: theme('colors.ink');
+    padding: .45rem .65rem;
+    line-height: 1;
+    text-align: center;
+    border-radius: 3px;
+    box-shadow: 0 2px 8px rgba(31,42,42,0.18);
+    transform: rotate(-2.5deg);
+  }
+  .ev-d {
+    font-family: theme('fontFamily.serif');
+    font-size: 1.7rem;
+    font-weight: 300;
+    font-style: italic;
+    display: block;
+  }
+  .ev-m {
+    font-family: theme('fontFamily.mono');
+    font-size: .62rem;
+    text-transform: uppercase;
+    letter-spacing: .2em;
+    display: block;
+    margin-top: .1rem;
+    color: theme('colors.ink-soft');
+  }
+
+  .ev-body {
+    padding: 1.1rem 1.2rem 1.35rem;
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+    flex: 1;
+  }
+  .ev-where {
+    font-family: theme('fontFamily.mono');
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    color: theme('colors.ink-soft');
+    margin: 0;
+  }
+  .ev-title {
+    font-family: theme('fontFamily.hand');
+    font-size: 1.55rem;
+    font-weight: 700;
+    line-height: 1.15;
+    margin: .1rem 0 0;
+    color: theme('colors.ink');
+  }
+  .ev-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    margin-top: .5rem;
+    font-family: theme('fontFamily.mono');
+    font-size: .65rem;
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    color: theme('colors.gold-deep');
+  }
+  .ev-badge::before {
+    content: "→";
+  }
+</style>

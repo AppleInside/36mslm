@@ -16,15 +16,102 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const lang = Astro.params.lang as Lang;
 const { Content } = await entry.render();
+const dateStr = formatEventDate(entry.data.date, lang);
+const timeStr = formatTime(entry.data.date, lang);
 ---
+
 <Base title={entry.data.title}>
-  <article class="mx-auto max-w-prose">
-    <p class="text-xs uppercase tracking-wider text-po">
-      {formatEventDate(entry.data.date, lang)} · {formatTime(entry.data.date, lang)}
-    </p>
-    <h1 class="mt-2 text-5xl">{entry.data.title}</h1>
-    <p class="mt-2 opacity-80">{entry.data.location}</p>
-    <div class="prose mt-8"><Content /></div>
-    {entry.data.signupRequired && <EventSignupForm eventSlug={entry.slug.split('/').slice(1).join('/')} />}
+  {entry.data.cover && (
+    <div class="event-cover">
+      <img src={entry.data.cover} alt={entry.data.title} />
+      <div class="cover-gradient" aria-hidden="true"></div>
+    </div>
+  )}
+
+  <article class="event-article">
+    <div class="event-meta">
+      <span class="meta-date">{dateStr} · {timeStr}</span>
+      <span class="meta-dot" aria-hidden="true"></span>
+      <span class="meta-place">{entry.data.location}</span>
+    </div>
+
+    <h1>{entry.data.title}</h1>
+
+    <div class="event-body prose">
+      <Content />
+    </div>
+
+    {entry.data.signupRequired && (
+      <div class="event-signup-wrap">
+        <EventSignupForm eventSlug={entry.slug.split('/').slice(1).join('/')} />
+      </div>
+    )}
   </article>
 </Base>
+
+<style>
+  .event-cover {
+    position: relative;
+    width: 100%;
+    max-height: 520px;
+    overflow: hidden;
+    border-bottom: 1px solid theme('colors.rule');
+  }
+  .event-cover img {
+    width: 100%;
+    height: 100%;
+    max-height: 520px;
+    object-fit: cover;
+    filter: saturate(.88) contrast(1.02);
+    display: block;
+  }
+  .cover-gradient {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 50%, rgba(244,235,217,0.55) 100%);
+  }
+
+  .event-article {
+    max-width: 68ch;
+    margin: 0 auto;
+    padding: 4rem 2rem 6rem;
+  }
+
+  .event-meta {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    font-family: theme('fontFamily.mono');
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    color: theme('colors.ink-soft');
+    margin-bottom: 1.25rem;
+  }
+  .meta-dot {
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: theme('colors.gold');
+  }
+  .meta-place { color: theme('colors.acquadeep'); }
+
+  h1 {
+    font-size: clamp(2.6rem, 5vw, 4.4rem);
+    line-height: 1.05;
+    margin: 0 0 2rem;
+  }
+
+  .event-body {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: theme('colors.ink-soft');
+    border-top: 1px dashed theme('colors.rule');
+    padding-top: 2rem;
+  }
+  .event-body :global(p) { margin: 0 0 1.25em; }
+
+  .event-signup-wrap {
+    margin-top: 3rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid theme('colors.rule');
+  }
+</style>

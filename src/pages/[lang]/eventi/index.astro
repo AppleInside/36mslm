@@ -2,7 +2,7 @@
 import Base from '../../../layouts/Base.astro';
 import EventCard from '../../../components/EventCard.astro';
 import { getCollection } from 'astro:content';
-import { useTranslations } from '../../../i18n/utils';
+import { useTranslations, localizedPath } from '../../../i18n/utils';
 import { byLang, splitFutureFromPast } from '../../../lib/content';
 import type { Lang } from '../../../i18n/ui';
 
@@ -14,23 +14,213 @@ const lang = Astro.params.lang as Lang;
 const t = useTranslations(lang);
 const all = await getCollection('events');
 const { future, past } = splitFutureFromPast(byLang(all, lang), new Date());
+const [featured, ...rest] = future;
 ---
-<Base title={t('nav.events')}>
-  <h1 class="text-5xl">{t('nav.events')}</h1>
 
-  {future.length > 0 ? (
-    <section class="mt-8">
-      <h2 class="text-2xl">{t('common.allEvents')}</h2>
-      <div class="mt-4 grid gap-4 md:grid-cols-3">{future.map((e) => <EventCard entry={e} />)}</div>
+<Base title={t('nav.events')}>
+  <!-- ─── Page header ──────────────────────────────── -->
+  <section class="page-header">
+    <p class="eyebrow">— {lang === 'it' ? 'Cosa succede' : "What's on"} —</p>
+    <h1>{lang === 'it' ? <>Le prossime <em>uscite</em></> : <>Upcoming <em>events</em></>}</h1>
+    <p class="subtitle">
+      {lang === 'it'
+        ? 'Escursioni, feste, cene e incontri sul Po e nei dintorni di Polesine Parmense.'
+        : 'Walks, festivals, dinners and gatherings on the Po and around Polesine Parmense.'}
+    </p>
+  </section>
+
+  {future.length === 0 && (
+    <section class="empty">
+      <p>{lang === 'it' ? 'Nessun evento in programma per ora. Torna presto.' : 'No events scheduled yet. Check back soon.'}</p>
     </section>
-  ) : (
-    <p class="mt-8 opacity-70">—</p>
   )}
 
+  <!-- ─── Featured event ──────────────────────────── -->
+  {featured && (
+    <section class="sec-featured">
+      <a class="featured" href={localizedPath(lang, `eventi/${featured.slug.replace(/^[a-z]{2}\//, '')}`)}>
+        <div class="featured-pic">
+          {featured.data.cover
+            ? <img src={featured.data.cover} alt={featured.data.title} loading="eager" />
+            : <div class="featured-placeholder" aria-hidden="true"></div>
+          }
+          <div class="featured-overlay" aria-hidden="true"></div>
+        </div>
+        <div class="featured-body">
+          <p class="featured-eyebrow">
+            {lang === 'it' ? 'Prossimo evento' : 'Next event'}
+          </p>
+          <h2>{featured.data.title}</h2>
+          <p class="featured-where">{featured.data.location}</p>
+          {featured.data.signupRequired && (
+            <span class="featured-badge">
+              {lang === 'it' ? '→ Iscrizione richiesta' : '→ Registration required'}
+            </span>
+          )}
+        </div>
+      </a>
+    </section>
+  )}
+
+  <!-- ─── Other upcoming events ───────────────────── -->
+  {rest.length > 0 && (
+    <section class="sec-grid">
+      <h2 class="sec-title">
+        {lang === 'it' ? <>Altri <em>appuntamenti</em></> : <>More <em>events</em></>}
+      </h2>
+      <div class="grid">
+        {rest.map((e) => <EventCard entry={e} />)}
+      </div>
+    </section>
+  )}
+
+  <!-- ─── Past events ──────────────────────────────── -->
   {past.length > 0 && (
-    <section class="mt-12 opacity-80">
-      <h2 class="text-2xl">Archivio</h2>
-      <div class="mt-4 grid gap-4 md:grid-cols-3">{past.map((e) => <EventCard entry={e} />)}</div>
+    <section class="sec-grid sec-past">
+      <h2 class="sec-title">{lang === 'it' ? 'Archivio' : 'Archive'}</h2>
+      <div class="grid">
+        {past.map((e) => <EventCard entry={e} />)}
+      </div>
     </section>
   )}
 </Base>
+
+<style>
+  .page-header {
+    padding: 6rem 4rem 4rem;
+    border-bottom: 1px solid theme('colors.rule');
+    max-width: 72ch;
+  }
+  .eyebrow {
+    font-family: theme('fontFamily.mono');
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .22em;
+    color: theme('colors.ink-soft');
+    margin-bottom: .75rem;
+  }
+  .page-header h1 {
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    margin: 0 0 1rem;
+    line-height: 1.05;
+  }
+  .page-header h1 :global(em) { color: theme('colors.acquadeep'); }
+  .subtitle {
+    font-style: italic;
+    color: theme('colors.ink-soft');
+    font-size: 1.15rem;
+    max-width: 52ch;
+    margin: 0;
+  }
+
+  .empty {
+    padding: 4rem 4rem;
+    font-style: italic;
+    color: theme('colors.ink-soft');
+  }
+
+  /* ─── Featured ─────────────────────────────────── */
+  .sec-featured { padding: 4rem 4rem 0; }
+  .featured {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    min-height: 480px;
+    border: 1px solid theme('colors.rule');
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+    color: theme('colors.ink');
+    box-shadow: 0 4px 24px rgba(31,42,42,0.09);
+    transition: box-shadow .35s ease, transform .35s ease;
+  }
+  .featured:hover {
+    box-shadow: 0 12px 40px rgba(31,42,42,0.16);
+    transform: translateY(-3px);
+  }
+  .featured-pic {
+    position: relative;
+    overflow: hidden;
+    background: theme('colors.paper-2');
+  }
+  .featured-pic img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    filter: saturate(.88) contrast(1.02);
+    transition: transform .9s cubic-bezier(.2,.7,.2,1);
+  }
+  .featured:hover .featured-pic img { transform: scale(1.05); }
+  .featured-placeholder {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, theme('colors.paper-2'), theme('colors.acqua'));
+    opacity: .5;
+  }
+  .featured-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent 60%, rgba(244,235,217,0.15) 100%);
+  }
+  .featured-body {
+    padding: 3rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: theme('colors.paper');
+    border-left: 1px dashed theme('colors.rule');
+  }
+  .featured-eyebrow {
+    font-family: theme('fontFamily.mono');
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .22em;
+    color: theme('colors.brand');
+    margin-bottom: 1rem;
+  }
+  .featured-body h2 {
+    font-size: clamp(2rem, 3.5vw, 3rem);
+    line-height: 1.1;
+    margin: 0 0 1rem;
+  }
+  .featured-where {
+    font-family: theme('fontFamily.mono');
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    color: theme('colors.ink-soft');
+    margin: 0 0 1rem;
+  }
+  .featured-badge {
+    font-family: theme('fontFamily.mono');
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    color: theme('colors.gold-deep');
+    font-style: italic;
+  }
+
+  /* ─── Grid sections ─────────────────────────────── */
+  .sec-grid { padding: 4rem 4rem 5rem; border-top: 1px solid theme('colors.rule'); }
+  .sec-past { opacity: .75; }
+  .sec-title {
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    margin: 0 0 2.5rem;
+  }
+  .sec-title :global(em) { color: theme('colors.acquadeep'); }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+
+  @media (max-width: 1000px) {
+    .page-header { padding: 3.5rem 1.5rem 2.5rem; }
+    .sec-featured { padding: 2.5rem 1.5rem 0; }
+    .featured { grid-template-columns: 1fr; min-height: auto; }
+    .featured-pic { aspect-ratio: 16/9; }
+    .featured-body { padding: 1.75rem 1.5rem; border-left: none; border-top: 1px dashed theme('colors.rule'); }
+    .sec-grid { padding: 3rem 1.5rem; }
+    .grid { grid-template-columns: 1fr; gap: 1.5rem; }
+  }
+  @media (min-width: 601px) and (max-width: 999px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
