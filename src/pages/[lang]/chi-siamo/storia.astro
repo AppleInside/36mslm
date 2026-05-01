@@ -1,5 +1,7 @@
 ---
 import Base from '../../../layouts/Base.astro';
+import PageHeader from '../../../components/PageHeader.astro';
+import PageBody from '../../../components/PageBody.astro';
 import type { Lang } from '../../../i18n/ui';
 
 export function getStaticPaths() {
@@ -7,22 +9,28 @@ export function getStaticPaths() {
 }
 
 const lang = Astro.params.lang as Lang;
-const title = lang === 'it' ? 'Storia' : 'History';
 ---
-<Base title={title}>
-  <article class="mx-auto max-w-prose">
-    <h1 class="text-5xl">{title}</h1>
+<Base title={lang === 'it' ? 'Storia' : 'History'}>
+  <PageHeader eyebrow={lang === 'it' ? '— Chi siamo —' : '— About us —'}>
+    {lang === 'it' ? <>La nostra <em>storia</em></> : <>Our <em>story</em></>}
+  </PageHeader>
+  <PageBody narrow>
     {lang === 'it' ? (
-      <div class="prose mt-8">
+      <div class="prose">
         <p>«36 m s.l.m.» è la quota di Polesine Parmense, paese di pianura tra Po e pioppi. Nasce come Associazione di Promozione Sociale per tenere viva la memoria del territorio e per promuovere chi lo abita oggi.</p>
         <p>Lavoriamo per due tipi di pubblico: i polesinesi che vogliono partecipare alle attività dell'associazione, e chi visita il paese per la prima volta — turisti, ciclisti, curiosi della cucina del Po.</p>
-        <p>La sede è in paese, le riunioni sono aperte, i contatti sono nel <a href="../../contatti/">footer</a>.</p>
+        <p>La sede è in paese, le riunioni sono aperte, i contatti sono nel footer.</p>
       </div>
     ) : (
-      <div class="prose mt-8">
+      <div class="prose">
         <p>«36 m s.l.m.» is the elevation of Polesine Parmense, a riverbank village in the Po plain. We are a social-promotion association keeping the local memory alive and promoting the people who live here today.</p>
         <p>Two audiences: locals who want to take part, and visitors discovering the village for the first time.</p>
       </div>
     )}
-  </article>
+  </PageBody>
 </Base>
+
+<style>
+  .prose { font-size: 1.05rem; line-height: 1.7; color: theme('colors.ink-soft'); }
+  .prose p { margin: 0 0 1.2em; }
+</style>

@@ -1,0 +1,24 @@
+---
+interface Props {
+  narrow?: boolean;
+}
+const { narrow = false } = Astro.props;
+---
+<div class:list={['page-body', { narrow }]}>
+  <slot />
+</div>
+
+<style>
+  .page-body {
+    padding: 2rem 1.25rem 5rem;
+  }
+  .page-body.narrow {
+    max-width: 68ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  @media (min-width: 1000px) {
+    .page-body { padding: 3rem 4rem 6rem; }
+    .page-body.narrow { padding-left: 2rem; padding-right: 2rem; }
+  }
+</style>

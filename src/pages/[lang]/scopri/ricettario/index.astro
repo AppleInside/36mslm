@@ -1,5 +1,7 @@
 ---
 import Base from '../../../../layouts/Base.astro';
+import PageHeader from '../../../../components/PageHeader.astro';
+import PageBody from '../../../../components/PageBody.astro';
 import RecipeCard from '../../../../components/RecipeCard.astro';
 import { getCollection } from 'astro:content';
 import { useTranslations } from '../../../../i18n/utils';
@@ -16,6 +18,12 @@ const all = await getCollection('recipes');
 const recipes = sortByDateDesc(byLang(all, lang));
 ---
 <Base title={t('nav.discover.recipes')}>
-  <h1 class="text-5xl">{t('nav.discover.recipes')}</h1>
-  <div class="mt-8 grid gap-4 md:grid-cols-3">{recipes.map((e) => <RecipeCard entry={e} />)}</div>
+  <PageHeader eyebrow={lang === 'it' ? '— Cucina —' : '— Kitchen —'}>
+    {lang === 'it' ? <>Ricettario <em>di casa</em></> : <>Home <em>recipes</em></>}
+  </PageHeader>
+  <PageBody>
+    <div class="grid gap-4 md:grid-cols-3">
+      {recipes.map((e) => <RecipeCard entry={e} />)}
+    </div>
+  </PageBody>
 </Base>

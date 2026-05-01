@@ -2,8 +2,8 @@
 import { getLangFromUrl, useTranslations, localizedPath } from '../i18n/utils';
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
-const otherLang = lang === 'it' ? 'en' : 'it';
-const otherPath = Astro.url.pathname.replace(/^\/(it|en)/, `/${otherLang}`) || `/${otherLang}/`;
+const itPath = Astro.url.pathname.replace(/^\/(it|en)/, '/it') || '/it/';
+const enPath = Astro.url.pathname.replace(/^\/(it|en)/, '/en') || '/en/';
 
 const home = localizedPath(lang, '');
 const navItems = [
@@ -184,8 +184,8 @@ const navItems = [
   </nav>
 
   <div class="lang">
-    <a href={Astro.url.pathname} class={lang === 'it' ? 'on' : ''}>🇮🇹 IT</a>
-    <a href={otherPath} class={lang === 'en' ? 'on' : ''}>🇬🇧 EN</a>
+    <a href={itPath} class={lang === 'it' ? 'on' : ''}><span class="flag flag-it" aria-hidden="true"></span>IT</a>
+    <a href={enPath} class={lang === 'en' ? 'on' : ''}><span class="flag flag-gb" aria-hidden="true"></span>EN</a>
   </div>
 
   <button class="burger" id="burger" aria-label="Menu"><span></span></button>
@@ -279,6 +279,20 @@ const navItems = [
   .burger.open span { background: transparent; }
   .burger.open span::before { transform: translateY(6px) rotate(45deg); }
   .burger.open span::after  { transform: translateY(-6px) rotate(-45deg); }
+
+  /* Flags */
+  .flag {
+    display: inline-block; width: 18px; height: 13px;
+    border-radius: 2px; flex-shrink: 0;
+    background-size: cover; background-position: center;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.18);
+  }
+  .flag-it {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 2'><rect width='1' height='2' fill='%23009246'/><rect x='1' width='1' height='2' fill='%23fff'/><rect x='2' width='1' height='2' fill='%23CE2B37'/></svg>");
+  }
+  .flag-gb {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 40'><rect width='60' height='40' fill='%23012169'/><path d='M0,0 L60,40 M60,0 L0,40' stroke='%23fff' stroke-width='8'/><path d='M0,0 L60,40 M60,0 L0,40' stroke='%23C8102E' stroke-width='4'/><rect x='23' width='14' height='40' fill='%23fff'/><rect y='13' width='60' height='14' fill='%23fff'/><rect x='25' width='10' height='40' fill='%23C8102E'/><rect y='15' width='60' height='10' fill='%23C8102E'/></svg>");
+  }
 
   /* Mobile drawer */
   .drawer {
@@ -428,9 +442,10 @@ const navItems = [
       border-radius: 999px; padding: .2rem;
     }
     .lang a {
-      padding: .4rem .85rem; text-decoration: none;
+      padding: .35rem .75rem; text-decoration: none;
       color: rgba(232,244,248,0.70);
       border-radius: 999px;
+      display: flex; align-items: center; gap: .4rem;
       transition: all .25s ease;
     }
     .lang a.on { background: theme('colors.brand'); color: #E8F4F8; }

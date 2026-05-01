@@ -1,5 +1,7 @@
 ---
 import Base from '../../../layouts/Base.astro';
+import PageHeader from '../../../components/PageHeader.astro';
+import PageBody from '../../../components/PageBody.astro';
 import { useTranslations, localizedPath } from '../../../i18n/utils';
 import type { Lang } from '../../../i18n/ui';
 
@@ -25,13 +27,43 @@ const cards = lang === 'it'
   ];
 ---
 <Base title={t('nav.about')}>
-  <h1 class="text-5xl">{t('nav.about')}</h1>
-  <div class="mt-8 grid gap-4 md:grid-cols-2">
-    {cards.map((c) => (
-      <a href={localizedPath(lang, c.href)} class="block rounded-2xl border border-argento bg-sabbia p-5 no-underline transition hover:bg-argento/40">
-        <h2 class="text-2xl">{c.title}</h2>
-        <p class="mt-1 text-sm opacity-80">{c.body}</p>
-      </a>
-    ))}
-  </div>
+  <PageHeader eyebrow={lang === 'it' ? "— L'associazione —" : '— About us —'}>
+    {lang === 'it' ? <>Chi <em>siamo</em></> : <>About <em>us</em></>}
+  </PageHeader>
+  <PageBody>
+    <div class="grid gap-4 md:grid-cols-2">
+      {cards.map((c) => (
+        <a href={localizedPath(lang, c.href)} class="card">
+          <h2>{c.title}</h2>
+          <p>{c.body}</p>
+        </a>
+      ))}
+    </div>
+  </PageBody>
 </Base>
+
+<style>
+  .card {
+    display: block;
+    border: 1px solid theme('colors.rule');
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    background: rgba(255,255,255,0.25);
+    transition: background .2s ease, transform .2s ease;
+  }
+  .card:hover {
+    background: rgba(255,255,255,0.45);
+    transform: translateY(-3px);
+  }
+  .card h2 {
+    font-size: 1.8rem;
+    margin: 0 0 .4rem;
+  }
+  .card p {
+    font-size: .9rem;
+    color: theme('colors.ink-soft');
+    margin: 0;
+  }
+</style>

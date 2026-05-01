@@ -1,5 +1,7 @@
 ---
 import Base from '../../../../layouts/Base.astro';
+import PageHeader from '../../../../components/PageHeader.astro';
+import PageBody from '../../../../components/PageBody.astro';
 import StoryCard from '../../../../components/StoryCard.astro';
 import { getCollection } from 'astro:content';
 import { useTranslations } from '../../../../i18n/utils';
@@ -16,6 +18,12 @@ const all = await getCollection('stories');
 const stories = sortByDateDesc(byLang(all, lang));
 ---
 <Base title={t('nav.discover.stories')}>
-  <h1 class="text-5xl">{t('nav.discover.stories')}</h1>
-  <div class="mt-8 grid gap-4 md:grid-cols-2">{stories.map((e) => <StoryCard entry={e} />)}</div>
+  <PageHeader eyebrow={lang === 'it' ? '— Memoria —' : '— Memory —'}>
+    {lang === 'it' ? <>Storie <em>di nonni</em></> : <>Grandparents&apos; <em>stories</em></>}
+  </PageHeader>
+  <PageBody>
+    <div class="grid gap-4 md:grid-cols-2">
+      {stories.map((e) => <StoryCard entry={e} />)}
+    </div>
+  </PageBody>
 </Base>

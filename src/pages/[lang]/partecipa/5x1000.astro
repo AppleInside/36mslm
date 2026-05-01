@@ -1,5 +1,7 @@
 ---
 import Base from '../../../layouts/Base.astro';
+import PageHeader from '../../../components/PageHeader.astro';
+import PageBody from '../../../components/PageBody.astro';
 import { SITE } from '../../../consts';
 import type { Lang } from '../../../i18n/ui';
 
@@ -8,23 +10,36 @@ export function getStaticPaths() {
 }
 
 const lang = Astro.params.lang as Lang;
-const title = '5×1000';
 ---
-<Base title={title}>
-  <article class="mx-auto max-w-prose">
-    <h1 class="text-5xl">{title}</h1>
+<Base title="5×1000">
+  <PageHeader eyebrow={lang === 'it' ? '— Sostieni —' : '— Support us —'}>
+    {lang === 'it' ? <>Il tuo <em>5×1000</em></> : <>Your <em>5×1000</em></>}
+  </PageHeader>
+  <PageBody narrow>
     {lang === 'it' ? (
-      <div class="prose mt-8">
+      <div class="prose">
         <p>Destina il tuo 5×1000 all'Associazione di Promozione Sociale <strong>36 m s.l.m.</strong>: non ti costa nulla e per noi è un sostegno importante.</p>
         <p>Nella dichiarazione dei redditi, nel riquadro «Sostegno del volontariato e delle altre organizzazioni non lucrative», firma e indica il codice fiscale:</p>
-        <p class="font-hand text-3xl">{SITE.codiceFiscale}</p>
       </div>
     ) : (
-      <div class="prose mt-8">
+      <div class="prose">
         <p>You can donate your Italian 5×1000 to <strong>36 m s.l.m.</strong>: it costs you nothing and helps us a lot.</p>
         <p>On your tax return, in the «Sostegno del volontariato» box, sign and write the tax code:</p>
-        <p class="font-hand text-3xl">{SITE.codiceFiscale}</p>
       </div>
     )}
-  </article>
+    <p class="codice">{SITE.codiceFiscale}</p>
+  </PageBody>
 </Base>
+
+<style>
+  .prose { font-size: 1.05rem; line-height: 1.7; color: theme('colors.ink-soft'); }
+  .prose p { margin: 0 0 1.2em; }
+  .codice {
+    font-family: theme('fontFamily.hand');
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: theme('colors.brand');
+    margin: 1.5rem 0 0;
+    letter-spacing: .04em;
+  }
+</style>

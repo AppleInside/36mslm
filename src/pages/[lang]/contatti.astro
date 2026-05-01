@@ -1,5 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import PageBody from '../../components/PageBody.astro';
 import { SITE } from '../../consts';
 import { useTranslations } from '../../i18n/utils';
 import type { Lang } from '../../i18n/ui';
@@ -12,9 +14,11 @@ const lang = Astro.params.lang as Lang;
 const t = useTranslations(lang);
 ---
 <Base title={t('nav.contact')}>
-  <article class="mx-auto max-w-prose">
-    <h1 class="text-5xl">{t('nav.contact')}</h1>
-    <div class="prose mt-8">
+  <PageHeader eyebrow={lang === 'it' ? '— Scrivici —' : '— Write to us —'}>
+    {lang === 'it' ? <>Contatti e <em>recapiti</em></> : <>Contacts and <em>info</em></>}
+  </PageHeader>
+  <PageBody narrow>
+    <div class="prose">
       <p>{lang === 'it'
         ? 'Per qualsiasi domanda — eventi, foto, segnalazioni — scrivici. Rispondiamo nel giro di qualche giorno.'
         : 'Any question — events, photos, reports — drop us a line. We reply within a few days.'}</p>
@@ -24,5 +28,13 @@ const t = useTranslations(lang);
         <li>{lang === 'it' ? 'Codice fiscale' : 'Tax code'}: {SITE.codiceFiscale}</li>
       </ul>
     </div>
-  </article>
+  </PageBody>
 </Base>
+
+<style>
+  .prose { font-size: 1.05rem; line-height: 1.7; color: theme('colors.ink-soft'); }
+  .prose p { margin: 0 0 1.2em; }
+  .prose ul { padding-left: 1.25rem; }
+  .prose li { margin-bottom: .5em; }
+  .prose a { color: theme('colors.brand'); text-decoration: underline; text-underline-offset: 3px; }
+</style>
