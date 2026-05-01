@@ -230,15 +230,16 @@ const navItems = [
     position: sticky; top: 0; z-index: 50;
     display: flex; align-items: center; justify-content: space-between;
     padding: 1rem 1.25rem;
-    background: rgba(237,244,247,0.88);
+    background: rgba(28,46,56,0.90);
     backdrop-filter: blur(12px) saturate(1.1);
     -webkit-backdrop-filter: blur(12px) saturate(1.1);
     border-bottom: 1px solid theme('colors.rule');
   }
-  .marca { display: inline-flex; align-items: center; text-decoration: none; color: theme('colors.ink'); }
+  .marca { display: inline-flex; align-items: center; text-decoration: none; color: #E8F4F8; }
   .marca img {
     height: 40px; width: auto; display: block;
     transition: transform .5s cubic-bezier(.2,.7,.2,1);
+    filter: brightness(0) invert(1);
   }
 
   /* Mobile: show burger, hide nav/lang/megapanel */
@@ -254,12 +255,12 @@ const navItems = [
   }
   .burger span {
     display: block; width: 18px; height: 1.5px;
-    background: theme('colors.ink'); position: relative;
+    background: #E8F4F8; position: relative;
     transition: transform .3s ease;
   }
   .burger span::before, .burger span::after {
     content: ""; position: absolute; left: 0; width: 18px; height: 1.5px;
-    background: theme('colors.ink');
+    background: #E8F4F8;
     transition: transform .3s ease;
   }
   .burger span::before { top: -6px; }
@@ -321,7 +322,7 @@ const navItems = [
     .nav-item { position: relative; padding: 1rem 1.8rem; }
     .nav-item > a {
       text-decoration: none;
-      color: theme('colors.ink-soft');
+      color: rgba(232,244,248,0.80);
       display: inline-flex; align-items: baseline;
       font-family: theme('fontFamily.hand');
       font-size: 1.35rem; line-height: 1; font-weight: 700;
@@ -336,7 +337,7 @@ const navItems = [
       transform-origin: left center;
       transition: opacity .35s ease, transform .45s cubic-bezier(.2,.7,.2,1);
     }
-    .nav-item:hover > a, .nav-item.active > a { color: theme('colors.ink'); }
+    .nav-item:hover > a, .nav-item.active > a { color: #E8F4F8; }
     .nav-item:hover > a .label::after,
     .nav-item.active > a .label::after { opacity: 1; transform: translateY(0) scaleX(1); }
 
@@ -408,18 +409,18 @@ const navItems = [
     .lang {
       display: flex; gap: .15rem;
       font-family: theme('fontFamily.mono'); font-size: .82rem;
-      background: theme('colors.paper-2');
-      border: 1px solid theme('colors.rule');
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(232,244,248,0.18);
       border-radius: 999px; padding: .2rem;
     }
     .lang a {
       padding: .4rem .85rem; text-decoration: none;
-      color: theme('colors.ink-soft');
+      color: rgba(232,244,248,0.70);
       border-radius: 999px;
       transition: all .25s ease;
     }
-    .lang a.on { background: theme('colors.brand'); color: theme('colors.paper'); }
-    .lang a:not(.on):hover { color: theme('colors.ink'); }
+    .lang a.on { background: theme('colors.brand'); color: #E8F4F8; }
+    .lang a:not(.on):hover { color: #E8F4F8; }
 
     .burger { display: none; }
   }
