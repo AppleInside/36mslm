@@ -345,7 +345,7 @@ const recipesJson = Object.fromEntries(
     return `
       <span class="mc-badge">${esc(catLabels[r.category] || r.category)}</span>
       <h2 class="mc-title">${esc(r.title)}</h2>
-      ${r.author ? `<p class="mc-author">dell'${esc(r.author)}</p>` : ''}
+      <p class="mc-author">${r.author ? `dell'${esc(r.author)}` : '<em>anonimo</em>'}</p>
       ${r.description ? `<p class="mc-desc">${esc(r.description)}</p>` : ''}
       ${r.ingredients.length ? `<p class="mc-section-title">Ingredienti</p><ul class="mc-ingredients">${ingList}</ul>` : ''}
       ${r.steps.length ? `<p class="mc-section-title">Procedimento</p><ol class="mc-steps">${stepList}</ol>` : ''}
