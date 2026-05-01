@@ -24,8 +24,16 @@ const recipes = defineCollection({
   type: 'content',
   schema: z.object({
     ...baseFrontmatter,
+    category: z.enum(['dolci', 'liquori', 'conserve']).optional(),
+    author: z.string().optional(),
+    photo: z.string().optional(),
+    description: z.string().optional(),
+    ingredients: z.array(z.string()).default([]),
+    steps: z.array(z.string()).default([]),
+    note: z.string().optional(),
+    // legacy
     seasons: z.array(z.enum(['primavera', 'estate', 'autunno', 'inverno'])).default([]),
-    course: z.enum(['antipasto', 'primo', 'secondo', 'contorno', 'dolce']),
+    course: z.enum(['antipasto', 'primo', 'secondo', 'contorno', 'dolce']).optional(),
     dialectName: z.string().optional(),
   }),
 });

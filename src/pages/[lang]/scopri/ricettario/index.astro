@@ -1,7 +1,6 @@
 ---
 import Base from '../../../../layouts/Base.astro';
 import PageHeader from '../../../../components/PageHeader.astro';
-import PageBody from '../../../../components/PageBody.astro';
 import RecipeCard from '../../../../components/RecipeCard.astro';
 import { getCollection } from 'astro:content';
 import { useTranslations } from '../../../../i18n/utils';
@@ -16,14 +15,379 @@ const lang = Astro.params.lang as Lang;
 const t = useTranslations(lang);
 const all = await getCollection('recipes');
 const recipes = sortByDateDesc(byLang(all, lang));
+
+const catCount = {
+  dolci:    recipes.filter(r => (r.data.category || 'dolci') === 'dolci').length,
+  liquori:  recipes.filter(r => r.data.category === 'liquori').length,
+  conserve: recipes.filter(r => r.data.category === 'conserve').length,
+};
+
+const catLabel = (cat: string | undefined) =>
+  cat === 'liquori' ? 'Liquori e bagne' : cat === 'conserve' ? 'Conserve e salse' : 'Dolci';
+
+// JSON data for modal (server → client)
+const recipesJson = Object.fromEntries(
+  recipes.map(r => {
+    const slug = r.slug.replace(/^(it|en)\//, '');
+    return [slug, {
+      title:       r.data.title,
+      category:    r.data.category || 'dolci',
+      author:      r.data.author   ?? null,
+      photo:       r.data.photo    ?? null,
+      description: r.data.description ?? null,
+      ingredients: r.data.ingredients ?? [],
+      steps:       r.data.steps       ?? [],
+      note:        r.data.note        ?? null,
+    }];
+  })
+);
 ---
+
 <Base title={t('nav.discover.recipes')}>
   <PageHeader eyebrow={lang === 'it' ? '— Cucina —' : '— Kitchen —'}>
     {lang === 'it' ? <>Ricettario <em>di casa</em></> : <>Home <em>recipes</em></>}
   </PageHeader>
-  <PageBody>
-    <div class="grid gap-4 md:grid-cols-3">
-      {recipes.map((e) => <RecipeCard entry={e} />)}
-    </div>
-  </PageBody>
+
+  <!-- Filter tabs -->
+  <div class="filters-bar">
+    <button class="fil active" data-cat="all">
+      {lang === 'it' ? 'Tutte' : 'All'} ({recipes.length})
+    </button>
+    <button class="fil" data-cat="dolci">
+      Dolci ({catCount.dolci})
+    </button>
+    <button class="fil" data-cat="liquori">
+      Liquori e bagne ({catCount.liquori})
+    </button>
+    <button class="fil" data-cat="conserve">
+      Conserve e salse ({catCount.conserve})
+    </button>
+  </div>
+
+  <!-- Cards grid -->
+  <div class="recipes-grid" id="recipesGrid">
+    {recipes.map(entry => <RecipeCard entry={entry} />)}
+  </div>
 </Base>
+
+<!-- Modal overlay (outside Base to avoid stacking context issues) -->
+<div class="modal-overlay" id="recipeModal" aria-modal="true" role="dialog" aria-label="Ricetta">
+  <div class="modal-box">
+    <button class="modal-close" id="modalClose" aria-label="Chiudi">×</button>
+    <div class="modal-inner">
+      <div class="modal-photo-col">
+        <img id="modalImg" src="" alt="" />
+        <p class="modal-caption">Pagina manoscritta originale</p>
+      </div>
+      <div class="modal-content-col" id="modalContent"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* ── Filters ── */
+  .filters-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    padding: 1.25rem 1.25rem .25rem;
+  }
+  .fil {
+    padding: .4rem 1rem;
+    border-radius: 999px;
+    border: 1px solid theme('colors.acquadeep');
+    background: transparent;
+    color: theme('colors.acquadeep');
+    font-family: theme('fontFamily.mono');
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    cursor: pointer;
+    transition: background .2s ease, color .2s ease;
+  }
+  .fil:hover { background: rgba(74,102,112,0.08); }
+  .fil.active {
+    background: theme('colors.acquadeep');
+    color: #fff;
+  }
+
+  /* ── Grid ── */
+  .recipes-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    padding: 1.25rem 1.25rem 5rem;
+  }
+  @media (min-width: 560px) {
+    .recipes-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 900px) {
+    .filters-bar { padding: 1.5rem 4rem .5rem; }
+    .recipes-grid { grid-template-columns: repeat(3, 1fr); gap: 1.75rem; padding: 1.5rem 4rem 6rem; }
+  }
+
+  /* ── Modal overlay ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(15,22,28,0.72);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+    opacity: 0; pointer-events: none;
+    transition: opacity .3s ease;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .modal-box {
+    position: relative;
+    background: #fff;
+    border-radius: 18px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 920px;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.35);
+    transform: translateY(16px) scale(.98);
+    transition: transform .35s cubic-bezier(.2,.7,.2,1);
+  }
+  .modal-overlay.open .modal-box { transform: translateY(0) scale(1); }
+
+  .modal-close {
+    position: absolute; top: .85rem; right: .85rem; z-index: 10;
+    width: 36px; height: 36px;
+    background: rgba(31,42,42,0.07); border: none; border-radius: 50%;
+    font-size: 1.3rem; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: theme('colors.ink-soft');
+    transition: background .2s ease;
+  }
+  .modal-close:hover { background: rgba(31,42,42,0.14); }
+
+  .modal-inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    flex: 1;
+    overflow: hidden;
+  }
+  @media (min-width: 640px) {
+    .modal-inner { grid-template-columns: 2fr 3fr; }
+  }
+
+  .modal-photo-col {
+    background: #F2EDE0;
+    border-right: 1px solid rgba(31,42,42,0.08);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    max-height: 340px;
+  }
+  @media (min-width: 640px) {
+    .modal-photo-col { max-height: none; }
+  }
+  #modalImg {
+    flex: 1; width: 100%; height: 100%;
+    object-fit: contain;
+    object-position: top center;
+    padding: 1.25rem;
+  }
+  .modal-caption {
+    text-align: center;
+    font-style: italic;
+    font-size: .75rem;
+    color: rgba(31,42,42,0.45);
+    padding: .5rem 1rem .75rem;
+    border-top: 1px solid rgba(31,42,42,0.08);
+    margin: 0;
+    flex-shrink: 0;
+  }
+
+  .modal-content-col {
+    overflow-y: auto;
+    padding: 1.75rem 1.75rem 2.5rem;
+  }
+
+  /* ── Modal content (global — filled by JS) ── */
+  :global(.mc-badge) {
+    display: inline-block;
+    background: theme('colors.paper');
+    border: 1px solid theme('colors.rule');
+    border-radius: 999px;
+    padding: .2rem .8rem;
+    font-family: theme('fontFamily.mono');
+    font-size: .65rem;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    color: theme('colors.acquadeep');
+    margin-bottom: .75rem;
+  }
+  :global(.mc-title) {
+    font-family: theme('fontFamily.hand');
+    font-size: clamp(1.9rem, 4vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.05;
+    color: theme('colors.ink');
+    margin: 0 0 .3rem;
+  }
+  :global(.mc-author) {
+    font-style: italic;
+    font-size: .9rem;
+    color: theme('colors.gold-deep');
+    margin: 0 0 .9rem;
+  }
+  :global(.mc-desc) {
+    font-size: .95rem;
+    line-height: 1.6;
+    color: theme('colors.ink-soft');
+    margin: 0 0 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px dashed theme('colors.rule');
+  }
+  :global(.mc-section-title) {
+    font-family: theme('fontFamily.hand');
+    font-size: 1.35rem;
+    font-weight: 700;
+    font-style: italic;
+    color: theme('colors.gold-deep');
+    margin: 1.25rem 0 .6rem;
+    border-bottom: 1px solid theme('colors.rule');
+    padding-bottom: .3rem;
+  }
+  :global(.mc-ingredients) {
+    list-style: none;
+    padding: 0; margin: 0;
+  }
+  :global(.mc-ingredients li) {
+    font-size: .9rem;
+    padding: .32rem 0 .32rem .9rem;
+    border-bottom: 1px solid rgba(31,42,42,0.05);
+    position: relative;
+    color: theme('colors.ink-soft');
+  }
+  :global(.mc-ingredients li::before) {
+    content: "·";
+    position: absolute; left: 0;
+    color: theme('colors.gold');
+    font-weight: 700;
+  }
+  :global(.mc-ingredients li.ing-head) {
+    font-family: theme('fontFamily.mono');
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    color: theme('colors.acquadeep');
+    padding-left: 0;
+    margin-top: .5rem;
+    font-weight: 600;
+    background: none;
+  }
+  :global(.mc-ingredients li.ing-head::before) { content: ""; }
+  :global(.mc-steps) {
+    list-style: none;
+    counter-reset: step;
+    padding: 0; margin: 0;
+  }
+  :global(.mc-steps li) {
+    counter-increment: step;
+    font-size: .9rem;
+    padding: .45rem 0 .45rem 2rem;
+    border-bottom: 1px solid rgba(31,42,42,0.05);
+    position: relative;
+    color: theme('colors.ink-soft');
+    line-height: 1.55;
+  }
+  :global(.mc-steps li::before) {
+    content: counter(step) ".";
+    position: absolute; left: 0;
+    font-style: italic;
+    color: theme('colors.gold-deep');
+    font-family: theme('fontFamily.serif');
+    font-size: .9rem;
+  }
+  :global(.mc-note) {
+    margin-top: 1.25rem;
+    padding: .9rem 1.1rem;
+    background: rgba(216,161,74,0.09);
+    border-left: 3px solid theme('colors.gold');
+    border-radius: 0 8px 8px 0;
+    font-size: .88rem;
+    font-style: italic;
+    color: theme('colors.ink-soft');
+    line-height: 1.55;
+  }
+</style>
+
+<script define:vars={{ recipesJson }}>
+  const data = recipesJson;
+  const overlay  = document.getElementById('recipeModal');
+  const closeBtn = document.getElementById('modalClose');
+  const img      = document.getElementById('modalImg');
+  const content  = document.getElementById('modalContent');
+
+  const catLabels = { dolci: 'Dolci', liquori: 'Liquori e bagne', conserve: 'Conserve e salse' };
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function buildHTML(r) {
+    const ingList = r.ingredients.map(i => {
+      if (i.startsWith('###')) return `<li class="ing-head">${esc(i.replace(/^###\s*/,''))}</li>`;
+      return `<li>${esc(i)}</li>`;
+    }).join('');
+
+    const stepList = r.steps.map(s => `<li>${esc(s)}</li>`).join('');
+
+    return `
+      <span class="mc-badge">${esc(catLabels[r.category] || r.category)}</span>
+      <h2 class="mc-title">${esc(r.title)}</h2>
+      ${r.author ? `<p class="mc-author">dell'${esc(r.author)}</p>` : ''}
+      ${r.description ? `<p class="mc-desc">${esc(r.description)}</p>` : ''}
+      ${r.ingredients.length ? `<p class="mc-section-title">Ingredienti</p><ul class="mc-ingredients">${ingList}</ul>` : ''}
+      ${r.steps.length ? `<p class="mc-section-title">Procedimento</p><ol class="mc-steps">${stepList}</ol>` : ''}
+      ${r.note ? `<div class="mc-note"><strong>Nota a margine —</strong> ${esc(r.note)}</div>` : ''}
+    `;
+  }
+
+  function openRecipe(id) {
+    const r = data[id];
+    if (!r) return;
+    img.src = r.photo || '';
+    img.alt = r.title;
+    content.innerHTML = buildHTML(r);
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    closeBtn.focus();
+  }
+
+  function closeModal() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // Card clicks
+  document.querySelectorAll('.rc').forEach(card => {
+    card.addEventListener('click', () => openRecipe(card.dataset.id));
+    card.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openRecipe(card.dataset.id); }
+    });
+  });
+
+  // Close
+  closeBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  // Filters
+  document.querySelectorAll('.fil').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.fil').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const cat = btn.dataset.cat;
+      document.querySelectorAll('.rc').forEach(card => {
+        card.style.display = (cat === 'all' || card.dataset.cat === cat) ? '' : 'none';
+      });
+    });
+  });
+</script>
