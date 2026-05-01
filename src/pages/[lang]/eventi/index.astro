@@ -2,7 +2,7 @@
 import Base from '../../../layouts/Base.astro';
 import EventCard from '../../../components/EventCard.astro';
 import { getCollection } from 'astro:content';
-import { useTranslations, localizedPath } from '../../../i18n/utils';
+import { useTranslations } from '../../../i18n/utils';
 import { byLang, splitFutureFromPast } from '../../../lib/content';
 import type { Lang } from '../../../i18n/ui';
 
@@ -14,213 +14,122 @@ const lang = Astro.params.lang as Lang;
 const t = useTranslations(lang);
 const all = await getCollection('events');
 const { future, past } = splitFutureFromPast(byLang(all, lang), new Date());
-const [featured, ...rest] = future;
+
+// future ASC (prossimo prima), past DESC (più recente prima)
+const events = [
+  ...future.map((e) => ({ entry: e, past: false })),
+  ...past.map((e)   => ({ entry: e, past: true  })),
+];
+const hasPast = past.length > 0;
 ---
 
 <Base title={t('nav.events')}>
-  <!-- ─── Page header ──────────────────────────────── -->
+
   <section class="page-header">
-    <p class="eyebrow">— {lang === 'it' ? 'Cosa succede' : "What's on"} —</p>
-    <h1>{lang === 'it' ? <>Le prossime <em>uscite</em></> : <>Upcoming <em>events</em></>}</h1>
-    <p class="subtitle">
-      {lang === 'it'
-        ? 'Escursioni, feste, cene e incontri sul Po e nei dintorni di Polesine Parmense.'
-        : 'Walks, festivals, dinners and gatherings on the Po and around Polesine Parmense.'}
-    </p>
+    <p class="eyebrow">— {lang === 'it' ? 'Calendario' : 'Calendar'} —</p>
+    <h1>{lang === 'it' ? <>Tutti gli <em>eventi</em></> : <>All <em>events</em></>}</h1>
+    {events.length === 0 && (
+      <p class="empty">{lang === 'it' ? 'Nessun evento in programma. Torna presto.' : 'No events yet. Check back soon.'}</p>
+    )}
   </section>
 
-  {future.length === 0 && (
-    <section class="empty">
-      <p>{lang === 'it' ? 'Nessun evento in programma per ora. Torna presto.' : 'No events scheduled yet. Check back soon.'}</p>
-    </section>
-  )}
-
-  <!-- ─── Featured event ──────────────────────────── -->
-  {featured && (
-    <section class="sec-featured">
-      <a class="featured" href={localizedPath(lang, `eventi/${featured.slug.replace(/^[a-z]{2}\//, '')}`)}>
-        <div class="featured-pic">
-          {featured.data.cover
-            ? <img src={featured.data.cover} alt={featured.data.title} loading="eager" />
-            : <div class="featured-placeholder" aria-hidden="true"></div>
-          }
-          <div class="featured-overlay" aria-hidden="true"></div>
-        </div>
-        <div class="featured-body">
-          <p class="featured-eyebrow">
-            {lang === 'it' ? 'Prossimo evento' : 'Next event'}
-          </p>
-          <h2>{featured.data.title}</h2>
-          <p class="featured-where">{featured.data.location}</p>
-          {featured.data.signupRequired && (
-            <span class="featured-badge">
-              {lang === 'it' ? '→ Iscrizione richiesta' : '→ Registration required'}
-            </span>
+  {events.length > 0 && (
+    <section class="events-list">
+      {events.map(({ entry, past: isPast }, i) => (
+        <>
+          {isPast && i > 0 && !events[i - 1].past && (
+            <div class="past-divider">
+              <span>{lang === 'it' ? 'Passati' : 'Past events'}</span>
+            </div>
           )}
-        </div>
-      </a>
+          <div class:list={['ev-wrap', { 'ev-past': isPast }]}>
+            <EventCard entry={entry} />
+          </div>
+        </>
+      ))}
     </section>
   )}
 
-  <!-- ─── Other upcoming events ───────────────────── -->
-  {rest.length > 0 && (
-    <section class="sec-grid">
-      <h2 class="sec-title">
-        {lang === 'it' ? <>Altri <em>appuntamenti</em></> : <>More <em>events</em></>}
-      </h2>
-      <div class="grid">
-        {rest.map((e) => <EventCard entry={e} />)}
-      </div>
-    </section>
-  )}
-
-  <!-- ─── Past events ──────────────────────────────── -->
-  {past.length > 0 && (
-    <section class="sec-grid sec-past">
-      <h2 class="sec-title">{lang === 'it' ? 'Archivio' : 'Archive'}</h2>
-      <div class="grid">
-        {past.map((e) => <EventCard entry={e} />)}
-      </div>
-    </section>
-  )}
 </Base>
 
 <style>
+  /* ── Header ── mobile first */
   .page-header {
-    padding: 6rem 4rem 4rem;
+    padding: 3rem 1.25rem 2rem;
     border-bottom: 1px solid theme('colors.rule');
-    max-width: 72ch;
   }
   .eyebrow {
     font-family: theme('fontFamily.mono');
-    font-size: .78rem;
+    font-size: .75rem;
     text-transform: uppercase;
     letter-spacing: .22em;
     color: theme('colors.ink-soft');
-    margin-bottom: .75rem;
+    margin-bottom: .5rem;
   }
   .page-header h1 {
-    font-size: clamp(3rem, 6vw, 5.5rem);
-    margin: 0 0 1rem;
+    font-size: clamp(2.4rem, 8vw, 5rem);
+    margin: 0;
     line-height: 1.05;
   }
   .page-header h1 :global(em) { color: theme('colors.acquadeep'); }
-  .subtitle {
-    font-style: italic;
-    color: theme('colors.ink-soft');
-    font-size: 1.15rem;
-    max-width: 52ch;
-    margin: 0;
-  }
-
   .empty {
-    padding: 4rem 4rem;
     font-style: italic;
     color: theme('colors.ink-soft');
+    margin-top: 1.5rem;
   }
 
-  /* ─── Featured ─────────────────────────────────── */
-  .sec-featured { padding: 4rem 4rem 0; }
-  .featured {
+  /* ── Events list ── mobile first: 1 col */
+  .events-list {
     display: grid;
-    grid-template-columns: 1.3fr 1fr;
-    min-height: 480px;
-    border: 1px solid theme('colors.rule');
-    border-radius: 12px;
-    overflow: hidden;
-    text-decoration: none;
-    color: theme('colors.ink');
-    box-shadow: 0 4px 24px rgba(31,42,42,0.09);
-    transition: box-shadow .35s ease, transform .35s ease;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 2rem 1.25rem 5rem;
   }
-  .featured:hover {
-    box-shadow: 0 12px 40px rgba(31,42,42,0.16);
-    transform: translateY(-3px);
+
+  /* ── Past dimming */
+  .ev-wrap { position: relative; }
+  .ev-past {
+    opacity: 0.45;
+    filter: saturate(0.4);
+    transition: opacity .25s ease, filter .25s ease;
   }
-  .featured-pic {
-    position: relative;
-    overflow: hidden;
-    background: theme('colors.paper-2');
+  .ev-past:hover {
+    opacity: 0.75;
+    filter: saturate(0.7);
   }
-  .featured-pic img {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%;
-    object-fit: cover;
-    filter: saturate(.88) contrast(1.02);
-    transition: transform .9s cubic-bezier(.2,.7,.2,1);
-  }
-  .featured:hover .featured-pic img { transform: scale(1.05); }
-  .featured-placeholder {
-    position: absolute; inset: 0;
-    background: linear-gradient(135deg, theme('colors.paper-2'), theme('colors.acqua'));
-    opacity: .5;
-  }
-  .featured-overlay {
-    position: absolute; inset: 0;
-    background: linear-gradient(90deg, transparent 60%, rgba(244,235,217,0.15) 100%);
-  }
-  .featured-body {
-    padding: 3rem 2.5rem;
+
+  /* ── Separatore futuri / passati */
+  .past-divider {
+    grid-column: 1 / -1;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    background: theme('colors.paper');
-    border-left: 1px dashed theme('colors.rule');
-  }
-  .featured-eyebrow {
-    font-family: theme('fontFamily.mono');
-    font-size: .72rem;
-    text-transform: uppercase;
-    letter-spacing: .22em;
-    color: theme('colors.brand');
-    margin-bottom: 1rem;
-  }
-  .featured-body h2 {
-    font-size: clamp(2rem, 3.5vw, 3rem);
-    line-height: 1.1;
-    margin: 0 0 1rem;
-  }
-  .featured-where {
-    font-family: theme('fontFamily.mono');
-    font-size: .75rem;
-    text-transform: uppercase;
-    letter-spacing: .18em;
+    align-items: center;
+    gap: 1rem;
+    margin: 1rem 0 .5rem;
     color: theme('colors.ink-soft');
-    margin: 0 0 1rem;
   }
-  .featured-badge {
+  .past-divider::before,
+  .past-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: theme('colors.rule');
+  }
+  .past-divider span {
     font-family: theme('fontFamily.mono');
-    font-size: .72rem;
+    font-size: .7rem;
     text-transform: uppercase;
-    letter-spacing: .18em;
-    color: theme('colors.gold-deep');
-    font-style: italic;
+    letter-spacing: .2em;
+    white-space: nowrap;
   }
 
-  /* ─── Grid sections ─────────────────────────────── */
-  .sec-grid { padding: 4rem 4rem 5rem; border-top: 1px solid theme('colors.rule'); }
-  .sec-past { opacity: .75; }
-  .sec-title {
-    font-size: clamp(1.8rem, 3vw, 2.6rem);
-    margin: 0 0 2.5rem;
-  }
-  .sec-title :global(em) { color: theme('colors.acquadeep'); }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
+  /* ── Tablet ≥ 600px: 2 colonne */
+  @media (min-width: 600px) {
+    .events-list { grid-template-columns: repeat(2, 1fr); gap: 1.75rem; }
   }
 
-  @media (max-width: 1000px) {
-    .page-header { padding: 3.5rem 1.5rem 2.5rem; }
-    .sec-featured { padding: 2.5rem 1.5rem 0; }
-    .featured { grid-template-columns: 1fr; min-height: auto; }
-    .featured-pic { aspect-ratio: 16/9; }
-    .featured-body { padding: 1.75rem 1.5rem; border-left: none; border-top: 1px dashed theme('colors.rule'); }
-    .sec-grid { padding: 3rem 1.5rem; }
-    .grid { grid-template-columns: 1fr; gap: 1.5rem; }
-  }
-  @media (min-width: 601px) and (max-width: 999px) {
-    .grid { grid-template-columns: repeat(2, 1fr); }
+  /* ── Desktop ≥ 1000px */
+  @media (min-width: 1000px) {
+    .page-header { padding: 5rem 4rem 3rem; }
+    .events-list { grid-template-columns: repeat(3, 1fr); gap: 2rem; padding: 3rem 4rem 6rem; }
   }
 </style>
