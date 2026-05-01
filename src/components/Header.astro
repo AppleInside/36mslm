@@ -340,13 +340,7 @@ const navItems = [
     .nav-item:hover > a .label::after,
     .nav-item.active > a .label::after { opacity: 1; transform: translateY(0) scaleX(1); }
 
-    .nav .indicator {
-      position: absolute; bottom: -1.3rem; height: 2px;
-      background: theme('colors.brand'); pointer-events: none;
-      transition: left .45s cubic-bezier(.2,.7,.2,1), width .45s cubic-bezier(.2,.7,.2,1), opacity .25s ease;
-      opacity: 0;
-    }
-    .nav:hover .indicator { opacity: 1; }
+    .nav .indicator { display: none; }
 
     .megapanel {
       display: block;
