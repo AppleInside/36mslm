@@ -1,5 +1,6 @@
----
+﻿---
 import Base from '../../../layouts/Base.astro';
+import PageHeader from '../../../components/PageHeader.astro';
 import EventCard from '../../../components/EventCard.astro';
 import { getCollection } from 'astro:content';
 import { useTranslations } from '../../../i18n/utils';
@@ -25,13 +26,15 @@ const hasPast = past.length > 0;
 
 <Base title={t('nav.events')}>
 
-  <section class="page-header">
-    <p class="eyebrow">— {lang === 'it' ? 'Calendario' : 'Calendar'} —</p>
-    <h1>{lang === 'it' ? <>Tutti gli <em>eventi</em></> : <>All <em>events</em></>}</h1>
-    {events.length === 0 && (
-      <p class="empty">{lang === 'it' ? 'Nessun evento in programma. Torna presto.' : 'No events yet. Check back soon.'}</p>
-    )}
-  </section>
+  <PageHeader
+    eyebrow={`— ${lang === 'it' ? 'Calendario' : 'Calendar'} —`}
+    bg="/media/storico/cercavano-il-fresco-destate-sulla-Via-Alzaia-FILEminimizer.jpg"
+  >
+    {lang === 'it' ? <>Tutti gli <em>eventi</em></> : <>All <em>events</em></>}
+  </PageHeader>
+  {events.length === 0 && (
+    <p class="empty">{lang === 'it' ? 'Nessun evento in programma. Torna presto.' : 'No events yet. Check back soon.'}</p>
+  )}
 
   {events.length > 0 && (
     <section class="events-list">
@@ -53,25 +56,6 @@ const hasPast = past.length > 0;
 </Base>
 
 <style>
-  /* ── Header ── mobile first */
-  .page-header {
-    padding: 3rem 1.25rem 2rem;
-    border-bottom: 1px solid theme('colors.rule');
-  }
-  .eyebrow {
-    font-family: theme('fontFamily.mono');
-    font-size: .75rem;
-    text-transform: uppercase;
-    letter-spacing: .22em;
-    color: theme('colors.ink-soft');
-    margin-bottom: .5rem;
-  }
-  .page-header h1 {
-    font-size: clamp(2.4rem, 8vw, 5rem);
-    margin: 0;
-    line-height: 1.05;
-  }
-  .page-header h1 :global(em) { color: theme('colors.acquadeep'); }
   .empty {
     font-style: italic;
     color: theme('colors.ink-soft');
@@ -129,7 +113,6 @@ const hasPast = past.length > 0;
 
   /* ── Desktop ≥ 1000px */
   @media (min-width: 1000px) {
-    .page-header { padding: 5rem 4rem 3rem; }
     .events-list { grid-template-columns: repeat(3, 1fr); gap: 2rem; padding: 3rem 4rem 6rem; }
   }
 </style>

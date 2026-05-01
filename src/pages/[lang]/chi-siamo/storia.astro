@@ -1,4 +1,4 @@
----
+﻿---
 import Base from '../../../layouts/Base.astro';
 import PageHeader from '../../../components/PageHeader.astro';
 import PageBody from '../../../components/PageBody.astro';
@@ -11,7 +11,10 @@ export function getStaticPaths() {
 const lang = Astro.params.lang as Lang;
 ---
 <Base title={lang === 'it' ? 'Storia' : 'History'}>
-  <PageHeader eyebrow={lang === 'it' ? '— Chi siamo —' : '— About us —'}>
+  <PageHeader
+    eyebrow={lang === 'it' ? '— Chi siamo —' : '— About us —'}
+    bg="/media/storico/Cartolina-1913b.jpg"
+  >
     {lang === 'it' ? <>La nostra <em>storia</em></> : <>Our <em>story</em></>}
   </PageHeader>
   <PageBody narrow>

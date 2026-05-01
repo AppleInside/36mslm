@@ -1,4 +1,4 @@
----
+﻿---
 import Base from '../../../layouts/Base.astro';
 import PageHeader from '../../../components/PageHeader.astro';
 import PageBody from '../../../components/PageBody.astro';
@@ -13,7 +13,10 @@ const lang = Astro.params.lang as Lang;
 const subject = encodeURIComponent(lang === 'it' ? 'Vorrei dare una mano' : 'I would like to help out');
 ---
 <Base title={lang === 'it' ? 'Volontari' : 'Volunteers'}>
-  <PageHeader eyebrow={lang === 'it' ? '— Fai parte —' : '— Join us —'}>
+  <PageHeader
+    eyebrow={lang === 'it' ? '— Fai parte —' : '— Join us —'}
+    bg="/media/storico/andavano-a-pomodori-1983-.jpg"
+  >
     {lang === 'it' ? <>Diventa <em>volontario</em></> : <>Become a <em>volunteer</em></>}
   </PageHeader>
   <PageBody narrow>

@@ -1,4 +1,4 @@
----
+﻿---
 import Base from '../../../../layouts/Base.astro';
 import PageHeader from '../../../../components/PageHeader.astro';
 import PageBody from '../../../../components/PageBody.astro';
@@ -16,7 +16,10 @@ const all = await getCollection('notices');
 const notices = sortByDateDesc(byLang(all, lang));
 ---
 <Base title={lang === 'it' ? 'Bacheca' : 'Notice board'}>
-  <PageHeader eyebrow={lang === 'it' ? '— Comunicazioni —' : '— Notices —'}>
+  <PageHeader
+    eyebrow={lang === 'it' ? '— Comunicazioni —' : '— Notices —'}
+    bg="/media/storico/leggevano-il-giornale-in-piazza.jpg"
+  >
     {lang === 'it' ? <>Bacheca <em>e avvisi</em></> : <>Notice <em>board</em></>}
   </PageHeader>
   <PageBody>

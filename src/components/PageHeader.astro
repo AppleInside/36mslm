@@ -1,10 +1,11 @@
 ---
 interface Props {
   eyebrow?: string;
+  bg?: string;
 }
-const { eyebrow } = Astro.props;
+const { eyebrow, bg } = Astro.props;
 ---
-<section class="page-header">
+<section class:list={['page-header', bg && 'has-bg']} style={bg ? `--ph-bg: url('${bg}')` : undefined}>
   {eyebrow && <p class="eyebrow">{eyebrow}</p>}
   <h1><slot /></h1>
 </section>
@@ -13,6 +14,7 @@ const { eyebrow } = Astro.props;
   .page-header {
     padding: 3rem 1.25rem 2rem;
     border-bottom: 1px solid theme('colors.rule');
+    position: relative;
   }
   .eyebrow {
     font-family: theme('fontFamily.mono');
@@ -21,14 +23,52 @@ const { eyebrow } = Astro.props;
     letter-spacing: .22em;
     color: theme('colors.ink-soft');
     margin-bottom: .5rem;
+    position: relative;
+    z-index: 1;
   }
   h1 {
     font-size: clamp(2.4rem, 8vw, 5rem);
     margin: 0;
     line-height: 1.05;
+    position: relative;
+    z-index: 1;
   }
   h1 :global(em) { color: theme('colors.acquadeep'); }
+
+  /* ── With background image ── */
+  .has-bg {
+    background-image: var(--ph-bg);
+    background-size: cover;
+    background-position: center 30%;
+    min-height: 260px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    border-bottom: none;
+  }
+  .has-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(15,22,28,0.28) 0%,
+      rgba(15,22,28,0.68) 100%
+    );
+  }
+  .has-bg .eyebrow {
+    color: rgba(232,244,248,0.75);
+  }
+  .has-bg h1 {
+    color: #fff;
+    text-shadow: 0 2px 16px rgba(0,0,0,0.4);
+  }
+  .has-bg h1 :global(em) {
+    color: theme('colors.gold');
+  }
+
   @media (min-width: 1000px) {
     .page-header { padding: 5rem 4rem 3rem; }
+    .has-bg { min-height: 340px; }
   }
 </style>

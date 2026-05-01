@@ -1,0 +1,1092 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>36 m s.l.m. — Diario di golena (mockup)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;1,9..144,400;1,9..144,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper:        #F4EBD9;
+    --paper-2:      #EFE3CB;
+    --ink:          #1F2A2A;
+    --ink-soft:     #3A4747;
+    --gold:         #D8A14A;
+    --gold-deep:    #B5802A;
+    --brand:        #0F71B8;
+    --brand-deep:   #0A578F;
+    --alga:         #7B8F6F;
+    --acqua:        #4A6670;
+    --rule:         rgba(31,42,42,0.18);
+    --serif:        'Fraunces', 'Iowan Old Style', Georgia, serif;
+    --hand:         'Caveat', cursive;
+    --mono:         'IBM Plex Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--serif);
+    font-weight: 400;
+    color: var(--ink);
+    background: var(--paper);
+    font-size: 18px;
+    line-height: 1.55;
+    /* paper grain via inline SVG noise */
+    background-image:
+      radial-gradient(1200px 600px at 80% -10%, rgba(216,161,74,0.18), transparent 60%),
+      radial-gradient(900px 500px at -10% 30%, rgba(123,143,111,0.16), transparent 60%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.12 0 0 0 0 0.16 0 0 0 0 0.16 0 0 0 0.07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    background-attachment: fixed, fixed, fixed;
+  }
+  a { color: inherit; }
+
+  /* --- Top bar --- */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 2rem;
+    padding: 1.1rem 2rem;
+    background: rgba(244,235,217,0.78);
+    backdrop-filter: blur(10px) saturate(1.1);
+    -webkit-backdrop-filter: blur(10px) saturate(1.1);
+    border-bottom: 1px solid var(--rule);
+  }
+  .topbar .marca {
+    display: inline-flex; align-items: center;
+    text-decoration: none; color: var(--ink);
+  }
+  .topbar .marca img {
+    height: 44px; width: auto;
+    display: block;
+    transition: transform .5s cubic-bezier(.2,.7,.2,1);
+  }
+  .topbar .marca:hover img { transform: rotate(-2deg) scale(1.03); }
+
+  /* Nav as editorial chapters with roman numerals */
+  .nav {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    gap: 0;
+    position: relative;
+  }
+  .nav-item {
+    position: relative;
+    padding: .75rem 1.4rem;
+  }
+  .nav-item > a {
+    text-decoration: none;
+    color: var(--ink-soft);
+    display: inline-flex;
+    align-items: baseline;
+    gap: .55rem;
+    font-family: var(--serif);
+    font-size: 1.08rem;
+    line-height: 1;
+    transition: color .25s ease;
+  }
+  .nav-item > a .roman { display: none; }
+  .nav-item > a .label { position: relative; }
+  .nav-item > a .label::after {
+    content: "";
+    position: absolute; left: 0; right: 0; bottom: -.45rem; height: 6px;
+    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 6'><path d='M0 3 Q 25 0 50 3 T 100 3' fill='none' stroke='%230F71B8' stroke-width='1.6'/></svg>") repeat-x;
+    opacity: 0;
+    transform: translateY(4px) scaleX(.6);
+    transform-origin: left center;
+    transition: opacity .35s ease, transform .45s cubic-bezier(.2,.7,.2,1);
+  }
+  .nav-item:hover > a, .nav-item.active > a { color: var(--ink); }
+  .nav-item:hover > a .label::after,
+  .nav-item.active > a .label::after { opacity: 1; transform: translateY(0) scaleX(1); }
+
+  /* Sliding indicator line under nav */
+  .nav .indicator {
+    position: absolute;
+    bottom: -1.1rem;
+    height: 2px;
+    background: var(--brand);
+    pointer-events: none;
+    transition: left .45s cubic-bezier(.2,.7,.2,1), width .45s cubic-bezier(.2,.7,.2,1), opacity .25s ease;
+    opacity: 0;
+  }
+  .nav:hover .indicator { opacity: 1; }
+
+  /* Mega-panel that drops from the topbar */
+  .megapanel {
+    position: absolute;
+    left: 0; right: 0; top: 100%;
+    background: var(--paper);
+    border-bottom: 1px solid var(--rule);
+    box-shadow: 0 24px 40px -20px rgba(31,42,42,0.18);
+    transform: translateY(-12px);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform .35s cubic-bezier(.2,.7,.2,1), opacity .25s ease;
+  }
+  .megapanel.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
+  .megapanel .pane {
+    display: none;
+    grid-template-columns: 1.1fr 1fr 1fr;
+    gap: 3rem;
+    padding: 2.75rem 3rem 3rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .megapanel .pane.show { display: grid; }
+  .megapanel .lead {
+    border-right: 1px dashed var(--rule);
+    padding-right: 2rem;
+    text-decoration: none;
+    color: inherit;
+  }
+  .megapanel .lead .eyebrow {
+    font-family: var(--mono);
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .22em;
+    color: var(--brand);
+    margin-bottom: .85rem;
+  }
+  .megapanel .lead h4 {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: 2rem;
+    line-height: 1.05;
+    margin: 0 0 .85rem 0;
+    letter-spacing: -0.01em;
+  }
+  .megapanel .lead h4 em { font-style: italic; color: var(--acqua); }
+  .megapanel .lead p {
+    font-style: italic;
+    color: var(--ink-soft);
+    max-width: 36ch;
+    margin: 0 0 1.5rem 0;
+  }
+  .megapanel .lead .pic {
+    aspect-ratio: 5 / 3;
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--paper-2);
+  }
+  .megapanel .lead .pic img {
+    width: 100%; height: 100%; object-fit: cover;
+    filter: saturate(.9);
+    transition: transform .9s cubic-bezier(.2,.7,.2,1);
+  }
+  .megapanel .lead:hover .pic img { transform: scale(1.04); }
+
+  .megapanel .links { display: flex; flex-direction: column; gap: .25rem; }
+  .megapanel .links h5 {
+    font-family: var(--mono);
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .22em;
+    color: var(--ink-soft);
+    margin: 0 0 .75rem 0;
+    font-weight: 500;
+  }
+  .megapanel .links a {
+    text-decoration: none;
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    padding: .55rem 0;
+    border-bottom: 1px solid var(--rule);
+    display: flex; justify-content: space-between; align-items: center;
+    transition: padding .25s ease, color .25s ease;
+  }
+  .megapanel .links a:hover { padding-left: .5rem; color: var(--brand); }
+  .megapanel .links a .arrow {
+    font-family: var(--mono);
+    color: var(--brand);
+    opacity: 0; transform: translateX(-6px);
+    transition: opacity .25s ease, transform .3s ease;
+  }
+  .megapanel .links a:hover .arrow { opacity: 1; transform: translateX(0); }
+  .megapanel .links a em { font-style: italic; color: var(--acqua); }
+
+  /* Lang switcher */
+  .lang {
+    display: flex; gap: .15rem;
+    font-family: var(--mono); font-size: .78rem;
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: .2rem;
+  }
+  .lang a {
+    padding: .35rem .75rem;
+    text-decoration: none;
+    color: var(--ink-soft);
+    border-radius: 999px;
+    transition: all .25s ease;
+  }
+  .lang a.on { background: var(--brand); color: var(--paper); }
+  .lang a:not(.on):hover { color: var(--ink); }
+
+  /* Mobile burger */
+  .burger {
+    display: none;
+    width: 44px; height: 44px;
+    align-items: center; justify-content: center;
+    background: transparent; border: 1px solid var(--rule);
+    border-radius: 999px; cursor: pointer;
+  }
+  .burger span {
+    display: block; width: 18px; height: 1.5px;
+    background: var(--ink); position: relative;
+    transition: transform .3s ease;
+  }
+  .burger span::before, .burger span::after {
+    content: ""; position: absolute; left: 0; width: 18px; height: 1.5px; background: var(--ink);
+    transition: transform .3s ease;
+  }
+  .burger span::before { top: -6px; }
+  .burger span::after { top: 6px; }
+  .burger.open span { background: transparent; }
+  .burger.open span::before { transform: translateY(6px) rotate(45deg); }
+  .burger.open span::after { transform: translateY(-6px) rotate(-45deg); }
+
+  /* Mobile drawer */
+  .drawer {
+    position: fixed; inset: 0;
+    background: var(--paper);
+    z-index: 60;
+    padding: 5rem 1.5rem 2rem;
+    transform: translateY(-100%);
+    transition: transform .45s cubic-bezier(.2,.7,.2,1);
+    overflow: auto;
+  }
+  .drawer.open { transform: translateY(0); }
+  .drawer .close {
+    position: absolute; top: 1.1rem; right: 1.5rem;
+    background: transparent; border: 1px solid var(--rule);
+    border-radius: 999px; width: 44px; height: 44px;
+    font-size: 1.4rem; color: var(--ink); cursor: pointer;
+  }
+  .drawer ol {
+    list-style: none; padding: 0; margin: 0;
+  }
+  .drawer li { border-bottom: 1px solid var(--rule); }
+  .drawer li a {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 1.4rem 0;
+    text-decoration: none; color: var(--ink);
+    font-family: var(--serif);
+    font-size: 2rem;
+    font-weight: 300;
+  }
+  .drawer li a .roman { display: none; }
+  .drawer .footer-row {
+    margin-top: 2rem;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--mono);
+    font-size: .75rem;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: .18em;
+  }
+
+  /* --- Hero (asymmetric, editorial) --- */
+  .hero {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 0;
+    min-height: 88vh;
+    border-bottom: 1px solid var(--rule);
+    position: relative;
+  }
+  .hero .text {
+    padding: 5rem 3rem 4rem 4rem;
+    display: flex; flex-direction: column; justify-content: center;
+    position: relative;
+  }
+  .hero .meta {
+    font-family: var(--mono);
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .2em;
+    color: var(--ink-soft);
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .hero .meta .dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--gold);
+    box-shadow: 0 0 0 4px rgba(216,161,74,0.18);
+  }
+  .hero h1 {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(3.2rem, 6.6vw, 6.8rem);
+    line-height: 0.96;
+    letter-spacing: -0.02em;
+    margin: 0 0 .5rem 0;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--acqua);
+    font-weight: 400;
+  }
+  .hero h1 .hand {
+    font-family: var(--hand);
+    font-weight: 700;
+    color: var(--gold-deep);
+    font-size: 1em;
+    line-height: 1;
+    display: inline-block;
+    transform: rotate(-2deg) translateY(-.05em);
+    margin-right: .15em;
+  }
+  .hero p.kicker {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.25rem;
+    max-width: 38ch;
+    color: var(--ink-soft);
+    margin-top: 1.75rem;
+  }
+  .hero .ctas { display: flex; gap: 1rem; margin-top: 2.5rem; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: .6rem;
+    padding: .9rem 1.4rem;
+    font-family: var(--mono); font-size: .82rem;
+    text-transform: uppercase; letter-spacing: .14em;
+    text-decoration: none;
+    border: 1.5px solid var(--ink);
+    border-radius: 999px;
+    transition: all .25s ease;
+  }
+  .btn.primary { background: var(--ink); color: var(--paper); }
+  .btn.primary:hover { background: var(--gold-deep); border-color: var(--gold-deep); }
+  .btn.ghost { background: transparent; color: var(--ink); }
+  .btn.ghost:hover { background: var(--ink); color: var(--paper); }
+  .btn .arrow { transition: transform .25s ease; }
+  .btn:hover .arrow { transform: translateX(4px); }
+
+  .hero .image {
+    position: relative;
+    overflow: hidden;
+    background: var(--ink);
+  }
+  .hero .image img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    filter: saturate(.92) contrast(1.02);
+    mix-blend-mode: multiply;
+    opacity: .92;
+  }
+  .hero .image::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 60%, rgba(31,42,42,0.35) 100%);
+  }
+  .hero .quota {
+    position: absolute;
+    right: 2rem; bottom: 2rem;
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 11rem;
+    line-height: .85;
+    color: var(--paper);
+    z-index: 2;
+    text-shadow: 0 4px 30px rgba(0,0,0,.35);
+    pointer-events: none;
+    letter-spacing: -0.04em;
+  }
+  .hero .quota small {
+    font-size: 1.4rem;
+    font-style: normal;
+    font-family: var(--mono);
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    display: block;
+    margin-top: .5rem;
+    opacity: .85;
+  }
+
+  /* waterline divider */
+  .waterline {
+    display: block;
+    width: 100%;
+    height: 32px;
+    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 32' preserveAspectRatio='none'><path d='M0 16 Q 60 4 120 16 T 240 16 T 360 16 T 480 16 T 600 16 T 720 16 T 840 16 T 960 16 T 1080 16 T 1200 16' fill='none' stroke='%234A6670' stroke-width='1.2' opacity='0.7'/><path d='M0 22 Q 60 12 120 22 T 240 22 T 360 22 T 480 22 T 600 22 T 720 22 T 840 22 T 960 22 T 1080 22 T 1200 22' fill='none' stroke='%237B8F6F' stroke-width='1' opacity='0.5'/></svg>") repeat-x center;
+    background-size: 1200px 32px;
+    animation: drift 30s linear infinite;
+  }
+  @keyframes drift {
+    from { background-position: 0 center; }
+    to   { background-position: 1200px center; }
+  }
+
+  /* --- Sezione "Cosa succede" (eventi) --- */
+  .section {
+    padding: 6rem 4rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .section-head {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 2rem;
+    margin-bottom: 3rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px dashed var(--rule);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .22em;
+    color: var(--ink-soft);
+  }
+  .section-head h2 {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(2.4rem, 4.5vw, 4rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin: .5rem 0 0 0;
+  }
+  .section-head h2 em { font-style: italic; color: var(--acqua); }
+  .section-head .hand-note {
+    font-family: var(--hand);
+    color: var(--gold-deep);
+    font-size: 1.6rem;
+    transform: rotate(-3deg);
+    line-height: 1;
+  }
+
+  .events { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 2.5rem; }
+  .event {
+    text-decoration: none;
+    color: inherit;
+    display: flex; flex-direction: column;
+    transition: transform .3s ease;
+  }
+  .event:hover { transform: translateY(-4px); }
+  .event .pic {
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    position: relative;
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    margin-bottom: 1.25rem;
+    /* soft deckle-edge mask */
+    -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 75' preserveAspectRatio='none'><path d='M1 2 Q 25 0 50 2 T 99 2 L 99 73 Q 75 75 50 73 T 1 73 Z' fill='black'/></svg>");
+    mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 75' preserveAspectRatio='none'><path d='M1 2 Q 25 0 50 2 T 99 2 L 99 73 Q 75 75 50 73 T 1 73 Z' fill='black'/></svg>");
+  }
+  .event.big .pic { aspect-ratio: 4 / 3.5; }
+  .event .pic img {
+    width: 100%; height: 100%; object-fit: cover;
+    filter: saturate(.92);
+    transition: transform .8s cubic-bezier(.2,.7,.2,1);
+  }
+  .event:hover .pic img { transform: scale(1.04); }
+  .event .pic .stamp {
+    position: absolute; top: 1rem; left: 1rem;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    padding: .5rem .75rem;
+    line-height: 1;
+    text-align: center;
+    box-shadow: 0 1px 0 rgba(0,0,0,.05), 0 8px 16px rgba(0,0,0,.08);
+    transform: rotate(-2deg);
+  }
+  .event .pic .stamp .d {
+    font-size: 1.8rem; font-weight: 300; display: block; font-style: italic;
+  }
+  .event .pic .stamp .m {
+    font-family: var(--mono); font-size: .68rem;
+    text-transform: uppercase; letter-spacing: .18em;
+    margin-top: .15rem;
+  }
+  .event h3 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 1.55rem;
+    line-height: 1.15;
+    margin: .25rem 0 .5rem 0;
+    letter-spacing: -.005em;
+  }
+  .event.big h3 { font-size: 2.1rem; }
+  .event .where {
+    font-family: var(--mono);
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    color: var(--ink-soft);
+  }
+  .event .signup {
+    margin-top: .75rem;
+    display: inline-flex; align-items: center; gap: .4rem;
+    color: var(--gold-deep);
+    font-style: italic;
+  }
+
+  /* --- Tre canali (scopri) --- */
+  .threecol {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .threecol .col {
+    padding: 4.5rem 2.5rem;
+    border-right: 1px dashed var(--rule);
+    text-decoration: none; color: inherit;
+    position: relative;
+    transition: background .3s ease;
+  }
+  .threecol .col:last-child { border-right: none; }
+  .threecol .col:hover { background: var(--paper-2); }
+  .threecol .col .num {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 300;
+    color: var(--gold);
+    font-size: 4rem;
+    line-height: 1;
+    margin-bottom: 1rem;
+  }
+  .threecol .col h3 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 2rem;
+    line-height: 1.1;
+    margin: 0 0 .75rem 0;
+  }
+  .threecol .col h3 em { font-style: italic; color: var(--acqua); }
+  .threecol .col p {
+    font-style: italic;
+    color: var(--ink-soft);
+    max-width: 32ch;
+    margin: 0 0 1.5rem 0;
+  }
+  .threecol .col .arrow-link {
+    font-family: var(--mono);
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    color: var(--gold-deep);
+    display: inline-flex; gap: .5rem;
+  }
+
+  /* --- Citazione editoriale (story pull) --- */
+  .pull {
+    padding: 7rem 4rem;
+    display: grid;
+    grid-template-columns: 1fr 1.6fr 1fr;
+    gap: 3rem;
+    align-items: center;
+    border-bottom: 1px solid var(--rule);
+    background: linear-gradient(180deg, transparent, rgba(123,143,111,0.07));
+  }
+  .pull blockquote {
+    grid-column: 2 / 3;
+    margin: 0;
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(2rem, 3.6vw, 3.2rem);
+    line-height: 1.1;
+    text-align: center;
+    color: var(--ink);
+    position: relative;
+  }
+  .pull blockquote::before {
+    content: "“";
+    position: absolute;
+    top: -3rem; left: -1.5rem;
+    font-size: 8rem;
+    color: var(--gold);
+    line-height: 1;
+    font-style: normal;
+    opacity: .55;
+  }
+  .pull cite {
+    display: block;
+    margin-top: 2rem;
+    font-style: normal;
+    font-family: var(--mono);
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .2em;
+    color: var(--ink-soft);
+  }
+
+  /* --- Partecipa (CTA) --- */
+  .cta {
+    padding: 6rem 4rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    border-bottom: 1px solid var(--rule);
+  }
+  .cta h2 {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(2.4rem, 4.5vw, 4rem);
+    line-height: 1;
+    margin: 0;
+  }
+  .cta h2 em { font-style: italic; color: var(--gold-deep); }
+  .cta .opts { display: grid; gap: 1rem; }
+  .cta .opt {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--rule);
+    text-decoration: none; color: inherit;
+    transition: padding .25s ease;
+  }
+  .cta .opt:hover { padding-left: .75rem; }
+  .cta .opt .label {
+    font-family: var(--serif);
+    font-size: 1.6rem;
+    font-weight: 400;
+  }
+  .cta .opt .label em { font-style: italic; color: var(--acqua); }
+  .cta .opt .arrow {
+    font-family: var(--mono); font-size: .9rem;
+    color: var(--gold-deep);
+  }
+
+  /* --- Footer --- */
+  footer {
+    padding: 4rem 4rem 3rem;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    gap: 3rem;
+    background: var(--ink);
+    color: var(--paper);
+  }
+  footer .marca {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: 2.2rem;
+    line-height: 1.1;
+  }
+  footer .marca em { font-style: italic; color: var(--gold); }
+  footer .marca small {
+    display: block;
+    font-family: var(--mono);
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    color: rgba(244,235,217,0.55);
+    margin-top: .75rem;
+  }
+  footer h4 {
+    font-family: var(--mono);
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .2em;
+    color: var(--gold);
+    margin: 0 0 1rem 0;
+    font-weight: 500;
+  }
+  footer ul { list-style: none; padding: 0; margin: 0; }
+  footer li { padding: .35rem 0; }
+  footer a { color: var(--paper); text-decoration: none; opacity: .85; }
+  footer a:hover { opacity: 1; color: var(--gold); }
+  footer .colofon {
+    grid-column: 1 / -1;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(244,235,217,0.15);
+    display: flex; justify-content: space-between;
+    font-family: var(--mono);
+    font-size: .72rem;
+    color: rgba(244,235,217,0.55);
+    text-transform: uppercase;
+    letter-spacing: .15em;
+  }
+
+  /* reveal on load */
+  .reveal { opacity: 0; transform: translateY(12px); animation: rev .9s ease forwards; }
+  @keyframes rev { to { opacity: 1; transform: translateY(0); } }
+  .d1 { animation-delay: .05s; } .d2 { animation-delay: .18s; }
+  .d3 { animation-delay: .32s; } .d4 { animation-delay: .48s; }
+
+  @media (max-width: 1000px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero .text { padding: 3rem 1.5rem; }
+    .hero .image { aspect-ratio: 4/3; min-height: 300px; }
+    .events, .threecol, .cta, footer { grid-template-columns: 1fr; }
+    .threecol .col { border-right: none; border-bottom: 1px dashed var(--rule); }
+    .section, .pull, .cta { padding: 3.5rem 1.5rem; }
+    .pull blockquote { grid-column: 1 / -1; }
+    .topbar { grid-template-columns: auto 1fr auto; padding: 1rem 1.25rem; }
+    .nav, .lang, .megapanel { display: none !important; }
+    .burger { display: inline-flex; }
+    .hero .quota { font-size: 6rem; right: 1rem; bottom: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar reveal d1">
+  <a class="marca" href="#" aria-label="36 m s.l.m.">
+    <img src="/logo.jpg" alt="36 m s.l.m." />
+  </a>
+
+  <nav class="nav" id="nav">
+    <div class="nav-item active" data-pane="eventi">
+      <a href="#"><span class="roman">i.</span><span class="label">Cosa succede</span></a>
+    </div>
+    <div class="nav-item" data-pane="scopri">
+      <a href="#"><span class="roman">ii.</span><span class="label">Scopri il Po</span></a>
+    </div>
+    <div class="nav-item" data-pane="partecipa">
+      <a href="#"><span class="roman">iii.</span><span class="label">Partecipa</span></a>
+    </div>
+    <div class="nav-item" data-pane="chisiamo">
+      <a href="#"><span class="roman">iv.</span><span class="label">Chi siamo</span></a>
+    </div>
+    <div class="nav-item" data-pane="contatti">
+      <a href="#"><span class="roman">v.</span><span class="label">Contatti</span></a>
+    </div>
+    <span class="indicator" id="indicator"></span>
+  </nav>
+
+  <div class="lang">
+    <a href="#" class="on">IT</a>
+    <a href="#">EN</a>
+  </div>
+
+  <button class="burger" id="burger" aria-label="Apri menu"><span></span></button>
+
+  <!-- Mega panels -->
+  <div class="megapanel" id="megapanel">
+    <div class="pane" data-pane="eventi">
+      <a class="lead" href="#">
+        <p class="eyebrow">Prossimo evento · 10 maggio</p>
+        <h4>Camminata in <em>golena</em> al risveglio del Po</h4>
+        <p>Sei chilometri tra pioppi e meandri, partenza all'argine alle 06:30.</p>
+        <div class="pic"><img src="/media/legacy/wp-content_uploads_2021_09_cercavano-il-fresco-destate-sulla-Via-Alzaia-FILEminimizer.jpg" alt=""></div>
+      </a>
+      <div class="links">
+        <h5>Calendario</h5>
+        <a href="#">Tutti gli <em>eventi</em><span class="arrow">→</span></a>
+        <a href="#">Bacheca <em>e avvisi</em><span class="arrow">→</span></a>
+        <a href="#">Iscriviti a un <em>evento</em><span class="arrow">→</span></a>
+      </div>
+      <div class="links">
+        <h5>Per chi viene da fuori</h5>
+        <a href="#">Come arrivare<span class="arrow">→</span></a>
+        <a href="#">Dove dormire<span class="arrow">→</span></a>
+        <a href="#">Dove mangiare<span class="arrow">→</span></a>
+      </div>
+    </div>
+    <div class="pane" data-pane="scopri">
+      <a class="lead" href="#">
+        <p class="eyebrow">Storia in evidenza</p>
+        <h4>I nomi dei pioppi nel <em>dialetto</em> di Polesine</h4>
+        <p>Dal pioppo cipressino al pioppo nero: come li chiamavano i nostri nonni.</p>
+        <div class="pic"><img src="/media/legacy/wp-content_uploads_2021_09_1953-Giovannino-Guareschi-Polesine-Due-Torri-1.jpg" alt=""></div>
+      </a>
+      <div class="links">
+        <h5>Territorio</h5>
+        <a href="#">Itinerari <em>del fiume</em><span class="arrow">→</span></a>
+        <a href="#">Luoghi <em>e tappe</em><span class="arrow">→</span></a>
+        <a href="#">Mappa <em>interattiva</em><span class="arrow">→</span></a>
+      </div>
+      <div class="links">
+        <h5>Memoria</h5>
+        <a href="#">Ricettario <em>di casa</em><span class="arrow">→</span></a>
+        <a href="#">Storie <em>di nonni</em><span class="arrow">→</span></a>
+        <a href="#">Archivio <em>fotografico</em><span class="arrow">→</span></a>
+      </div>
+    </div>
+    <div class="pane" data-pane="partecipa">
+      <a class="lead" href="#">
+        <p class="eyebrow">Modi per esserci</p>
+        <h4>Diventa <em>volontario</em> dell'associazione</h4>
+        <p>Una mano in più a un evento, un'idea per la bacheca, una segnalazione: tutto conta.</p>
+        <div class="pic"><img src="/media/legacy/wp-content_uploads_2021_09_Tortelli-1959-.jpg" alt=""></div>
+      </a>
+      <div class="links">
+        <h5>Sostieni</h5>
+        <a href="#"><em>5×1000</em> all'associazione<span class="arrow">→</span></a>
+        <a href="#"><em>Volontari</em> per gli eventi<span class="arrow">→</span></a>
+      </div>
+      <div class="links">
+        <h5>Contribuisci</h5>
+        <a href="#">Bacheca <em>e avvisi</em><span class="arrow">→</span></a>
+        <a href="#">Segnala un <em>evento o una storia</em><span class="arrow">→</span></a>
+      </div>
+    </div>
+    <div class="pane" data-pane="chisiamo">
+      <a class="lead" href="#">
+        <p class="eyebrow">L'associazione</p>
+        <h4>Una APS che <em>misura</em> il proprio paese in metri sul mare</h4>
+        <p>Statuto, persone, trasparenza, press kit: tutto quello che ci riguarda.</p>
+        <div class="pic"><img src="/media/legacy/wp-content_uploads_2021_09_Giovanni-Guareschi-al-bar-in-piazza.jpg" alt=""></div>
+      </a>
+      <div class="links">
+        <h5>Documenti</h5>
+        <a href="#">La <em>storia</em><span class="arrow">→</span></a>
+        <a href="#">Lo <em>statuto</em><span class="arrow">→</span></a>
+        <a href="#"><em>Trasparenza</em><span class="arrow">→</span></a>
+      </div>
+      <div class="links">
+        <h5>Stampa</h5>
+        <a href="#"><em>Press kit</em><span class="arrow">→</span></a>
+        <a href="#">Loghi <em>e foto</em><span class="arrow">→</span></a>
+      </div>
+    </div>
+    <div class="pane" data-pane="contatti">
+      <a class="lead" href="#">
+        <p class="eyebrow">Scrivici</p>
+        <h4>Tre minuti, una <em>email</em></h4>
+        <p>Per qualsiasi cosa — eventi, foto, segnalazioni — rispondiamo nel giro di qualche giorno.</p>
+        <div class="pic"><img src="/media/legacy/wp-content_uploads_2021_09_Guareschi-sul-Po.jpg" alt=""></div>
+      </a>
+      <div class="links">
+        <h5>Recapiti</h5>
+        <a href="#">info@polesineparmense36.it<span class="arrow">→</span></a>
+        <a href="#">Sede <em>e indirizzo</em><span class="arrow">→</span></a>
+      </div>
+      <div class="links">
+        <h5>Sui social</h5>
+        <a href="#">Instagram<span class="arrow">→</span></a>
+        <a href="#">Facebook<span class="arrow">→</span></a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile drawer -->
+<div class="drawer" id="drawer">
+  <button class="close" id="drawerClose" aria-label="Chiudi">×</button>
+  <ol>
+    <li><a href="#"><span>Cosa succede</span><span class="roman">i.</span></a></li>
+    <li><a href="#"><span>Scopri il Po</span><span class="roman">ii.</span></a></li>
+    <li><a href="#"><span>Partecipa</span><span class="roman">iii.</span></a></li>
+    <li><a href="#"><span>Chi siamo</span><span class="roman">iv.</span></a></li>
+    <li><a href="#"><span>Contatti</span><span class="roman">v.</span></a></li>
+  </ol>
+  <div class="footer-row">
+    <span>IT · EN</span>
+    <span>info@polesineparmense36.it</span>
+  </div>
+</div>
+
+<script>
+  // Mega-menu interaction
+  (function () {
+    const nav = document.getElementById('nav');
+    const items = nav.querySelectorAll('.nav-item');
+    const indicator = document.getElementById('indicator');
+    const panel = document.getElementById('megapanel');
+    const panes = panel.querySelectorAll('.pane');
+    const topbar = document.querySelector('.topbar');
+    let hoverTimer = null;
+
+    function showPane(key) {
+      panes.forEach(p => p.classList.toggle('show', p.dataset.pane === key));
+      panel.classList.add('open');
+    }
+    function closePanel() {
+      panel.classList.remove('open');
+    }
+    function moveIndicator(item) {
+      const navRect = nav.getBoundingClientRect();
+      const r = item.getBoundingClientRect();
+      indicator.style.left = (r.left - navRect.left + r.width * 0.18) + 'px';
+      indicator.style.width = (r.width * 0.64) + 'px';
+    }
+
+    items.forEach(item => {
+      item.addEventListener('mouseenter', () => {
+        clearTimeout(hoverTimer);
+        moveIndicator(item);
+        showPane(item.dataset.pane);
+      });
+    });
+    topbar.addEventListener('mouseleave', () => {
+      hoverTimer = setTimeout(closePanel, 120);
+    });
+    panel.addEventListener('mouseenter', () => clearTimeout(hoverTimer));
+    panel.addEventListener('mouseleave', () => {
+      hoverTimer = setTimeout(closePanel, 120);
+    });
+
+    // Position indicator under active item on load
+    const active = nav.querySelector('.nav-item.active');
+    if (active) {
+      requestAnimationFrame(() => {
+        moveIndicator(active);
+        indicator.style.opacity = '1';
+      });
+    }
+    window.addEventListener('resize', () => {
+      const a = nav.querySelector('.nav-item.active');
+      if (a) moveIndicator(a);
+    });
+
+    // Mobile drawer
+    const burger = document.getElementById('burger');
+    const drawer = document.getElementById('drawer');
+    const close = document.getElementById('drawerClose');
+    burger.addEventListener('click', () => {
+      drawer.classList.add('open');
+      burger.classList.add('open');
+    });
+    close.addEventListener('click', () => {
+      drawer.classList.remove('open');
+      burger.classList.remove('open');
+    });
+  })();
+</script>
+
+<section class="hero">
+  <div class="text reveal d2">
+    <p class="meta"><span class="dot"></span> Diario di golena · primavera 2026</p>
+    <h1>
+      <span class="hand">Trentasei metri</span><br>
+      sopra il livello<br>
+      del <em>fiume.</em>
+    </h1>
+    <p class="kicker">
+      Polesine Parmense vista dall'argine: eventi, ricette, storie e itinerari di un paese
+      che si misura — da sempre — con il Po.
+    </p>
+    <div class="ctas">
+      <a class="btn primary" href="#">Cosa succede ora <span class="arrow">→</span></a>
+      <a class="btn ghost" href="#">Sostieni l'associazione</a>
+    </div>
+  </div>
+  <div class="image reveal d3">
+    <img src="/media/legacy/wp-content_uploads_2021_09_cercavano-il-fresco-destate-sulla-Via-Alzaia-FILEminimizer.jpg" alt="" />
+    <div class="quota">36<small>metri sul mare</small></div>
+  </div>
+</section>
+
+<div class="waterline" aria-hidden="true"></div>
+
+<section class="section">
+  <div class="section-head">
+    <div>
+      <p class="eyebrow">— Cosa succede —</p>
+      <h2>Le prossime <em>uscite</em></h2>
+    </div>
+    <p class="hand-note">tre date in calendario ↘</p>
+  </div>
+
+  <div class="events">
+    <a class="event big" href="#">
+      <div class="pic">
+        <img src="/media/legacy/wp-content_uploads_2021_09_Guareschi-sul-Po.jpg" alt="" />
+        <div class="stamp"><span class="d">10</span><span class="m">mag</span></div>
+      </div>
+      <h3>Camminata in golena al risveglio del Po</h3>
+      <p class="where">Argine maestro · 06:30</p>
+      <span class="signup">→ iscrizione richiesta</span>
+    </a>
+
+    <a class="event" href="#">
+      <div class="pic">
+        <img src="/media/legacy/wp-content_uploads_2021_09_Giovanni-Guareschi-al-bar-in-piazza.jpg" alt="" />
+        <div class="stamp"><span class="d">15</span><span class="m">giu</span></div>
+      </div>
+      <h3>Festa dello strolghino</h3>
+      <p class="where">Piazza Garibaldi · 19:00</p>
+    </a>
+
+    <a class="event" href="#">
+      <div class="pic">
+        <img src="/media/legacy/wp-content_uploads_2021_09_Tortelli-1959-.jpg" alt="" />
+        <div class="stamp"><span class="d">28</span><span class="m">giu</span></div>
+      </div>
+      <h3>Cena lunga in via Roma</h3>
+      <p class="where">Via Roma · 20:00</p>
+    </a>
+  </div>
+</section>
+
+<section class="threecol">
+  <a class="col" href="#">
+    <div class="num">i.</div>
+    <h3>Itinerari del <em>fiume</em></h3>
+    <p>Anelli in golena, lance, capanni di caccia, traghetti scomparsi.</p>
+    <span class="arrow-link">cammina con noi →</span>
+  </a>
+  <a class="col" href="#">
+    <div class="num">ii.</div>
+    <h3>Ricettario di <em>casa</em></h3>
+    <p>Risòt ad süca, tortelli del 1959, dolce di zucca: cucina di paese.</p>
+    <span class="arrow-link">apri il quaderno →</span>
+  </a>
+  <a class="col" href="#">
+    <div class="num">iii.</div>
+    <h3>Storie di <em>nonni</em></h3>
+    <p>Andavano a pomodori nel 1983, all'asilo nel 1974, in piazza con Guareschi.</p>
+    <span class="arrow-link">ascolta →</span>
+  </a>
+</section>
+
+<section class="pull">
+  <blockquote class="reveal d2">
+    Qui il fiume non è uno sfondo: è il <em>protagonista</em>.<br>
+    Ogni cosa, ogni storia, ogni ricetta, comincia dall'argine.
+  </blockquote>
+</section>
+
+<section class="cta">
+  <h2>Partecipa al <em>diario</em>.</h2>
+  <div class="opts">
+    <a class="opt" href="#"><span class="label"><em>Volontari</em> — dai una mano a un evento</span><span class="arrow">→</span></a>
+    <a class="opt" href="#"><span class="label"><em>5×1000</em> — destinaci la tua firma</span><span class="arrow">→</span></a>
+    <a class="opt" href="#"><span class="label"><em>Bacheca</em> — avvisi e comunicazioni</span><span class="arrow">→</span></a>
+    <a class="opt" href="#"><span class="label"><em>Segnalazioni</em> — proponi un evento o una storia</span><span class="arrow">→</span></a>
+  </div>
+</section>
+
+<footer>
+  <div class="marca">
+    <em>36</em> m s.l.m.
+    <small>Associazione di Promozione Sociale<br>Polesine Parmense</small>
+  </div>
+  <div>
+    <h4>Cosa succede</h4>
+    <ul>
+      <li><a href="#">Eventi</a></li>
+      <li><a href="#">Bacheca</a></li>
+      <li><a href="#">Volontari</a></li>
+    </ul>
+  </div>
+  <div>
+    <h4>Scopri</h4>
+    <ul>
+      <li><a href="#">Itinerari</a></li>
+      <li><a href="#">Ricettario</a></li>
+      <li><a href="#">Storie</a></li>
+    </ul>
+  </div>
+  <div>
+    <h4>Associazione</h4>
+    <ul>
+      <li><a href="#">Chi siamo</a></li>
+      <li><a href="#">Statuto</a></li>
+      <li><a href="#">Trasparenza</a></li>
+      <li><a href="#">Press kit</a></li>
+    </ul>
+  </div>
+  <div class="colofon">
+    <span>© 2026 — APS «36 m s.l.m.» · CF 90000000000</span>
+    <span>info@polesineparmense36.it</span>
+  </div>
+</footer>
+
+</body>
+</html>

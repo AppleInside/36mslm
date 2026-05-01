@@ -1,4 +1,4 @@
----
+﻿---
 import Base from '../../../layouts/Base.astro';
 import PageHeader from '../../../components/PageHeader.astro';
 import PageBody from '../../../components/PageBody.astro';
@@ -27,7 +27,10 @@ const cards = lang === 'it'
   ];
 ---
 <Base title={t('nav.participate')}>
-  <PageHeader eyebrow={lang === 'it' ? '— Associazione —' : '— Get involved —'}>
+  <PageHeader
+    eyebrow={lang === 'it' ? '— Associazione —' : '— Get involved —'}
+    bg="/media/storico/associazione-parmense-slide00002.jpg"
+  >
     {lang === 'it' ? <>Come <em>partecipare</em></> : <>How to <em>get involved</em></>}
   </PageHeader>
   <PageBody>

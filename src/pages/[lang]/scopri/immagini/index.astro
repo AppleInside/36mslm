@@ -1,0 +1,117 @@
+﻿---
+import { readdirSync } from 'node:fs';
+import { resolve } from 'node:path';
+import Base from '../../../../layouts/Base.astro';
+import PageHeader from '../../../../components/PageHeader.astro';
+import type { Lang } from '../../../../i18n/ui';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'it' } }, { params: { lang: 'en' } }];
+}
+
+const lang = Astro.params.lang as Lang;
+
+const RECIPES = /^(Bargnolino|Chiacchiere|Crafen|Dolce-di|Liquore|Nocino|Prugnolino|Salsa|Spumini|Straccadenti|Torta|Tortell|Zucchini|Abbonamento)/i;
+const SYSTEM  = /^(logo|pexels|cropped)/i;
+
+function caption(filename: string): string {
+  return filename
+    .replace(/\.jpg$/i, '')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\bFILEminimizer\b/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/^\w/, c => c.toUpperCase());
+}
+
+const files = readdirSync(resolve('public/media/storico'))
+  .filter(f => /\.jpg$/i.test(f) && !RECIPES.test(f) && !SYSTEM.test(f))
+  .sort();
+
+const photos = files.map(f => ({
+  src: `/media/storico/${f}`,
+  caption: caption(f),
+}));
+---
+
+<Base title={lang === 'it' ? 'Immagini e ricordi' : 'Images & memories'}>
+  <PageHeader
+    eyebrow={lang === 'it' ? '— Memoria —' : '— Memory —'}
+    bg="/media/storico/leggevano-il-giornale-in-piazza.jpg"
+  >
+    {lang === 'it' ? <>Immagini <em>e ricordi</em></> : <>Images <em>and memories</em></>}
+  </PageHeader>
+
+  <p class="intro">
+    {lang === 'it'
+      ? `${photos.length} fotografie d'archivio di Polesine Parmense. Un paese, le sue facce, i suoi decenni.`
+      : `${photos.length} archive photographs of Polesine Parmense. A village, its faces, its decades.`}
+  </p>
+
+  <div class="gallery">
+    {photos.map(p => (
+      <figure class="gf">
+        <img src={p.src} alt={p.caption} loading="lazy" />
+        <figcaption>{p.caption}</figcaption>
+      </figure>
+    ))}
+  </div>
+</Base>
+
+<style>
+  .intro {
+    padding: .9rem 1.25rem .1rem;
+    font-family: theme('fontFamily.mono');
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: theme('colors.ink-soft');
+  }
+  @media (min-width: 1050px) { .intro { padding: 1rem 4rem .1rem; } }
+
+  .gallery {
+    columns: 2;
+    column-gap: .6rem;
+    padding: 1rem 1.25rem 5rem;
+  }
+  @media (min-width: 600px)  { .gallery { columns: 3; } }
+  @media (min-width: 900px)  { .gallery { columns: 4; column-gap: .75rem; } }
+  @media (min-width: 1050px) { .gallery { columns: 5; padding: 1.25rem 4rem 6rem; } }
+
+  .gf {
+    break-inside: avoid;
+    margin: 0 0 .6rem;
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    background: theme('colors.paper-2');
+    cursor: zoom-in;
+  }
+  .gf img {
+    width: 100%;
+    display: block;
+    transition: transform .5s cubic-bezier(.2,.7,.2,1), filter .4s ease;
+    filter: sepia(18%) saturate(0.85);
+  }
+  .gf:hover img {
+    transform: scale(1.04);
+    filter: sepia(0%) saturate(1);
+  }
+  figcaption {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(15,22,28,0.78));
+    color: rgba(232,244,248,0.92);
+    font-size: .68rem;
+    font-family: theme('fontFamily.mono');
+    letter-spacing: .06em;
+    padding: 1.5rem .6rem .5rem;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity .3s ease, transform .3s ease;
+  }
+  .gf:hover figcaption {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>

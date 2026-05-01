@@ -1,4 +1,4 @@
----
+﻿---
 import Base from '../../../../layouts/Base.astro';
 import PageHeader from '../../../../components/PageHeader.astro';
 import PageBody from '../../../../components/PageBody.astro';
@@ -18,7 +18,10 @@ const all = await getCollection('itineraries');
 const itineraries = sortByDateDesc(byLang(all, lang));
 ---
 <Base title={t('nav.discover.territory')}>
-  <PageHeader eyebrow={lang === 'it' ? '— Territorio —' : '— Territory —'}>
+  <PageHeader
+    eyebrow={lang === 'it' ? '— Territorio —' : '— Territory —'}
+    bg="/media/storico/Guareschi-sul-Po.jpg"
+  >
     {lang === 'it' ? <>Territorio e <em>itinerari</em></> : <>Territory and <em>itineraries</em></>}
   </PageHeader>
   <PageBody>
