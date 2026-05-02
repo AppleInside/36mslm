@@ -42,11 +42,16 @@ const itineraries = defineCollection({
   type: 'content',
   schema: z.object({
     ...baseFrontmatter,
+    category: z.enum(['naturalistico', 'storico', 'sportivo']).default('naturalistico'),
+    description: z.string().optional(),
+    terrain: z.string().optional(),
+    durationLabel: z.string().optional(),
     distanceKm: z.number(),
     durationMin: z.number(),
     difficulty: z.enum(['facile', 'medio', 'impegnativo']),
     gpx: z.string().optional(),
     pdf: z.string().optional(),
+    coords: z.array(z.tuple([z.number(), z.number()])).optional(),
     bbox: z.tuple([z.number(), z.number(), z.number(), z.number()]).optional(),
   }),
 });
@@ -80,4 +85,20 @@ const places = defineCollection({
   }),
 });
 
-export const collections = { events, recipes, itineraries, stories, notices, places };
+const sightings = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    date: z.coerce.date(),
+    category: z.enum(['uccello', 'mammifero', 'pesce', 'rettile', 'anfibio', 'pianta', 'altro']),
+    coords: z.tuple([z.number(), z.number()]),
+    photos: z.array(z.string()).default([]),
+    videos: z.array(z.string()).default([]),
+    photo: z.string().optional(),
+    video: z.string().optional(),
+    notes: z.string().optional(),
+    draft: z.boolean().default(false),
+  }),
+});
+
+export const collections = { events, recipes, itineraries, stories, notices, places, sightings };

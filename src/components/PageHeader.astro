@@ -12,7 +12,7 @@ const { eyebrow, bg } = Astro.props;
 
 <style>
   .page-header {
-    padding: 3rem 1.25rem 2rem;
+    padding: 2.4rem 1.25rem 1.6rem;
     border-bottom: 1px solid theme('colors.rule');
     position: relative;
   }
@@ -27,7 +27,7 @@ const { eyebrow, bg } = Astro.props;
     z-index: 1;
   }
   h1 {
-    font-size: clamp(2.4rem, 8vw, 5rem);
+    font-size: clamp(1.9rem, 6.4vw, 4rem);
     margin: 0;
     line-height: 1.05;
     position: relative;
@@ -40,7 +40,7 @@ const { eyebrow, bg } = Astro.props;
     background-image: var(--ph-bg);
     background-size: cover;
     background-position: center 30%;
-    min-height: 260px;
+    min-height: 208px;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -68,7 +68,7 @@ const { eyebrow, bg } = Astro.props;
   }
 
   @media (min-width: 1000px) {
-    .page-header { padding: 5rem 4rem 3rem; }
-    .has-bg { min-height: 340px; }
+    .page-header { padding: 4rem 4rem 2.4rem; }
+    .has-bg { min-height: 272px; }
   }
 </style>

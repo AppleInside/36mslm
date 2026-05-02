@@ -6,7 +6,7 @@ const t = useTranslations(lang);
 ---
 <footer class="site-footer">
   <div class="marca">
-    <em>36</em> m s.l.m.
+    <img src="/logo.jpg" alt="36 m s.l.m." />
     <small>{SITE.longName}<br />{SITE.address}</small>
   </div>
   <div>
@@ -49,13 +49,13 @@ const t = useTranslations(lang);
     background: theme('colors.ink');
     color: theme('colors.paper');
   }
-  .marca {
-    font-family: theme('fontFamily.serif');
-    font-weight: 300;
-    font-size: 2.2rem;
-    line-height: 1.1;
+  .marca img {
+    display: block;
+    height: 56px;
+    width: auto;
+    border-radius: 4px;
+    opacity: .92;
   }
-  .marca em { font-style: italic; color: theme('colors.gold'); }
   .marca small {
     display: block;
     font-family: theme('fontFamily.mono');

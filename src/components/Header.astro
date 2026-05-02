@@ -6,6 +6,23 @@ const itPath = Astro.url.pathname.replace(/^\/(it|en)/, '/it') || '/it/';
 const enPath = Astro.url.pathname.replace(/^\/(it|en)/, '/en') || '/en/';
 
 const home = localizedPath(lang, '');
+
+const scopriSlides = [
+  {
+    eyebrow: lang === 'it' ? '— Territorio —' : '— Territory —',
+    title:   lang === 'it' ? 'Itinerari del fiume' : 'River itineraries',
+    blurb:   lang === 'it' ? 'Sentieri, anse e argini lungo il grande Po.' : 'Paths, bends and embankments along the great Po.',
+    img:     '/media/storico/Guareschi-sul-Po.jpg',
+    href:    localizedPath(lang, 'scopri/territorio'),
+  },
+  {
+    eyebrow: lang === 'it' ? '— Dove fermarsi —' : '— Where to stop —',
+    title:   lang === 'it' ? 'Luoghi e tappe' : 'Places & stops',
+    blurb:   lang === 'it' ? 'Ristoranti, agriturismi e posti dove dormire.' : 'Restaurants, farm stays and places to sleep.',
+    img:     '/media/storico/partecipavano-allultima-serata-del-bar-della-Brucata.jpg',
+    href:    localizedPath(lang, 'scopri/territorio/dove'),
+  },
+];
 const navItems = [
   {
     key: 'eventi',
@@ -56,10 +73,11 @@ const navItems = [
     },
     cols: [
       {
-        title: lang === 'it' ? 'Territorio' : 'Territory',
+        title: lang === 'it' ? 'Il territorio' : 'Territory',
         links: [
           { label: lang === 'it' ? 'Itinerari <em>del fiume</em>' : 'River <em>itineraries</em>', href: localizedPath(lang, 'scopri/territorio') },
-          { label: lang === 'it' ? 'Luoghi <em>e tappe</em>' : 'Places <em>and stops</em>', href: localizedPath(lang, 'scopri/territorio/dove') },
+          { label: lang === 'it' ? 'Fauna <em>e flora</em>' : 'Fauna <em>and flora</em>', href: localizedPath(lang, 'scopri/fauna') },
+          { label: lang === 'it' ? 'Dove <em>mangiare o dormire</em>' : 'Where to <em>eat or sleep</em>', href: localizedPath(lang, 'scopri/territorio/dove') },
         ],
       },
       {
@@ -123,7 +141,7 @@ const navItems = [
       {
         title: lang === 'it' ? 'Documenti' : 'Documents',
         links: [
-          { label: lang === 'it' ? 'La <em>storia</em>' : 'Our <em>story</em>', href: localizedPath(lang, 'chi-siamo/storia') },
+          { label: lang === 'it' ? "L'<em>associazione</em>" : 'The <em>association</em>', href: localizedPath(lang, 'chi-siamo/storia') },
           { label: lang === 'it' ? 'Lo <em>statuto</em>' : 'The <em>bylaws</em>', href: localizedPath(lang, 'chi-siamo/statuto') },
           { label: lang === 'it' ? '<em>Trasparenza</em>' : '<em>Transparency</em>', href: localizedPath(lang, 'chi-siamo/trasparenza') },
         ],
@@ -175,13 +193,13 @@ const navItems = [
     <span class="marca-sub">APS<br/>Polesine Parmense</span>
   </a>
 
-  <nav class="nav" id="nav">
+  <nav class="nav" id="nav" aria-label={lang === 'it' ? 'Navigazione principale' : 'Main navigation'}>
     {navItems.map((item) => (
       <div class="nav-item" data-pane={item.key}>
-        <a href={item.href}><span class="label">{item.label}</span></a>
+        <a href={item.href} aria-haspopup="true" aria-expanded="false"><span class="label">{item.label}</span></a>
       </div>
     ))}
-    <span class="indicator" id="indicator"></span>
+    <span class="indicator" id="indicator" aria-hidden="true"></span>
   </nav>
 
   <div class="lang">
@@ -189,22 +207,42 @@ const navItems = [
     <a href={enPath} class={lang === 'en' ? 'on' : ''}><span class="flag flag-gb" aria-hidden="true"></span>EN</a>
   </div>
 
-  <button class="burger" id="burger" aria-label="Menu"><span></span></button>
+  <button class="burger" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="drawer"><span aria-hidden="true"></span></button>
 
-  <div class="megapanel" id="megapanel">
+  <div class="megapanel" id="megapanel" role="region" aria-label={lang === 'it' ? 'Sottomenu' : 'Submenu'}>
     {navItems.map((item) => (
       <div class="pane" data-pane={item.key}>
-        <a class="lead" href={item.lead.href}>
-          <p class="eyebrow">{item.lead.eyebrow}</p>
-          <h4 set:html={item.lead.headline}></h4>
-          <p class="blurb">{item.lead.blurb}</p>
-          <div class="pic"><img src={item.lead.img} alt="" loading="lazy" /></div>
-        </a>
+        {item.key === 'scopri' ? (
+          <div class="carousel-lead" id="scopriCarousel">
+            {scopriSlides.map((slide, i) => (
+              <a class:list={['cs', i === 0 && 'cs--active']} href={slide.href} data-slide={i}>
+                <img src={slide.img} alt={slide.title} loading="lazy" />
+                <div class="cs-content">
+                  <p class="cs-eyebrow">{slide.eyebrow}</p>
+                  <h4>{slide.title}</h4>
+                  <p class="cs-blurb">{slide.blurb}</p>
+                </div>
+              </a>
+            ))}
+            <div class="cs-dots">
+              {scopriSlides.map((_, i) => (
+                <button class:list={['cs-dot', i === 0 && 'cs-dot--active']} data-dot={i} aria-label={`Slide ${i + 1}`}></button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <a class="lead" href={item.lead.href}>
+            <p class="eyebrow">{item.lead.eyebrow}</p>
+            <h4 set:html={item.lead.headline}></h4>
+            <p class="blurb">{item.lead.blurb}</p>
+            <div class="pic"><img src={item.lead.img} alt="" loading="lazy" /></div>
+          </a>
+        )}
         {item.cols.map((col) => (
           <div class="links">
             <h5>{col.title}</h5>
             {col.links.map((l) => (
-              <a href={l.href}><span set:html={l.label}></span><span class="arrow">→</span></a>
+              <a href={l.href}><span set:html={l.label}></span><span class="arrow" aria-hidden="true">→</span></a>
             ))}
           </div>
         ))}
@@ -280,6 +318,7 @@ const navItems = [
   .burger.open span { background: transparent; }
   .burger.open span::before { transform: translateY(6px) rotate(45deg); }
   .burger.open span::after  { transform: translateY(-6px) rotate(-45deg); }
+  .burger:focus-visible { outline: 2px solid theme('colors.gold'); outline-offset: 3px; }
 
   /* Flags */
   .flag {
@@ -322,6 +361,8 @@ const navItems = [
     transition: color .2s ease;
   }
   .drawer li a:hover { color: theme('colors.brand'); }
+  .drawer li a:focus-visible { outline: 2px solid theme('colors.brand'); outline-offset: 3px; border-radius: 3px; }
+  .drawer .close:focus-visible { outline: 2px solid theme('colors.brand'); outline-offset: 3px; }
   .drawer-foot {
     margin-top: 2.5rem;
     display: flex; justify-content: space-between; align-items: center;
@@ -352,23 +393,79 @@ const navItems = [
       color: rgba(232,244,248,0.72);
       display: inline-flex; align-items: baseline;
       font-family: theme('fontFamily.hand');
-      font-size: 1.6rem; line-height: 1; font-weight: 700;
+      font-size: 1.8rem; line-height: 1; font-weight: 700;
       letter-spacing: .01em;
       transition: color .25s ease;
+      border-radius: 4px;
     }
+    .nav-item > a:focus-visible {
+      outline: 2px solid theme('colors.gold');
+      outline-offset: 4px;
+    }
+    @keyframes acqua-appare {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes acqua-scorre {
+      from { background-position-x: 0; }
+      to   { background-position-x: 70px; }
+    }
+
+    @keyframes barca-entra {
+      0%   { transform: translateX(calc(-50% - 80px)) translateY(4px); opacity: 0; }
+      55%  { transform: translateX(-50%) translateY(-2px); opacity: 1; }
+      75%  { transform: translateX(-50%) translateY(1px); opacity: 1; }
+      90%  { transform: translateX(-50%) translateY(-0.5px); opacity: 1; }
+      100% { transform: translateX(-50%) translateY(0); opacity: 1; }
+    }
+    @keyframes barca-bob {
+      0%, 100% { transform: translateX(-50%) translateY(0); opacity: 1; }
+      50%       { transform: translateX(-50%) translateY(-2.5px); opacity: 1; }
+    }
+
     .nav-item > a .label { position: relative; }
-    .nav-item > a .label::after {
-      content: ""; position: absolute; left: 0; right: 0; bottom: -.5rem; height: 6px;
-      background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 6'><path d='M0 3 Q 25 0 50 3 T 100 3' fill='none' stroke='%23D8A14A' stroke-width='1.8'/></svg>") repeat-x;
+
+    .nav-item > a .label::before {
+      content: "";
+      position: absolute; left: 50%; bottom: -1.38rem;
+      width: 70px; height: 8px;
+      background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 70 8'><path d='M0 3 C 12 0 23 0 35 3 C 47 6 58 6 70 3' fill='none' stroke='%234A6670' stroke-width='1.3' opacity='0.6'/><path d='M0 5.5 C 10 3 25 3 35 5.5 C 45 8 60 8 70 5.5' fill='none' stroke='%234A6670' stroke-width='0.8' opacity='0.3'/></svg>") repeat-x;
+      background-size: 70px 8px;
       opacity: 0;
-      transform: translateY(4px) scaleX(.6);
-      transform-origin: left center;
-      transition: opacity .35s ease, transform .45s cubic-bezier(.2,.7,.2,1);
+      pointer-events: none;
+      transform: translateX(-50%);
+      transition: opacity 0.25s ease;
+    }
+    .nav-item:hover > a .label::before {
+      animation: acqua-appare .35s .15s ease forwards,
+                 acqua-scorre 2.2s .5s linear infinite;
+    }
+    .nav-item.active > a .label::before {
+      opacity: 1;
+      animation: acqua-scorre 2.2s linear infinite;
+    }
+
+    .nav-item > a .label::after {
+      content: "";
+      position: absolute; left: 50%; bottom: -1.05rem;
+      width: 62px; height: 16px;
+      background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 70 18'><path d='M5 9 L 65 9 L 63 14 C 50 15 25 15 7 14 Z' fill='%23D8A14A'/><path d='M65 9 L 70 11.5 L 63 14' fill='%23D8A14A'/><path d='M5 6 L 9 6 L 9 9 L 5 9 Z' fill='%23D8A14A'/><line x1='18' y1='1' x2='18' y2='9' stroke='%23D8A14A' stroke-width='1.4'/><path d='M18 3 Q 42 1 62 6' fill='none' stroke='%23D8A14A' stroke-width='0.9' stroke-dasharray='3,2' opacity='0.6'/></svg>") no-repeat center / contain;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(calc(-50% - 80px)) translateY(4px);
+      transition: opacity 0.25s ease;
     }
     .nav-item:hover > a { color: #E8F4F8; }
     .nav-item.active > a { color: #FFE0A0; }
-    .nav-item:hover > a .label::after,
-    .nav-item.active > a .label::after { opacity: 1; transform: translateY(0) scaleX(1); }
+    .nav-item:hover > a .label::after {
+      animation: barca-entra .55s cubic-bezier(.2,.8,.2,1) forwards,
+                 barca-bob 1.8s .7s ease-in-out infinite;
+    }
+    .nav-item.active > a .label::after {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+      animation: none;
+    }
 
     .nav .indicator { display: none; }
 
@@ -385,55 +482,68 @@ const navItems = [
     .pane {
       display: none;
       grid-template-columns: 1.1fr 1fr 1fr;
-      gap: 3rem; padding: 2.75rem 3rem 3rem;
+      gap: 2rem; padding: 1.6rem 2.5rem 1.8rem;
       max-width: 1400px; margin: 0 auto;
     }
     .pane.show { display: grid; }
     .lead {
       border-right: 1px dashed theme('colors.rule');
-      padding-right: 2rem; text-decoration: none; color: inherit;
+      padding-right: 1.5rem; text-decoration: none; color: inherit;
     }
     .lead .eyebrow {
       font-family: theme('fontFamily.mono');
-      font-size: .72rem; text-transform: uppercase; letter-spacing: .22em;
-      color: theme('colors.brand'); margin-bottom: .85rem;
+      font-size: .75rem; text-transform: uppercase; letter-spacing: .22em;
+      color: theme('colors.brand'); margin-bottom: .5rem;
     }
     .lead h4 {
       font-family: theme('fontFamily.serif');
-      font-weight: 300; font-size: 2rem; line-height: 1.05;
-      margin: 0 0 .85rem 0; letter-spacing: -0.01em;
+      font-weight: 300; font-size: 1.5rem; line-height: 1.1;
+      margin: 0 0 .5rem 0; letter-spacing: -0.01em;
     }
     .lead h4 :global(em) { font-style: italic; color: theme('colors.acquadeep'); }
-    .lead .blurb { font-style: italic; color: theme('colors.ink-soft'); max-width: 36ch; margin: 0 0 1.5rem 0; }
-    .lead .pic { aspect-ratio: 5 / 3; overflow: hidden; border-radius: 4px; background: theme('colors.paper-2'); }
+    .lead .blurb { font-style: italic; color: theme('colors.ink-soft'); max-width: 36ch; margin: 0 0 .85rem 0; font-size: 1rem; }
+    .lead .pic { aspect-ratio: 16 / 7; overflow: hidden; border-radius: 4px; background: theme('colors.paper-2'); }
     .lead .pic img {
       width: 100%; height: 100%; object-fit: cover; filter: saturate(.9);
       transition: transform .9s cubic-bezier(.2,.7,.2,1);
     }
     .lead:hover .pic img { transform: scale(1.04); }
+    .lead:focus-visible {
+      outline: 2px solid theme('colors.brand');
+      outline-offset: 4px;
+      border-radius: 6px;
+    }
 
-    .links { display: flex; flex-direction: column; gap: .25rem; }
+    .links { display: flex; flex-direction: column; gap: .15rem; }
     .links h5 {
       font-family: theme('fontFamily.mono');
-      font-size: .7rem; text-transform: uppercase; letter-spacing: .22em;
-      color: theme('colors.ink-soft'); margin: 0 0 .75rem 0; font-weight: 500;
+      font-size: .75rem; text-transform: uppercase; letter-spacing: .22em;
+      color: theme('colors.ink-soft'); margin: 0 0 .45rem 0; font-weight: 500;
     }
     .links a {
       text-decoration: none; color: theme('colors.ink');
       font-family: theme('fontFamily.serif');
-      font-size: 1.15rem; padding: .55rem 0;
+      font-size: 1.15rem; padding: .42rem 0;
       border-bottom: 1px solid theme('colors.rule');
       display: flex; justify-content: space-between; align-items: center;
       transition: padding .25s ease, color .25s ease;
+      border-radius: 3px;
     }
     .links a:hover { padding-left: .5rem; color: theme('colors.brand'); }
+    .links a:focus-visible {
+      outline: 2px solid theme('colors.brand');
+      outline-offset: 2px;
+      padding-left: .5rem;
+      color: theme('colors.brand');
+    }
     .links a :global(em) { font-style: italic; color: theme('colors.acquadeep'); }
     .links a .arrow {
       font-family: theme('fontFamily.mono'); color: theme('colors.brand');
       opacity: 0; transform: translateX(-6px);
       transition: opacity .25s ease, transform .3s ease;
     }
-    .links a:hover .arrow { opacity: 1; transform: translateX(0); }
+    .links a:hover .arrow,
+    .links a:focus-visible .arrow { opacity: 1; transform: translateX(0); }
 
     .lang {
       display: flex; gap: .15rem;
@@ -451,8 +561,85 @@ const navItems = [
     }
     .lang a.on { background: theme('colors.brand'); color: #E8F4F8; }
     .lang a:not(.on):hover { color: #E8F4F8; }
+    .lang a:focus-visible { outline: 2px solid theme('colors.gold'); outline-offset: 2px; }
 
     .burger { display: none; }
+
+    /* ── Carousel scopri ── */
+    .carousel-lead {
+      position: relative;
+      border-right: 1px dashed theme('colors.rule');
+      padding-right: 1.5rem;
+      min-height: 190px;
+    }
+    .cs {
+      position: absolute;
+      inset: 0 2rem 0 0;
+      border-radius: 8px;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .55s ease;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+    .cs--active { opacity: 1; pointer-events: auto; }
+    .cs img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      filter: saturate(.75) brightness(.92);
+      transition: transform .9s cubic-bezier(.2,.7,.2,1);
+    }
+    .cs--active img { transform: scale(1.04); }
+    .cs-content {
+      position: relative; z-index: 1;
+      background: linear-gradient(transparent, rgba(15,22,28,0.82));
+      padding: 1.8rem 1rem .75rem;
+      color: #E8F4F8;
+    }
+    .cs-eyebrow {
+      font-family: theme('fontFamily.mono');
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .2em;
+      color: theme('colors.gold');
+      margin: 0 0 .35rem;
+    }
+    .cs h4 {
+      font-family: theme('fontFamily.serif');
+      font-weight: 300;
+      font-size: 1.25rem;
+      line-height: 1.1;
+      margin: 0 0 .2rem;
+      color: #E8F4F8;
+    }
+    .cs-blurb {
+      font-size: .85rem;
+      font-style: italic;
+      color: rgba(232,244,248,0.75);
+      margin: 0;
+      line-height: 1.35;
+    }
+    .cs-dots {
+      position: absolute;
+      bottom: .75rem; right: 2.65rem;
+      display: flex; gap: .4rem; z-index: 2;
+    }
+    .cs-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      border: none; padding: 0;
+      background: rgba(232,244,248,0.35);
+      cursor: pointer;
+      transition: background .25s ease, transform .25s ease;
+    }
+    .cs-dot--active {
+      background: theme('colors.gold');
+      transform: scale(1.35);
+    }
   }
 </style>
 
@@ -467,11 +654,22 @@ const navItems = [
     const topbar = document.querySelector('.topbar');
     let hoverTimer: number | null = null;
 
+    function setExpanded(key: string | null) {
+      items.forEach((item) => {
+        const a = item.querySelector('a');
+        if (a) a.setAttribute('aria-expanded', (item as HTMLElement).dataset.pane === key ? 'true' : 'false');
+      });
+    }
     function showPane(key: string | null) {
       panes.forEach((p) => p.classList.toggle('show', (p as HTMLElement).dataset.pane === key));
       panel?.classList.add('open');
+      setExpanded(key);
     }
-    function closePanel() { panel?.classList.remove('open'); }
+    function closePanel() {
+      panel?.classList.remove('open');
+      panes.forEach((p) => p.classList.remove('show'));
+      setExpanded(null);
+    }
     function moveIndicator(item: Element) {
       if (!indicator) return;
       const navRect = nav.getBoundingClientRect();
@@ -486,12 +684,31 @@ const navItems = [
         moveIndicator(item);
         showPane((item as HTMLElement).dataset.pane ?? null);
       });
+      // Keyboard: focus opens the pane
+      item.addEventListener('focusin', () => {
+        if (hoverTimer) { clearTimeout(hoverTimer); hoverTimer = null; }
+        moveIndicator(item);
+        showPane((item as HTMLElement).dataset.pane ?? null);
+      });
     });
     topbar?.addEventListener('mouseleave', () => {
       hoverTimer = window.setTimeout(closePanel, 120);
     });
+    // Close when focus leaves topbar entirely
+    topbar?.addEventListener('focusout', (e) => {
+      if (!topbar.contains((e as FocusEvent).relatedTarget as Node | null)) {
+        hoverTimer = window.setTimeout(closePanel, 120);
+      }
+    });
     panel?.addEventListener('mouseenter', () => { if (hoverTimer) { clearTimeout(hoverTimer); hoverTimer = null; } });
     panel?.addEventListener('mouseleave', () => { hoverTimer = window.setTimeout(closePanel, 120); });
+    // ESC closes the panel
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && panel?.classList.contains('open')) {
+        closePanel();
+        (document.querySelector('.nav-item:hover a, .nav-item:focus-within a') as HTMLElement | null)?.focus();
+      }
+    });
 
     const path = window.location.pathname;
     let activeEl: Element | null = null;
@@ -506,16 +723,45 @@ const navItems = [
       if (a) moveIndicator(a);
     });
 
-    const burger = document.getElementById('burger');
+    // Carousel scopri
+    const carousel = document.getElementById('scopriCarousel');
+    if (carousel) {
+      const slides = carousel.querySelectorAll<HTMLElement>('.cs');
+      const dots   = carousel.querySelectorAll<HTMLElement>('.cs-dot');
+      let current = 0;
+      let timer: number | null = null;
+
+      function goTo(n: number) {
+        slides[current].classList.remove('cs--active');
+        dots[current].classList.remove('cs-dot--active');
+        current = ((n % slides.length) + slides.length) % slides.length;
+        slides[current].classList.add('cs--active');
+        dots[current].classList.add('cs-dot--active');
+      }
+      function start() { timer = window.setInterval(() => goTo(current + 1), 3800); }
+      function stop()  { if (timer) { clearInterval(timer); timer = null; } }
+
+      start();
+      carousel.addEventListener('mouseenter', stop);
+      carousel.addEventListener('mouseleave', start);
+      dots.forEach((dot, i) => dot.addEventListener('click', (e) => {
+        e.preventDefault(); stop(); goTo(i); start();
+      }));
+    }
+
+    const burger = document.getElementById('burger') as HTMLButtonElement | null;
     const drawer = document.getElementById('drawer');
     const closeBtn = document.getElementById('drawerClose');
     burger?.addEventListener('click', () => {
-      drawer?.classList.add('open');
-      burger.classList.add('open');
+      const isOpen = drawer?.classList.toggle('open');
+      burger.classList.toggle('open', isOpen);
+      burger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     });
     closeBtn?.addEventListener('click', () => {
       drawer?.classList.remove('open');
       burger?.classList.remove('open');
+      burger?.setAttribute('aria-expanded', 'false');
+      burger?.focus();
     });
   })();
 </script>

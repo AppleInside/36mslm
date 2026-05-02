@@ -1,4 +1,4 @@
-﻿---
+---
 import Base from '../../../../layouts/Base.astro';
 import PageHeader from '../../../../components/PageHeader.astro';
 import type { Lang } from '../../../../i18n/ui';
@@ -9,6 +9,14 @@ export function getStaticPaths() {
 }
 
 const lang = Astro.params.lang as Lang;
+
+const nProverbi    = sayings.filter(s => s.type === 'proverbio').length;
+const nModiDiDire  = sayings.filter(s => s.type === 'modo-di-dire').length;
+
+const eyebrowLabel = (type: string) =>
+  type === 'proverbio'
+    ? (lang === 'it' ? 'Proverbio' : 'Proverb')
+    : (lang === 'it' ? 'Modo di dire' : 'Saying');
 ---
 
 <Base title={lang === 'it' ? 'Il dialetto e i modi di dire' : 'Dialect and sayings'}>
@@ -17,8 +25,8 @@ const lang = Astro.params.lang as Lang;
     bg="/media/storico/Giovanni-Guareschi-al-bar-in-piazza.jpg"
   >
     {lang === 'it'
-      ? <>Il dialetto e <em>i modi di dire</em></>
-      : <>The dialect and <em>its sayings</em></>}
+      ? <>Proverbi e <em>modi di dire</em></>
+      : <>Proverbs and <em>sayings</em></>}
   </PageHeader>
 
   <div class="intro">
@@ -29,16 +37,28 @@ const lang = Astro.params.lang as Lang;
     </svg>
     <span>
       {lang === 'it'
-        ? <><strong>55 modi di dire</strong> del dialetto di Polesine Parmense — voce di <strong>Giacomo Sartori</strong></>
-        : <><strong>55 sayings</strong> in the Polesine Parmense dialect — voice of <strong>Giacomo Sartori</strong></>}
+        ? <><strong>{nProverbi} proverbi</strong> e <strong>{nModiDiDire} modi di dire</strong> del dialetto di Polesine Parmense — voce di <strong>Giacomo Sartori</strong></>
+        : <><strong>{nProverbi} proverbs</strong> and <strong>{nModiDiDire} sayings</strong> in the Polesine Parmense dialect — voice of <strong>Giacomo Sartori</strong></>}
     </span>
   </div>
 
-  <div class="sayings-grid">
+  <div class="filters-bar">
+    <button class="fil active" data-filter="all">
+      {lang === 'it' ? 'Tutti' : 'All'} ({sayings.length})
+    </button>
+    <button class="fil" data-filter="proverbio">
+      {lang === 'it' ? 'Proverbi' : 'Proverbs'} ({nProverbi})
+    </button>
+    <button class="fil" data-filter="modo-di-dire">
+      {lang === 'it' ? 'Modi di dire' : 'Sayings'} ({nModiDiDire})
+    </button>
+  </div>
+
+  <div class="sayings-grid" id="sayingsGrid">
     {sayings.map(s => (
-      <article class="sc">
+      <article class:list={['sc', s.type === 'proverbio' && 'sc--proverbio']} data-type={s.type}>
         <header class="sc-head">
-          <span class="sc-eyebrow">{lang === 'it' ? 'Modo di dire' : 'Saying'}</span>
+          <span class="sc-eyebrow">{eyebrowLabel(s.type)}</span>
           <svg class="sc-mic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
             <path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
             <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
@@ -69,6 +89,29 @@ const lang = Astro.params.lang as Lang;
   .intro svg { flex-shrink: 0; margin-top: .15rem; color: theme('colors.acquadeep'); }
   .intro strong { color: theme('colors.ink'); }
 
+  /* ── Filters ── */
+  .filters-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    padding: .75rem 1.25rem .1rem;
+  }
+  .fil {
+    padding: .35rem 1rem;
+    border-radius: 999px;
+    border: 1px solid theme('colors.acquadeep');
+    background: transparent;
+    color: theme('colors.acquadeep');
+    font-family: theme('fontFamily.mono');
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    cursor: pointer;
+    transition: background .2s ease, color .2s ease;
+  }
+  .fil:hover { background: rgba(74,102,112,0.08); }
+  .fil.active { background: theme('colors.acquadeep'); color: #fff; }
+
   .sayings-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -82,7 +125,8 @@ const lang = Astro.params.lang as Lang;
     .sayings-grid { grid-template-columns: repeat(3, 1fr); gap: 1rem; }
   }
   @media (min-width: 1050px) {
-    .intro       { padding: 1.25rem 4rem .25rem; }
+    .intro        { padding: 1.25rem 4rem .25rem; }
+    .filters-bar  { padding: .75rem 4rem .1rem; }
     .sayings-grid { padding: 1.25rem 4rem 6rem; }
   }
 
@@ -102,6 +146,13 @@ const lang = Astro.params.lang as Lang;
     box-shadow: 0 8px 24px rgba(31,42,42,0.1);
     transform: translateY(-2px);
   }
+  .sc {
+    border-left: 3px solid #4a6670;
+  }
+  .sc--proverbio {
+    border-left: 3px solid theme('colors.gold');
+    background: linear-gradient(135deg, rgba(216,161,74,0.04) 0%, #fff 60%);
+  }
 
   .sc-head {
     display: flex;
@@ -116,6 +167,7 @@ const lang = Astro.params.lang as Lang;
     color: theme('colors.acquadeep');
     font-weight: 600;
   }
+  .sc--proverbio .sc-eyebrow { color: theme('colors.gold-deep'); }
   .sc-mic { color: theme('colors.acquadeep'); opacity: .6; }
 
   .sc-dialect {
@@ -151,3 +203,16 @@ const lang = Astro.params.lang as Lang;
     accent-color: theme('colors.brand');
   }
 </style>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.fil').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.fil').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      document.querySelectorAll<HTMLElement>('.sc').forEach(card => {
+        card.style.display = (filter === 'all' || card.dataset.type === filter) ? '' : 'none';
+      });
+    });
+  });
+</script>

@@ -1,5 +1,7 @@
 ---
 import Base from '../../../../../layouts/Base.astro';
+import PageHeader from '../../../../../components/PageHeader.astro';
+import PageBody from '../../../../../components/PageBody.astro';
 import PlaceCard from '../../../../../components/PlaceCard.astro';
 import { getCollection } from 'astro:content';
 import { byLang, sortByDateDesc } from '../../../../../lib/content';
@@ -15,6 +17,15 @@ const places = sortByDateDesc(byLang(all, lang));
 const title = lang === 'it' ? 'Dove mangiare e dormire' : 'Where to eat & stay';
 ---
 <Base title={title}>
-  <h1 class="text-5xl">{title}</h1>
-  <div class="mt-8 grid gap-4 md:grid-cols-2">{places.map((e) => <PlaceCard entry={e} />)}</div>
+  <PageHeader
+    eyebrow={lang === 'it' ? '— Territorio —' : '— Territory —'}
+    bg="/media/storico/Guareschi-sul-Po.jpg"
+  >
+    {lang === 'it' ? <>Dove <em>mangiare</em> e dormire</> : <>Where to <em>eat</em> &amp; stay</>}
+  </PageHeader>
+  <PageBody>
+    <div class="grid gap-4 md:grid-cols-2">
+      {places.map((e) => <PlaceCard entry={e} />)}
+    </div>
+  </PageBody>
 </Base>

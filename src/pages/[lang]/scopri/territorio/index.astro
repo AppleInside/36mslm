@@ -1,11 +1,8 @@
-﻿---
+---
 import Base from '../../../../layouts/Base.astro';
 import PageHeader from '../../../../components/PageHeader.astro';
-import PageBody from '../../../../components/PageBody.astro';
-import ItineraryCard from '../../../../components/ItineraryCard.astro';
 import { getCollection } from 'astro:content';
-import { useTranslations } from '../../../../i18n/utils';
-import { byLang, sortByDateDesc } from '../../../../lib/content';
+import { byLang, sortByDateAsc } from '../../../../lib/content';
 import type { Lang } from '../../../../i18n/ui';
 
 export function getStaticPaths() {
@@ -13,48 +10,465 @@ export function getStaticPaths() {
 }
 
 const lang = Astro.params.lang as Lang;
-const t = useTranslations(lang);
 const all = await getCollection('itineraries');
-const itineraries = sortByDateDesc(byLang(all, lang));
+const itineraries = sortByDateAsc(byLang(all, lang));
+
+const counts = {
+  all:           itineraries.length,
+  naturalistico: itineraries.filter(i => i.data.category === 'naturalistico').length,
+  storico:       itineraries.filter(i => i.data.category === 'storico').length,
+  sportivo:      itineraries.filter(i => i.data.category === 'sportivo').length,
+};
+
+const catLabel: Record<string, string> = {
+  naturalistico: lang === 'it' ? 'Naturalistico' : 'Nature',
+  storico:       lang === 'it' ? 'Storico'       : 'Historical',
+  sportivo:      lang === 'it' ? 'Sportivo'      : 'Sport',
+};
+
+const diffLabel: Record<string, string> = {
+  facile:      lang === 'it' ? 'Facile'      : 'Easy',
+  medio:       lang === 'it' ? 'Medio'       : 'Moderate',
+  impegnativo: lang === 'it' ? 'Impegnativo' : 'Challenging',
+};
+
+// Accent colour per category — used for the profilo band + map polyline
+const accent: Record<string, string> = {
+  naturalistico: '#2d6a4f',
+  storico:       '#8b4e14',
+  sportivo:      '#1e4e8a',
+};
+
+function fmtDuration(it: typeof itineraries[number]): string {
+  if (it.data.durationLabel) return it.data.durationLabel;
+  const h = Math.floor(it.data.durationMin / 60);
+  const m = it.data.durationMin % 60;
+  return h > 0 ? `${h}h${m > 0 ? ' ' + m + 'min' : ''}` : `${m}min`;
+}
 ---
-<Base title={t('nav.discover.territory')}>
+
+<Base title={lang === 'it' ? 'Itinerari' : 'Itineraries'}>
   <PageHeader
-    eyebrow={lang === 'it' ? '— Territorio —' : '— Territory —'}
+    eyebrow={lang === 'it' ? '— Scopri il Po —' : '— Discover the Po —'}
     bg="/media/storico/Guareschi-sul-Po.jpg"
   >
-    {lang === 'it' ? <>Territorio e <em>itinerari</em></> : <>Territory and <em>itineraries</em></>}
+    {lang === 'it' ? <>Itinerari del <em>fiume</em></> : <>River <em>itineraries</em></>}
   </PageHeader>
-  <PageBody>
-    <div class="sub-link">
-      <a href={`/${lang}/scopri/territorio/dove/`}>
-        {lang === 'it' ? 'Dove mangiare e dormire →' : 'Where to eat & stay →'}
-      </a>
+
+  <!-- ── Filter tabs ─────────────────────────────── -->
+  <nav class="filtri" aria-label={lang === 'it' ? 'Filtra per categoria' : 'Filter by category'}>
+    <div class="filtri-inner">
+      <button class="filtri-btn attivo" data-filter="all">
+        {lang === 'it' ? 'Tutti' : 'All'} <span class="cnt">{counts.all}</span>
+      </button>
+      {counts.naturalistico > 0 && (
+        <button class="filtri-btn" data-filter="naturalistico" data-color="#2d6a4f">
+          {lang === 'it' ? 'Naturalistici' : 'Nature'} <span class="cnt">{counts.naturalistico}</span>
+        </button>
+      )}
+      {counts.storico > 0 && (
+        <button class="filtri-btn" data-filter="storico" data-color="#8b4e14">
+          {lang === 'it' ? 'Storici' : 'Historical'} <span class="cnt">{counts.storico}</span>
+        </button>
+      )}
+      {counts.sportivo > 0 && (
+        <button class="filtri-btn" data-filter="sportivo" data-color="#1e4e8a">
+          {lang === 'it' ? 'Sportivi' : 'Sport'} <span class="cnt">{counts.sportivo}</span>
+        </button>
+      )}
     </div>
-    <div class="grid gap-4 md:grid-cols-2">
-      {itineraries.map((e) => <ItineraryCard entry={e} />)}
-    </div>
-  </PageBody>
+  </nav>
+
+  <!-- ── Cards ──────────────────────────────────── -->
+  <section class="lista" aria-label="Itinerari">
+    {itineraries.map((it, i) => {
+      const cat    = it.data.category ?? 'naturalistico';
+      const mapId  = 'map-' + it.slug.replace(/\//g, '-');
+      const acc    = accent[cat];
+      return (
+        <div
+          class="scheda-wrap"
+          data-category={cat}
+          data-order={i % 2 === 0 ? 'odd' : 'even'}
+        >
+          <article class="scheda" style={`--accent:${acc}`}>
+
+            <!-- Coloured profile band -->
+            <div class="profilo">
+              <span class="profilo-icona" aria-hidden="true">
+                {cat === 'naturalistico' && (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 13C5.5 11 2.5 8.5 2.5 5.5a5.5 5.5 0 0 1 11 0C13.5 8.5 10.5 11 8 13z" fill="rgba(255,255,255,.85)"/>
+                    <line x1="8" y1="13" x2="8" y2="7" stroke="rgba(255,255,255,.45)" stroke-width="1.1"/>
+                  </svg>
+                )}
+                {cat === 'storico' && (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <rect x="3" y="6" width="10" height="8" rx=".5" stroke="rgba(255,255,255,.85)" stroke-width="1.2" fill="none"/>
+                    <path d="M3 6L8 3l5 3" stroke="rgba(255,255,255,.85)" stroke-width="1.2" stroke-linejoin="round" fill="none"/>
+                    <rect x="6" y="9" width="4" height="5" fill="rgba(255,255,255,.8)"/>
+                  </svg>
+                )}
+                {cat === 'sportivo' && (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <circle cx="4.5" cy="11" r="2.5" stroke="rgba(255,255,255,.85)" stroke-width="1.2" fill="none"/>
+                    <circle cx="11.5" cy="11" r="2.5" stroke="rgba(255,255,255,.85)" stroke-width="1.2" fill="none"/>
+                    <path d="M4.5 11L7 6l2 2 2-4" stroke="rgba(255,255,255,.85)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  </svg>
+                )}
+              </span>
+              <span class="profilo-label">{catLabel[cat]}</span>
+            </div>
+
+            <!-- Card body: text + map -->
+            <div class="scheda-body">
+              <div class="scheda-testo">
+                <h2 class="scheda-titolo">{it.data.title}</h2>
+
+                <div class="pills">
+                  <span class="pill">
+                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+                      <path d="M1.5 5.5h8M8 2.5l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    {it.data.distanceKm}&thinsp;km
+                  </span>
+                  <span class="pill">
+                    <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
+                      <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.1"/>
+                      <path d="M5.5 3v2.5l1.5 1.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+                    </svg>
+                    {fmtDuration(it)}
+                  </span>
+                  <span class={`pill pill--diff pill--${it.data.difficulty}`}>
+                    {diffLabel[it.data.difficulty]}
+                  </span>
+                  {it.data.terrain && (
+                    <span class="pill pill--terrain">{it.data.terrain}</span>
+                  )}
+                </div>
+
+                {it.data.description && (
+                  <p class="scheda-desc">{it.data.description}</p>
+                )}
+
+                {(it.data.pdf || it.data.gpx) && (
+                  <div class="azioni">
+                    {it.data.pdf && (
+                      <a href={it.data.pdf} class="btn-azione btn-pdf" download>
+                        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+                          <path d="M2 11h9M6.5 1.5v7M6.5 8.5L4 6M6.5 8.5L9 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        {lang === 'it' ? 'Scarica PDF' : 'Download PDF'}
+                      </a>
+                    )}
+                    {it.data.gpx && (
+                      <a href={it.data.gpx} class="btn-azione btn-gpx" download>
+                        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+                          <path d="M6.5 2C4.6 2 3 3.6 3 5.5c0 2.7 3.5 5.5 3.5 5.5S10 8.2 10 5.5C10 3.6 8.4 2 6.5 2z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+                          <circle cx="6.5" cy="5.5" r="1.3" stroke="currentColor" stroke-width="1.1"/>
+                        </svg>
+                        Traccia GPX
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div class="scheda-mappa-area">
+                <div
+                  class="scheda-mappa"
+                  id={mapId}
+                  data-coords={JSON.stringify(it.data.coords ?? [])}
+                  data-bbox={it.data.bbox ? JSON.stringify(it.data.bbox) : ''}
+                  data-color={acc}
+                  aria-label={`Mappa: ${it.data.title}`}
+                ></div>
+              </div>
+            </div>
+
+          </article>
+        </div>
+      );
+    })}
+  </section>
+
+  <!-- ── Leaflet ─────────────────────────────────── -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script is:inline>
+    window.addEventListener('load', function () {
+      document.querySelectorAll('.scheda-mappa').forEach(function (el) {
+        var coords = JSON.parse(el.dataset.coords || '[]');
+        var bbox   = el.dataset.bbox ? JSON.parse(el.dataset.bbox) : null;
+        var color  = el.dataset.color || '#4a6670';
+        if (!coords.length) return;
+
+        var map = L.map(el, {
+          zoomControl: false,
+          scrollWheelZoom: false,
+          attributionControl: false,
+          dragging: false,
+        });
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+          maxZoom: 18,
+        }).addTo(map);
+
+        var line = L.polyline(coords, { color: color, weight: 4, opacity: 0.9 }).addTo(map);
+
+        var dot = L.divIcon({
+          html: '<div style="width:9px;height:9px;background:' + color + ';border:2px solid white;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>',
+          iconSize: [9, 9], iconAnchor: [4, 4], className: '',
+        });
+        L.marker(coords[0], { icon: dot }).addTo(map);
+
+        if (bbox) {
+          map.fitBounds([[bbox[0], bbox[1]], [bbox[2], bbox[3]]]);
+        } else {
+          map.fitBounds(line.getBounds().pad(0.18));
+        }
+      });
+    });
+
+    // Filter + reorder
+    document.addEventListener('DOMContentLoaded', function () {
+      var btns  = document.querySelectorAll('.filtri-btn');
+      var wraps = document.querySelectorAll('.scheda-wrap');
+      var nav   = document.querySelector('.filtri');
+
+      function applyFilter(filter, accentCol) {
+        var idx = 0;
+        wraps.forEach(function (w) {
+          var match = filter === 'all' || w.dataset.category === filter;
+          w.style.display = match ? '' : 'none';
+          if (match) { w.dataset.order = idx % 2 === 0 ? 'odd' : 'even'; idx++; }
+        });
+        btns.forEach(function (b) {
+          b.classList.toggle('attivo', b.dataset.filter === filter);
+        });
+        if (nav && accentCol) {
+          nav.style.setProperty('--active-color', accentCol);
+        }
+      }
+
+      // Initialise active-color on nav
+      if (nav) nav.style.setProperty('--active-color', '#4a6670');
+
+      btns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          applyFilter(btn.dataset.filter, btn.dataset.color || '#4a6670');
+        });
+      });
+    });
+  </script>
 </Base>
 
 <style>
-  .sub-link {
-    margin-bottom: 1.5rem;
+  /* ── Filter nav ───────────────────────────────── */
+  .filtri {
+    --active-color: #4a6670;
+    border-bottom: 1px solid rgba(74, 86, 104, .1);
+    background: theme('colors.paper');
+    position: sticky;
+    top: 0;
+    z-index: 20;
   }
-  .sub-link a {
-    display: inline-block;
-    border: 1px solid theme('colors.pioppo');
-    border-radius: 999px;
-    padding: .4rem 1.25rem;
+  .filtri-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    gap: 0;
+  }
+  .filtri-btn {
     font-family: theme('fontFamily.mono');
-    font-size: .78rem;
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .16em;
+    color: theme('colors.ink');
+    opacity: .48;
+    background: none;
+    border: none;
+    padding: .9rem 1.15rem;
+    cursor: pointer;
+    border-bottom: 2.5px solid transparent;
+    transition: opacity .18s, border-color .18s, color .18s;
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    white-space: nowrap;
+  }
+  .filtri-btn:hover { opacity: .75; }
+  .filtri-btn.attivo {
+    opacity: 1;
+    color: var(--active-color);
+    border-bottom-color: var(--active-color);
+  }
+  .cnt {
+    font-size: .62rem;
+    background: rgba(74, 86, 104, .1);
+    border-radius: 999px;
+    padding: .08rem .4rem;
+  }
+  .filtri-btn.attivo .cnt { background: rgba(0,0,0,.1); }
+
+  /* ── Layout ───────────────────────────────────── */
+  .lista {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 3rem 2rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  /* ── Card wrapper (handles alternating) ──────── */
+  .scheda-wrap[data-order="even"] .scheda-testo  { order: 2; }
+  .scheda-wrap[data-order="even"] .scheda-mappa-area { order: 1; }
+
+  /* ── Card ─────────────────────────────────────── */
+  .scheda {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, .08), 0 0 0 1px rgba(0, 0, 0, .06);
+    background: #fff;
+  }
+
+  /* ── Profilo band ─────────────────────────────── */
+  .profilo {
+    background: var(--accent);
+    padding: .7rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+  }
+  .profilo-icona {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .profilo-label {
+    font-family: theme('fontFamily.mono');
+    font-size: .63rem;
+    text-transform: uppercase;
+    letter-spacing: .28em;
+    color: rgba(255, 255, 255, .9);
+    font-weight: 600;
+  }
+
+  /* ── Card body: text + map ────────────────────── */
+  .scheda-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .scheda-testo {
+    padding: 2.5rem 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .scheda-mappa-area {
+    padding: 1.5rem;
+    background: color-mix(in srgb, var(--accent) 5%, #f8f5f0);
+    display: flex;
+    align-items: stretch;
+  }
+
+  .scheda-mappa {
+    border-radius: 8px;
+    overflow: hidden;
+    flex: 1;
+    min-height: 300px;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, .12);
+  }
+
+  /* ── Title ───────────────────────────────────── */
+  .scheda-titolo {
+    font-family: theme('fontFamily.hand');
+    font-size: clamp(1.65rem, 2.2vw, 2.2rem);
+    font-weight: 400;
+    line-height: 1.18;
+    color: theme('colors.ink');
+    margin: 0;
+  }
+
+  /* ── Pills ───────────────────────────────────── */
+  .pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    align-items: center;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .32rem;
+    font-family: theme('fontFamily.mono');
+    font-size: .71rem;
+    color: #4a5568;
+    border: 1px solid rgba(74, 85, 104, .2);
+    border-radius: 999px;
+    padding: .22rem .7rem;
+    white-space: nowrap;
+  }
+  .pill--diff.pill--facile      { color: #2a6245; border-color: rgba(42, 98, 69, .3);   background: #f0faf3; }
+  .pill--diff.pill--medio       { color: #8b4e14; border-color: rgba(139, 78, 20, .3);  background: #fdf6ec; }
+  .pill--diff.pill--impegnativo { color: #991b1b; border-color: rgba(153, 27, 27, .3);  background: #fff1f0; }
+  .pill--terrain {
+    color: #718096;
+    border-style: dashed;
+    font-style: italic;
+    letter-spacing: .02em;
+  }
+
+  /* ── Description ─────────────────────────────── */
+  .scheda-desc {
+    font-size: .94rem;
+    line-height: 1.78;
+    color: #4a5568;
+    margin: 0;
+    max-width: 48ch;
+  }
+
+  /* ── Action buttons ──────────────────────────── */
+  .azioni {
+    display: flex;
+    gap: .55rem;
+    flex-wrap: wrap;
+    margin-top: .15rem;
+  }
+  .btn-azione {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    font-family: theme('fontFamily.mono');
+    font-size: .68rem;
     text-transform: uppercase;
     letter-spacing: .12em;
-    color: theme('colors.acquadeep');
     text-decoration: none;
-    transition: background .2s ease, color .2s ease;
+    padding: .44rem 1rem;
+    border-radius: 999px;
+    border: 1.5px solid;
+    transition: background .18s, color .18s;
+    font-weight: 500;
   }
-  .sub-link a:hover {
-    background: theme('colors.pioppo');
-    color: theme('colors.ink');
+  .btn-pdf  { color: var(--accent); border-color: var(--accent); }
+  .btn-pdf:hover  { background: var(--accent); color: #fff; }
+  .btn-gpx  { color: #718096; border-color: #9ca3af; }
+  .btn-gpx:hover  { background: #718096; color: #fff; }
+
+  /* ── Responsive ──────────────────────────────── */
+  @media (max-width: 820px) {
+    .lista { padding: 2rem 1rem 4rem; gap: 1.5rem; }
+    .scheda-body { grid-template-columns: 1fr; }
+    .scheda-wrap[data-order="even"] .scheda-testo  { order: unset; }
+    .scheda-wrap[data-order="even"] .scheda-mappa-area { order: unset; }
+    .scheda-testo { padding: 1.75rem 1.5rem; }
+    .scheda-mappa-area { padding: 1rem 1.5rem 1.5rem; }
+    .scheda-mappa { min-height: 240px; }
+    .filtri-inner { padding: 0 1rem; overflow-x: auto; }
   }
 </style>

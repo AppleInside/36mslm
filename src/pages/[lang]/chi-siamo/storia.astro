@@ -1,7 +1,6 @@
-﻿---
+---
 import Base from '../../../layouts/Base.astro';
 import PageHeader from '../../../components/PageHeader.astro';
-import PageBody from '../../../components/PageBody.astro';
 import type { Lang } from '../../../i18n/ui';
 
 export function getStaticPaths() {
@@ -9,31 +8,422 @@ export function getStaticPaths() {
 }
 
 const lang = Astro.params.lang as Lang;
+
+const associazioni = [
+  'ASD Motonautica Polesine',
+  'Associazione Amici del Po',
+  'ASD Real Vidalenzo',
+  'Ass. Protezione Civile «Gian Luigi Ghelfi»',
+  'ASD Us Polesine',
+  'Associazione Avis Polesine',
+  'Federazione Italiana della Caccia — sez. di Polesine Parmense',
+];
 ---
-<Base title={lang === 'it' ? 'Storia' : 'History'}>
+
+<Base title={lang === 'it' ? "L'associazione" : 'The association'}>
   <PageHeader
     eyebrow={lang === 'it' ? '— Chi siamo —' : '— About us —'}
     bg="/media/storico/Cartolina-1913b.jpg"
   >
-    {lang === 'it' ? <>La nostra <em>storia</em></> : <>Our <em>story</em></>}
+    {lang === 'it' ? <>L'<em>associazione</em></> : <>The <em>association</em></>}
   </PageHeader>
-  <PageBody narrow>
-    {lang === 'it' ? (
-      <div class="prose">
-        <p>«36 m s.l.m.» è la quota di Polesine Parmense, paese di pianura tra Po e pioppi. Nasce come Associazione di Promozione Sociale per tenere viva la memoria del territorio e per promuovere chi lo abita oggi.</p>
-        <p>Lavoriamo per due tipi di pubblico: i polesinesi che vogliono partecipare alle attività dell'associazione, e chi visita il paese per la prima volta — turisti, ciclisti, curiosi della cucina del Po.</p>
-        <p>La sede è in paese, le riunioni sono aperte, i contatti sono nel footer.</p>
-      </div>
-    ) : (
-      <div class="prose">
-        <p>«36 m s.l.m.» is the elevation of Polesine Parmense, a riverbank village in the Po plain. We are a social-promotion association keeping the local memory alive and promoting the people who live here today.</p>
-        <p>Two audiences: locals who want to take part, and visitors discovering the village for the first time.</p>
-      </div>
-    )}
-  </PageBody>
+
+  <!-- ① Intro: chi siamo + lista -->
+  <section class="sez sez-intro">
+    <div class="sez-intro__testo">
+      <p class="cappello">
+        {lang === 'it'
+          ? '«36 m s.l.m.» non è una singola realtà, ma una rete che unisce le forze vive del territorio.'
+          : '«36 m s.l.m.» is not a single body — it is a network that unites the active forces of the territory.'}
+      </p>
+      <p class="grande-citazione">
+        {lang === 'it' ? '"Un\'associazione\ndi associazioni"' : '"An association\nof associations"'}
+      </p>
+      <p class="corpo">
+        {lang === 'it'
+          ? 'Ne fanno parte sette realtà storicamente presenti e operanti a Polesine Parmense:'
+          : 'Seven historic organisations form its membership:'}
+      </p>
+      <ol class="lista-assoc">
+        {associazioni.map((a, i) => (
+          <li>
+            <span class="num">{String(i + 1).padStart(2, '0')}</span>
+            <span>{a}</span>
+          </li>
+        ))}
+      </ol>
+      <aside class="lilt-nota">
+        {lang === 'it'
+          ? <>I volontari della <strong>LILT</strong> — Lega Italiana per la Lotta contro i Tumori, sezione di Polesine Parmense — pur non facendo formalmente parte della nuova associazione, collaborano e partecipano attivamente a tutte le nostre iniziative.</>
+          : <>The volunteers of <strong>LILT</strong> (Italian League Against Cancer), Polesine Parmense chapter, actively collaborate with all our initiatives, even though they are not formally members.</>}
+      </aside>
+    </div>
+    <div class="sez-intro__foto">
+      <img src="/media/storico/associazione-parmense-slide00001.jpg" alt="L'associazione in occasione di un evento" loading="lazy" />
+    </div>
+  </section>
+
+  <!-- ② Perché il nome -->
+  <section class="sez sez-nome">
+    <div class="sez-nome__foto">
+      <img src="/media/storico/idrometro.jpg" alt="L'idrometro di Polesine Parmense" loading="lazy" />
+      <p class="didascalia">
+        {lang === 'it' ? "L'idrometro ai piedi dell'argine maestro" : 'The river gauge at the foot of the main embankment'}
+      </p>
+    </div>
+    <div class="sez-nome__testo">
+      <p class="eyebrow-label">{lang === 'it' ? '— Il nome —' : '— The name —'}</p>
+      <h2>{lang === 'it' ? 'Perché «36 m s.l.m.»?' : 'Why «36 m s.l.m.»?'}</h2>
+      <p>
+        {lang === 'it'
+          ? 'Il nome rappresenta la quota sul livello del mare di Polesine Parmense, indicata su uno storico cartello del Touring Club presente in quella che una volta veniva chiamata Via Livelli.'
+          : 'The name is simply the elevation of Polesine Parmense above sea level, as marked on a historic Touring Club sign on the old Via Livelli.'}
+      </p>
+      <p>
+        {lang === 'it'
+          ? <>È anche la quota riportata sull'altrettanto storico <strong>idrometro</strong> presente nelle vicinanze della Chiavica del Canale di Busseto, ai piedi dell'argine maestro — un punto di riferimento silenzioso che misura il respiro del Po.</>
+          : <>It is also the measurement shown on the historic <strong>river gauge</strong> near the Busseto Canal sluice, at the foot of the main embankment — a quiet reference point that measures the breathing of the Po.</>}
+      </p>
+      <div class="quota-grande">36</div>
+      <p class="quota-label">
+        {lang === 'it' ? 'metri sul livello del mare' : 'metres above sea level'}
+      </p>
+    </div>
+  </section>
+
+  <!-- ③ Missione -->
+  <section class="sez sez-missione">
+    <div class="sez-missione__testo">
+      <p class="eyebrow-label">{lang === 'it' ? '— Cosa facciamo —' : '— What we do —'}</p>
+      <h2>{lang === 'it' ? 'La nostra missione' : 'Our mission'}</h2>
+      <p class="corpo">
+        {lang === 'it'
+          ? "Promuoviamo e favoriamo, in Italia e all'estero, tutte le iniziative che valorizzino il patrimonio umano e naturale di questi luoghi."
+          : 'We promote and support, in Italy and abroad, every initiative that enhances the human and natural heritage of these places.'}
+      </p>
+      <ul class="missione-list">
+        <li>
+          <span class="icon">🌾</span>
+          <span>
+            {lang === 'it'
+              ? <><strong>Cultura enogastronomica</strong> della Bassa Parmense: conservare e diffondere l'arte culinaria tradizionale attraverso eventi e manifestazioni gastronomiche.</>
+              : <><strong>Food culture</strong> of the lower Parma area: preserving and spreading traditional culinary arts through events and food festivals.</>}
+          </span>
+        </li>
+        <li>
+          <span class="icon">🌊</span>
+          <span>
+            {lang === 'it'
+              ? <><strong>Il fiume Po</strong>: il legame storico, economico e sociale con il grande fiume, le sue storie e le leggende fiorite negli anni.</>
+              : <><strong>The River Po</strong>: the historic, economic and social bond with the great river, its stories and the legends that have grown over the years.</>}
+          </span>
+        </li>
+        <li>
+          <span class="icon">🗣️</span>
+          <span>
+            {lang === 'it'
+              ? <><strong>Dialetto e tradizioni</strong>: mantenere vivi i valori culturali, il dialetto, le tradizioni e le manifestazioni popolari di Polesine, Vidalenzo, Santa Croce, Ongina e Ardola.</>
+              : <><strong>Dialect and traditions</strong>: keeping alive the cultural values, dialect, traditions and folk events of Polesine, Vidalenzo, Santa Croce, Ongina and Ardola.</>}
+          </span>
+        </li>
+      </ul>
+    </div>
+    <div class="sez-missione__foto">
+      <img src="/media/storico/Guareschi-sul-Po.jpg" alt="Il Po a Polesine Parmense" loading="lazy" />
+    </div>
+  </section>
+
+  <!-- ④ Visione: chiusura con foto ampia -->
+  <section class="sez sez-visione">
+    <div class="sez-visione__foto">
+      <img src="/media/storico/leggevano-il-giornale-in-piazza.jpg" alt="In piazza a Polesine Parmense" loading="lazy" />
+    </div>
+    <blockquote class="sez-visione__cit">
+      {lang === 'it'
+        ? <>Questo sito vuole essere non solo una finestra su Polesine Parmense e la sua storia, ma un <em>contenitore aperto</em> — un puzzle dove continuare a inserire nuove tesserine fatte di storie, immagini, pensieri e testimonianze di chi si sente legato ai nostri borghi.</>
+        : <>This site aims to be not just a window onto Polesine Parmense and its history, but an <em>open archive</em> — a puzzle where new pieces are always being added: stories, photographs, thoughts and testimonies from everyone who feels tied to these villages.</>}
+    </blockquote>
+  </section>
+
 </Base>
 
 <style>
-  .prose { font-size: 1.05rem; line-height: 1.7; color: theme('colors.ink-soft'); }
-  .prose p { margin: 0 0 1.2em; }
+  /* ── Shared ── */
+  .sez {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 4rem 1.25rem;
+  }
+  @media (min-width: 1050px) { .sez { padding: 5rem 4rem; } }
+
+  .eyebrow-label {
+    font-family: theme('fontFamily.mono');
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .22em;
+    color: theme('colors.acquadeep');
+    margin: 0 0 .9rem;
+  }
+  h2 {
+    font-family: theme('fontFamily.serif');
+    font-weight: 300;
+    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+    line-height: 1.1;
+    color: theme('colors.ink');
+    margin: 0 0 1.2rem;
+    letter-spacing: -.02em;
+  }
+  .corpo {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: theme('colors.ink-soft');
+    margin: 0 0 1.2rem;
+  }
+
+  /* ── ① Intro ── */
+  .sez-intro {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    border-bottom: 1px solid theme('colors.rule');
+  }
+  @media (min-width: 780px) {
+    .sez-intro { grid-template-columns: 1fr 1fr; align-items: start; }
+  }
+
+  .cappello {
+    font-family: theme('fontFamily.serif');
+    font-weight: 300;
+    font-size: 1.15rem;
+    line-height: 1.6;
+    color: theme('colors.ink-soft');
+    margin: 0 0 1.5rem;
+    font-style: italic;
+  }
+  .grande-citazione {
+    font-family: theme('fontFamily.hand');
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    font-weight: 700;
+    font-style: italic;
+    color: theme('colors.acquadeep');
+    line-height: 1.15;
+    white-space: pre-line;
+    margin: 0 0 1.75rem;
+    padding-left: 1rem;
+    border-left: 3px solid theme('colors.gold');
+  }
+
+  .lista-assoc {
+    list-style: none;
+    padding: 0; margin: 0 0 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: .1rem;
+  }
+  .lista-assoc li {
+    display: flex;
+    align-items: baseline;
+    gap: .75rem;
+    padding: .55rem 0;
+    border-bottom: 1px solid theme('colors.rule');
+    font-size: .95rem;
+    color: theme('colors.ink-soft');
+    line-height: 1.4;
+  }
+  .lista-assoc li:first-child { border-top: 1px solid theme('colors.rule'); }
+  .num {
+    font-family: theme('fontFamily.mono');
+    font-size: .65rem;
+    color: theme('colors.gold-deep');
+    letter-spacing: .08em;
+    flex-shrink: 0;
+  }
+
+  .lilt-nota {
+    background: rgba(74,102,112,0.06);
+    border-left: 3px solid theme('colors.acquadeep');
+    border-radius: 0 8px 8px 0;
+    padding: .85rem 1rem;
+    font-size: .88rem;
+    line-height: 1.6;
+    color: theme('colors.ink-soft');
+    font-style: italic;
+  }
+  .lilt-nota strong { color: theme('colors.ink'); font-style: normal; }
+
+  .sez-intro__foto {
+    position: sticky;
+    top: 5rem;
+    align-self: start;
+  }
+  .sez-intro__foto img {
+    width: 100%;
+    border-radius: 12px;
+    display: block;
+    object-fit: cover;
+    aspect-ratio: 4 / 5;
+    filter: saturate(.9);
+  }
+
+  /* ── ② Nome ── */
+  .sez-nome {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    background: theme('colors.paper-2');
+    border-radius: 20px;
+    overflow: hidden;
+    max-width: 1200px;
+    padding: 0;
+    margin: 0 auto;
+  }
+  @media (min-width: 780px) {
+    .sez-nome { grid-template-columns: 2fr 3fr; }
+  }
+
+  .sez-nome__foto {
+    position: relative;
+    overflow: hidden;
+  }
+  .sez-nome__foto img {
+    width: 100%;
+    height: 100%;
+    min-height: 320px;
+    object-fit: cover;
+    display: block;
+    filter: sepia(12%) saturate(.85);
+  }
+  .didascalia {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(15,22,28,0.72));
+    color: rgba(232,244,248,0.85);
+    font-family: theme('fontFamily.mono');
+    font-size: .65rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    padding: 2rem .9rem .7rem;
+    margin: 0;
+  }
+
+  .sez-nome__testo {
+    padding: 3rem 2.5rem 3rem 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  @media (max-width: 779px) { .sez-nome__testo { padding: 2rem 1.5rem; } }
+  .sez-nome__testo p {
+    font-size: .97rem;
+    line-height: 1.7;
+    color: theme('colors.ink-soft');
+    margin: 0 0 1rem;
+  }
+  .sez-nome__testo strong { color: theme('colors.ink'); }
+
+  .quota-grande {
+    font-family: theme('fontFamily.serif');
+    font-size: clamp(5rem, 12vw, 9rem);
+    font-weight: 300;
+    font-style: italic;
+    color: theme('colors.gold');
+    line-height: .9;
+    letter-spacing: -.05em;
+    margin-top: 1.5rem;
+    opacity: .7;
+  }
+  .quota-label {
+    font-family: theme('fontFamily.mono');
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .2em;
+    color: theme('colors.ink-soft');
+    margin: .3rem 0 0 !important;
+  }
+
+  /* ── ③ Missione ── */
+  .sez-missione {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    border-top: 1px solid theme('colors.rule');
+    border-bottom: 1px solid theme('colors.rule');
+  }
+  @media (min-width: 780px) {
+    .sez-missione { grid-template-columns: 3fr 2fr; align-items: start; }
+  }
+
+  .missione-list {
+    list-style: none;
+    padding: 0; margin: 1.25rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .missione-list li {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    font-size: .97rem;
+    line-height: 1.6;
+    color: theme('colors.ink-soft');
+  }
+  .missione-list li strong { color: theme('colors.ink'); }
+  .icon {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    margin-top: .05rem;
+    line-height: 1;
+  }
+
+  .sez-missione__foto {
+    position: sticky;
+    top: 5rem;
+    align-self: start;
+  }
+  .sez-missione__foto img {
+    width: 100%;
+    border-radius: 12px;
+    display: block;
+    object-fit: cover;
+    aspect-ratio: 3 / 4;
+    filter: saturate(.85);
+  }
+
+  /* ── ④ Visione ── */
+  .sez-visione {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    padding-top: 0;
+  }
+  @media (min-width: 780px) {
+    .sez-visione { grid-template-columns: 1fr 1fr; align-items: center; }
+  }
+
+  .sez-visione__foto img {
+    width: 100%;
+    border-radius: 12px;
+    display: block;
+    object-fit: cover;
+    aspect-ratio: 4 / 3;
+    filter: sepia(15%) saturate(.8);
+  }
+
+  .sez-visione__cit {
+    font-family: theme('fontFamily.serif');
+    font-weight: 300;
+    font-size: clamp(1.2rem, 2.5vw, 1.55rem);
+    line-height: 1.6;
+    color: theme('colors.ink-soft');
+    font-style: italic;
+    margin: 0;
+    padding: 0 0 0 2rem;
+    border-left: 3px solid theme('colors.gold');
+  }
+  .sez-visione__cit em {
+    font-style: normal;
+    color: theme('colors.acquadeep');
+    font-weight: 600;
+  }
 </style>
