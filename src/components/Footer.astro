@@ -42,16 +42,16 @@ const t = useTranslations(lang);
 
 <style>
   .site-footer {
-    padding: 4rem 4rem 3rem;
+    padding: 2.5rem 4rem 2rem;
     display: grid;
     grid-template-columns: 1.5fr 1fr 1fr 1fr;
-    gap: 3rem;
+    gap: 2rem;
     background: theme('colors.ink');
     color: theme('colors.paper');
   }
   .marca img {
     display: block;
-    height: 56px;
+    height: 40px;
     width: auto;
     border-radius: 4px;
     opacity: .92;
@@ -59,39 +59,42 @@ const t = useTranslations(lang);
   .marca small {
     display: block;
     font-family: theme('fontFamily.mono');
-    font-size: .72rem;
+    font-size: .65rem;
     text-transform: uppercase;
     letter-spacing: .18em;
     color: rgba(244,235,217,0.55);
-    margin-top: .75rem;
+    margin-top: .5rem;
   }
   h4 {
     font-family: theme('fontFamily.mono');
-    font-size: .72rem;
+    font-size: .65rem;
     text-transform: uppercase;
     letter-spacing: .2em;
     color: theme('colors.gold');
-    margin: 0 0 1rem 0;
+    margin: 0 0 .6rem 0;
     font-weight: 500;
   }
   ul { list-style: none; padding: 0; margin: 0; }
-  li { padding: .35rem 0; }
-  a { color: theme('colors.paper'); text-decoration: none; opacity: .85; }
+  li { padding: .2rem 0; }
+  a { color: theme('colors.paper'); text-decoration: none; opacity: .85; font-size: .82rem; }
   a:hover { opacity: 1; color: theme('colors.gold'); }
   .colofon {
     grid-column: 1 / -1;
-    margin-top: 3rem;
-    padding-top: 2rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
     border-top: 1px solid rgba(244,235,217,0.15);
     display: flex; justify-content: space-between;
     font-family: theme('fontFamily.mono');
-    font-size: .72rem;
+    font-size: .65rem;
     color: rgba(244,235,217,0.55);
     text-transform: uppercase;
     letter-spacing: .15em;
   }
   @media (max-width: 1000px) {
-    .site-footer { grid-template-columns: 1fr; padding: 3rem 1.5rem; }
-    .colofon { flex-direction: column; gap: .75rem; }
+    .site-footer { grid-template-columns: 1fr 1fr; padding: 2rem 1.5rem 1.5rem; gap: 1.5rem; }
+    .colofon { grid-column: 1 / -1; flex-direction: column; gap: .5rem; }
+  }
+  @media (max-width: 560px) {
+    .site-footer { grid-template-columns: 1fr; }
   }
 </style>
