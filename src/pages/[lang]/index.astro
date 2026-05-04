@@ -61,6 +61,34 @@ function eventHref(slug: string) {
 
   <div class="waterline" aria-hidden="true"></div>
 
+  <!-- Mobile-only quick nav -->
+  <nav class="mob-nav" aria-label={lang === 'it' ? 'Navigazione rapida' : 'Quick navigation'}>
+    <a class="mob-nav-item" href={localizedPath(lang, 'eventi')}>
+      <span class="mob-nav-label">{lang === 'it' ? 'Eventi' : 'Events'}</span>
+      <span class="mob-nav-arrow">→</span>
+    </a>
+    <a class="mob-nav-item" href={localizedPath(lang, 'scopri')}>
+      <span class="mob-nav-label">{lang === 'it' ? 'Scopri il Po' : 'Discover the Po'}</span>
+      <span class="mob-nav-arrow">→</span>
+    </a>
+    <a class="mob-nav-item" href={localizedPath(lang, 'scopri/territorio/dove')}>
+      <span class="mob-nav-label">{lang === 'it' ? 'Dove mangiare' : 'Where to eat'}</span>
+      <span class="mob-nav-arrow">→</span>
+    </a>
+    <a class="mob-nav-item" href={localizedPath(lang, 'scopri/ricettario')}>
+      <span class="mob-nav-label">{lang === 'it' ? 'Ricettario' : 'Recipes'}</span>
+      <span class="mob-nav-arrow">→</span>
+    </a>
+    <a class="mob-nav-item" href={localizedPath(lang, 'partecipa')}>
+      <span class="mob-nav-label">{lang === 'it' ? 'Partecipa' : 'Get involved'}</span>
+      <span class="mob-nav-arrow">→</span>
+    </a>
+    <a class="mob-nav-item" href={localizedPath(lang, 'chi-siamo')}>
+      <span class="mob-nav-label">{lang === 'it' ? 'Chi siamo' : 'About us'}</span>
+      <span class="mob-nav-arrow">→</span>
+    </a>
+  </nav>
+
   {upcoming.length > 0 && (
     <section class="section">
       <div class="section-head">
@@ -155,6 +183,39 @@ function eventHref(slug: string) {
 </Base>
 
 <style>
+  /* ── Mobile quick nav ── */
+  .mob-nav {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid theme('colors.rule');
+  }
+  .mob-nav-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid theme('colors.rule');
+    text-decoration: none;
+    color: theme('colors.ink');
+    transition: background .15s ease;
+  }
+  .mob-nav-item:last-child { border-bottom: none; }
+  .mob-nav-item:active { background: theme('colors.paper'); }
+  .mob-nav-label {
+    font-family: theme('fontFamily.hand');
+    font-size: 1.55rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .mob-nav-arrow {
+    font-family: theme('fontFamily.mono');
+    font-size: .85rem;
+    color: theme('colors.acquadeep');
+  }
+  @media (min-width: 640px) {
+    .mob-nav { display: none; }
+  }
+
   .hero {
     display: grid;
     grid-template-columns: 1.05fr 1fr;

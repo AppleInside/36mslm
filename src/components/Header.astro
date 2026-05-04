@@ -58,7 +58,7 @@ const navItems = [
   },
   {
     key: 'scopri',
-    href: localizedPath(lang, 'scopri/territorio'),
+    href: localizedPath(lang, 'scopri'),
     label: lang === 'it' ? 'Scopri il Po' : t('nav.discover'),
     lead: {
       eyebrow: lang === 'it' ? 'Storia in evidenza' : 'Featured story',
@@ -252,41 +252,47 @@ const navItems = [
   </div>
 </header>
 
+<div class="drawer-overlay" id="drawerOverlay" aria-hidden="true"></div>
+
 <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label={lang === 'it' ? 'Menu di navigazione' : 'Navigation menu'}>
-  <button class="close" id="drawerClose" aria-label="Close">×</button>
-  <ol>
-    {navItems.map((item) => (
-      <li class="drawer-item">
-        <button
-          class="drawer-toggle"
-          aria-expanded="false"
-          aria-controls={`dsub-${item.key}`}
-        >
-          {item.label}
-          <span class="drawer-chevron" aria-hidden="true">›</span>
-        </button>
-        <div class="drawer-sub" id={`dsub-${item.key}`}>
-          <div class="drawer-sub-inner">
-            <a class="drawer-sub-main" href={item.href}>
-              {lang === 'it' ? 'Vai a' : 'Go to'} <em>{item.label}</em> →
-            </a>
-            {item.cols.map((col) => (
-              <div class="drawer-col">
-                <p class="drawer-col-title">{col.title}</p>
-                {col.links.map((l) => (
-                  <a href={l.href} class="drawer-col-link"><span set:html={l.label}></span></a>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-      </li>
-    ))}
-  </ol>
+  <!-- Header strip -->
+  <div class="drawer-head">
+    <a class="drawer-marca" href={localizedPath(lang, '')} aria-label="36 m s.l.m.">
+      <img src="/logo.jpg" alt="36 m s.l.m." class="drawer-logo" />
+    </a>
+    <button class="drawer-close" id="drawerClose" aria-label="Chiudi">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M2 2l12 12M14 2L2 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Nav links -->
+  <nav class="drawer-nav" aria-label={lang === 'it' ? 'Navigazione principale' : 'Main navigation'}>
+    <ol class="drawer-list">
+      {navItems.map((item, i) => (
+        <li class="drawer-item" style={`--i:${i}`}>
+          <a class="drawer-toggle" href={item.href}>
+            <span class="drawer-label">{item.label}</span>
+            <span class="drawer-arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </nav>
+
+  <!-- Footer -->
   <div class="drawer-foot">
-    <a href={itPath} class:list={['drawer-lang', lang === 'it' && 'on']}>🇮🇹 IT</a>
-    <a href={enPath} class:list={['drawer-lang', lang === 'en' && 'on']}>🇬🇧 EN</a>
-    <span>info@polesineparmense36.it</span>
+    <div class="drawer-langs">
+      <a href={itPath} class:list={['drawer-lang', lang === 'it' && 'on']}>
+        <span class="flag flag-it" aria-hidden="true"></span> IT
+      </a>
+      <span class="drawer-lang-sep">/</span>
+      <a href={enPath} class:list={['drawer-lang', lang === 'en' && 'on']}>
+        <span class="flag flag-gb" aria-hidden="true"></span> EN
+      </a>
+    </div>
+    <a href="mailto:info@polesineparmense36.it" class="drawer-email">info@polesineparmense36.it</a>
   </div>
 </div>
 
@@ -361,62 +367,148 @@ const navItems = [
   }
 
   /* Mobile drawer */
-  .drawer {
+  /* ── Drawer overlay ──────────────────────────────── */
+  .drawer-overlay {
+    display: none;
     position: fixed; inset: 0;
-    background: theme('colors.paper');
-    z-index: 60; padding: 5.5rem 1.75rem 2.5rem;
-    transform: translateY(-100%);
-    transition: transform .45s cubic-bezier(.2,.7,.2,1);
-    overflow-y: auto;
+    background: rgba(8,14,20,.55);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    z-index: 59;
+    opacity: 0;
+    transition: opacity .35s ease;
   }
-  .drawer.open { transform: translateY(0); }
-  .drawer .close {
-    position: absolute; top: 1.1rem; right: 1.25rem;
-    background: transparent; border: 1px solid theme('colors.rule');
-    border-radius: 999px; width: 44px; height: 44px;
-    font-size: 1.4rem; color: theme('colors.ink'); cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .drawer ol { list-style: none; padding: 0; margin: 0; }
-  .drawer-item { border-bottom: 1px solid theme('colors.rule'); }
+  .drawer-overlay.open { display: block; opacity: 1; }
 
-  /* Accordion toggle button */
-  .drawer-toggle {
-    width: 100%; display: flex; justify-content: space-between; align-items: center;
-    padding: 1.2rem 0; background: none; border: none; cursor: pointer;
-    color: theme('colors.ink');
-    font-family: theme('fontFamily.hand');
-    font-size: 2.4rem; font-weight: 700; line-height: 1.1;
-    text-align: left;
-    transition: color .2s ease;
-  }
-  .drawer-toggle:hover { color: theme('colors.brand'); }
-  .drawer-toggle:focus-visible { outline: 2px solid theme('colors.brand'); outline-offset: 3px; border-radius: 3px; }
-  .drawer-toggle[aria-expanded="true"] { color: theme('colors.brand'); }
-  .drawer-chevron {
-    font-size: 1.8rem; line-height: 1;
-    transition: transform .3s cubic-bezier(.2,.7,.2,1);
-    color: theme('colors.brand');
-  }
-  .drawer-toggle[aria-expanded="true"] .drawer-chevron {
-    transform: rotate(90deg);
-  }
-
-  /* Accordion sub-section */
-  .drawer-sub {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows .35s cubic-bezier(.2,.7,.2,1);
-  }
-  .drawer-sub.open { grid-template-rows: 1fr; }
-  .drawer-sub-inner {
+  /* ── Mobile drawer ────────────────────────────────── */
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: min(88vw, 340px);
+    background: rgba(18,30,40,0.97);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    border-left: 1px solid rgba(255,255,255,.08);
+    box-shadow: -8px 0 48px rgba(0,0,0,.45);
+    z-index: 60;
+    display: flex; flex-direction: column;
+    transform: translateX(100%);
+    transition: transform .42s cubic-bezier(.2,.7,.2,1);
     overflow: hidden;
-    padding-bottom: 0;
-    transition: padding-bottom .35s ease;
   }
-  .drawer-sub.open .drawer-sub-inner { padding-bottom: 1.25rem; }
+  .drawer.open { transform: translateX(0); }
 
-  /* Featured link inside sub */
+  /* Head strip */
+  .drawer-head {
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .9rem 1rem .9rem 1.3rem;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+    border-top: 2px solid rgba(216,161,74,.5);
+  }
+  .drawer-marca {
+    text-decoration: none; display: flex; align-items: baseline; gap: .3rem;
+  }
+  .drawer-logo {
+    height: 44px; width: auto; display: block;
+    border-radius: 3px;
+  }
+  .drawer-close {
+    position: relative; z-index: 1;
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.2);
+    color: rgba(232,244,248,.85);
+    width: 36px; height: 36px;
+    border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background .2s;
+  }
+  .drawer-close:hover { background: rgba(255,255,255,.22); }
+  .drawer-close:focus-visible { outline: 2px solid theme('colors.gold'); outline-offset: 2px; }
+
+  /* Nav list */
+  .drawer-nav { flex: 1; overflow-y: auto; padding: .35rem 0; }
+  .drawer-list { list-style: none; padding: 0; margin: 0; }
+  .drawer-item { border-bottom: 1px solid rgba(255,255,255,.07); }
+
+  /* Stagger animation */
+  @keyframes drawer-item-in {
+    from { opacity: 0; transform: translateX(20px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .drawer.open .drawer-item {
+    animation: drawer-item-in .35s both;
+    animation-delay: calc(.06s + var(--i) * .06s);
+  }
+
+  /* Each link row */
+  .drawer-toggle {
+    width: 100%; display: flex;
+    align-items: center; justify-content: space-between; gap: .5rem;
+    padding: 1.1rem 1.3rem;
+    color: rgba(232,244,248,.75);
+    text-decoration: none;
+    transition: background .18s, color .18s;
+  }
+  .drawer-toggle:hover {
+    background: rgba(255,255,255,.06);
+    color: #E8F4F8;
+  }
+  .drawer-toggle:hover .drawer-arrow { transform: translateX(4px); color: theme('colors.gold'); }
+  .drawer-toggle:focus-visible { outline: 2px solid theme('colors.gold'); outline-offset: -2px; }
+
+  .drawer-label {
+    font-family: theme('fontFamily.hand');
+    font-size: 2.2rem; font-weight: 700; line-height: 1.1;
+    color: inherit;
+  }
+  .drawer-arrow {
+    font-size: .85rem;
+    color: rgba(232,244,248,.3);
+    transition: transform .2s, color .2s;
+  }
+
+  /* Footer */
+  .drawer-foot {
+    flex-shrink: 0;
+    padding: .9rem 1.1rem;
+    border-top: 1px solid rgba(255,255,255,.1);
+    background: rgba(0,0,0,.25);
+    display: flex; justify-content: space-between; align-items: center;
+    gap: .75rem;
+  }
+  .drawer-langs {
+    display: flex; align-items: center; gap: .4rem;
+  }
+  .drawer-lang-sep {
+    color: rgba(232,244,248,.25);
+    font-family: theme('fontFamily.mono'); font-size: .72rem;
+  }
+  .drawer-lang {
+    display: inline-flex; align-items: center; gap: .35rem;
+    text-decoration: none;
+    font-family: theme('fontFamily.mono'); font-size: .7rem;
+    text-transform: uppercase; letter-spacing: .16em;
+    color: rgba(232,244,248,.45);
+    padding: .3rem .5rem; border-radius: .3rem;
+    transition: color .18s, background .18s;
+  }
+  .drawer-lang:hover { color: #E8F4F8; }
+  .drawer-lang.on {
+    color: theme('colors.gold');
+    background: rgba(216,161,74,.12);
+  }
+  .drawer-email {
+    font-family: theme('fontFamily.mono');
+    font-size: .62rem; letter-spacing: .04em;
+    color: rgba(232,244,248,.28);
+    text-decoration: none;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: color .18s;
+  }
+  .drawer-email:hover { color: rgba(232,244,248,.65); }
+
+  /* ── Unused leftovers (kept for desktop panes) ────── */
   .drawer-sub-main {
     display: block; padding: .6rem 0 .9rem;
     text-decoration: none;
@@ -426,9 +518,6 @@ const navItems = [
     margin-bottom: .75rem;
   }
   .drawer-sub-main em { font-style: italic; font-family: theme('fontFamily.serif'); text-transform: none; font-size: .9rem; }
-  .drawer-sub-main:focus-visible { outline: 2px solid theme('colors.brand'); outline-offset: 2px; border-radius: 2px; }
-
-  /* Column of links */
   .drawer-col { margin-bottom: .85rem; }
   .drawer-col-title {
     font-family: theme('fontFamily.mono');
@@ -443,19 +532,8 @@ const navItems = [
     transition: color .2s ease, padding-left .2s ease;
   }
   .drawer-col-link:hover { color: theme('colors.brand'); padding-left: .4rem; }
-  .drawer-col-link:focus-visible { outline: 2px solid theme('colors.brand'); outline-offset: 2px; border-radius: 2px; }
   .drawer-col-link :global(em) { font-style: italic; color: theme('colors.acquadeep'); }
 
-  .drawer .close:focus-visible { outline: 2px solid theme('colors.brand'); outline-offset: 3px; }
-  .drawer-foot {
-    margin-top: 2.5rem;
-    display: flex; justify-content: space-between; align-items: center; gap: 1rem;
-    font-family: theme('fontFamily.mono');
-    font-size: .72rem; color: theme('colors.ink-soft');
-    text-transform: uppercase; letter-spacing: .18em;
-  }
-  .drawer-lang { text-decoration: none; color: theme('colors.ink-soft'); }
-  .drawer-lang.on { color: theme('colors.brand'); font-weight: 700; }
 
   /* ── Desktop (≥ 1001px) ────────────────────────────── */
   @media (min-width: 1001px) {
@@ -669,7 +747,7 @@ const navItems = [
       100% { background-position: -250% center; }
     }
     .lang[data-active="en"] .lang-pill {
-      transform: translateX(calc(50% - .125rem));
+      transform: translateX(calc(100% + .15rem));
     }
     .lang a {
       position: relative; z-index: 1;
@@ -879,19 +957,21 @@ const navItems = [
       });
     });
 
-    const burger = document.getElementById('burger') as HTMLButtonElement | null;
-    const drawer = document.getElementById('drawer');
+    const burger  = document.getElementById('burger') as HTMLButtonElement | null;
+    const drawer  = document.getElementById('drawer');
+    const overlay = document.getElementById('drawerOverlay');
     const closeBtn = document.getElementById('drawerClose');
 
     function openDrawer() {
       drawer?.classList.add('open');
+      overlay?.classList.add('open');
       burger?.classList.add('open');
       burger?.setAttribute('aria-expanded', 'true');
-      // focus first toggle
       (drawer?.querySelector('.drawer-toggle') as HTMLElement | null)?.focus();
     }
     function closeDrawer() {
       drawer?.classList.remove('open');
+      overlay?.classList.remove('open');
       burger?.classList.remove('open');
       burger?.setAttribute('aria-expanded', 'false');
       burger?.focus();
@@ -901,26 +981,12 @@ const navItems = [
       drawer?.classList.contains('open') ? closeDrawer() : openDrawer();
     });
     closeBtn?.addEventListener('click', closeDrawer);
+    overlay?.addEventListener('click', closeDrawer);
 
-    // ESC closes drawer too
     drawer?.addEventListener('keydown', (e) => {
       if ((e as KeyboardEvent).key === 'Escape') closeDrawer();
     });
 
-    // Accordion toggles
-    drawer?.querySelectorAll<HTMLButtonElement>('.drawer-toggle').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const isOpen = btn.getAttribute('aria-expanded') === 'true';
-        // close all first
-        drawer.querySelectorAll<HTMLButtonElement>('.drawer-toggle').forEach((b) => {
-          b.setAttribute('aria-expanded', 'false');
-          document.getElementById(b.getAttribute('aria-controls') ?? '')?.classList.remove('open');
-        });
-        if (!isOpen) {
-          btn.setAttribute('aria-expanded', 'true');
-          document.getElementById(btn.getAttribute('aria-controls') ?? '')?.classList.add('open');
-        }
-      });
-    });
+    // Accordion toggles — removed (drawer items are now direct links)
   })();
 </script>

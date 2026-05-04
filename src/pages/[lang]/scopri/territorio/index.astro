@@ -40,6 +40,24 @@ function fmtDuration(it: typeof itineraries[number]): string {
   const m = (it.duration_min ?? 0) % 60;
   return h > 0 ? `${h}h${m > 0 ? ' ' + m + 'min' : ''}` : `${m}min`;
 }
+
+const itinerariesJson = Object.fromEntries(
+  itineraries.map(it => [
+    it.slug,
+    {
+      title:       it.title,
+      category:    it.category,
+      description: it.description ?? null,
+      distance_km: it.distance_km,
+      duration:    fmtDuration(it),
+      difficulty:  it.difficulty,
+      terrain:     it.terrain ?? null,
+      coords:      it.coords ?? [],
+      bbox:        it.bbox ?? null,
+      color:       accent[it.category],
+    },
+  ])
+);
 ---
 
 <Base title={lang === 'it' ? 'Itinerari' : 'Itineraries'}>
@@ -85,6 +103,7 @@ function fmtDuration(it: typeof itineraries[number]): string {
           class="scheda-wrap"
           data-category={cat}
           data-order={i % 2 === 0 ? 'odd' : 'even'}
+          data-slug={it.slug}
         >
           <article class="scheda" style={`--accent:${acc}`}>
 
@@ -145,6 +164,11 @@ function fmtDuration(it: typeof itineraries[number]): string {
                 {it.description && (
                   <p class="scheda-desc">{it.description}</p>
                 )}
+
+                <button class="scheda-open-btn" aria-label={lang === 'it' ? 'Apri dettagli' : 'Open details'}>
+                  {lang === 'it' ? 'Vedi itinerario' : 'View itinerary'}
+                  <span aria-hidden="true">→</span>
+                </button>
               </div>
 
               <div class="scheda-mappa-area">
@@ -233,7 +257,261 @@ function fmtDuration(it: typeof itineraries[number]): string {
       });
     });
   </script>
+
+  <!-- ── Modal JS (mobile) ──────────────────────── -->
+  <script is:inline define:vars={{ itinerariesJson, lang }}>
+    (function () {
+      var MOBILE_BP = 700;
+      function isMobile() { return window.innerWidth < MOBILE_BP; }
+
+      var catLabels = {
+        naturalistico: lang === 'it' ? 'Naturalistico' : 'Nature',
+        storico:       lang === 'it' ? 'Storico'       : 'Historical',
+        sportivo:      lang === 'it' ? 'Sportivo'      : 'Sport',
+      };
+      var diffLabels = {
+        facile:      lang === 'it' ? 'Facile'      : 'Easy',
+        medio:       lang === 'it' ? 'Medio'       : 'Moderate',
+        impegnativo: lang === 'it' ? 'Impegnativo' : 'Challenging',
+      };
+
+      var overlay  = document.getElementById('itModal');
+      var band     = document.getElementById('itBand');
+      var catEl    = document.getElementById('itCat');
+      var titleEl  = document.getElementById('itTitle');
+      var pillsEl  = document.getElementById('itPills');
+      var descEl   = document.getElementById('itDesc');
+      var mapEl    = document.getElementById('itMap');
+      var linksEl  = document.getElementById('itLinks');
+      var closeBtn = document.getElementById('itClose');
+      var _map     = null;
+
+      function svgDist() {
+        return '<svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true"><path d="M1.5 5.5h8M8 2.5l3 3-3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      }
+      function svgClock() {
+        return '<svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.1"/><path d="M5.5 3v2.5l1.5 1.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>';
+      }
+
+      function pillDiffClass(d) {
+        if (d === 'facile')      return 'pill--diff pill--facile';
+        if (d === 'medio')       return 'pill--diff pill--medio';
+        if (d === 'impegnativo') return 'pill--diff pill--impegnativo';
+        return '';
+      }
+
+      function openModal(data) {
+        band.style.background = data.color;
+        catEl.textContent     = catLabels[data.category] || data.category;
+        titleEl.textContent   = data.title;
+
+        pillsEl.innerHTML =
+          '<span class="pill">' + svgDist() + data.distance_km + '&thinsp;km</span>' +
+          '<span class="pill">' + svgClock() + data.duration + '</span>' +
+          '<span class="pill ' + pillDiffClass(data.difficulty) + '">' + (diffLabels[data.difficulty] || data.difficulty) + '</span>' +
+          (data.terrain ? '<span class="pill pill--terrain">' + data.terrain + '</span>' : '');
+
+        descEl.textContent = data.description || '';
+        descEl.style.display = data.description ? '' : 'none';
+
+        // map buttons
+        var start = data.coords && data.coords[0];
+        if (start) {
+          var lat = start[0], lng = start[1];
+          var appleHref  = 'https://maps.apple.com/?ll=' + lat + ',' + lng + '&q=' + encodeURIComponent(data.title);
+          var googleHref = 'https://www.google.com/maps/dir/?api=1&destination=' + lat + ',' + lng;
+          linksEl.innerHTML =
+            '<a class="it-map-btn it-map-btn--apple" href="' + appleHref + '" target="_blank" rel="noopener">' +
+              '<img src="/icons/apple-icon-4.png" width="16" height="16" alt=""> Apple Maps' +
+            '</a>' +
+            '<a class="it-map-btn it-map-btn--google" href="' + googleHref + '" target="_blank" rel="noopener">' +
+              '<img src="/icons/google-logo.png" width="16" height="16" alt=""> Google Maps' +
+            '</a>';
+        } else {
+          linksEl.innerHTML = '';
+        }
+
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+
+        // Leaflet map
+        requestAnimationFrame(function () {
+          if (_map) { _map.remove(); _map = null; }
+          mapEl.innerHTML = '';
+          if (!data.coords || !data.coords.length) return;
+          _map = L.map(mapEl, {
+            zoomControl: false, scrollWheelZoom: false,
+            attributionControl: false, dragging: false,
+          });
+          L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 18 }).addTo(_map);
+          var line = L.polyline(data.coords, { color: data.color, weight: 4, opacity: 0.9 }).addTo(_map);
+          var dot = L.divIcon({
+            html: '<div style="width:9px;height:9px;background:' + data.color + ';border:2px solid white;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>',
+            iconSize: [9, 9], iconAnchor: [4, 4], className: '',
+          });
+          L.marker(data.coords[0], { icon: dot }).addTo(_map);
+          if (data.bbox) {
+            _map.fitBounds([[data.bbox[0], data.bbox[1]], [data.bbox[2], data.bbox[3]]]);
+          } else {
+            _map.fitBounds(line.getBounds().pad(0.18));
+          }
+          setTimeout(function () { _map.invalidateSize(); }, 60);
+        });
+      }
+
+      function closeModal() {
+        overlay.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+
+      // Card click → open modal (mobile only)
+      document.querySelectorAll('.scheda-wrap').forEach(function (wrap) {
+        wrap.addEventListener('click', function (e) {
+          if (!isMobile()) return;
+          e.preventDefault();
+          var data = itinerariesJson[wrap.dataset.slug];
+          if (data) openModal(data);
+        });
+      });
+
+      closeBtn.addEventListener('click', closeModal);
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) closeModal();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeModal();
+      });
+    })();
+  </script>
 </Base>
+
+<!-- ── Itinerary modal (mobile) ──────────────────── -->
+<div class="it-overlay" id="itModal" aria-modal="true" role="dialog">
+  <div class="it-box">
+    <div class="it-band" id="itBand">
+      <span class="it-cat" id="itCat"></span>
+      <button class="it-close" id="itClose" aria-label="Chiudi">×</button>
+    </div>
+    <div class="it-scroll">
+      <h2 class="it-title" id="itTitle"></h2>
+      <div class="pills it-pills" id="itPills"></div>
+      <div class="it-map" id="itMap"></div>
+      <p class="it-desc" id="itDesc"></p>
+      <div class="it-links" id="itLinks"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* ── Modal overlay ────────────────────────────── */
+  .it-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,18,24,.55);
+    z-index: 900;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .it-overlay.open { display: flex; }
+
+  .it-box {
+    width: 100%;
+    max-height: 92dvh;
+    border-radius: 1rem 1rem 0 0;
+    background: theme('colors.paper');
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .it-band {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .7rem 1.25rem;
+    flex-shrink: 0;
+  }
+  .it-cat {
+    font-family: theme('fontFamily.mono');
+    font-size: .62rem;
+    text-transform: uppercase;
+    letter-spacing: .28em;
+    color: rgba(255,255,255,.9);
+    font-weight: 600;
+  }
+  .it-close {
+    background: rgba(255,255,255,.2);
+    border: none;
+    color: #fff;
+    font-size: 1.4rem;
+    line-height: 1;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .it-scroll {
+    overflow-y: auto;
+    padding: 1.25rem 1.25rem 2rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .it-title {
+    font-family: theme('fontFamily.hand');
+    font-size: 1.9rem;
+    font-weight: 400;
+    margin: 0;
+    color: theme('colors.ink');
+    line-height: 1.15;
+  }
+
+  .it-pills { flex-wrap: wrap; }
+
+  .it-map {
+    border-radius: 10px;
+    overflow: hidden;
+    height: 220px;
+    box-shadow: 0 1px 8px rgba(0,0,0,.12);
+    flex-shrink: 0;
+  }
+
+  .it-desc {
+    font-size: .94rem;
+    line-height: 1.78;
+    color: #4a5568;
+    margin: 0;
+  }
+
+  .it-links {
+    display: flex;
+    gap: .7rem;
+    flex-wrap: wrap;
+    margin-top: .25rem;
+  }
+  :global(.it-map-btn) {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .55rem 1rem;
+    border-radius: .45rem;
+    font-family: theme('fontFamily.mono');
+    font-size: .75rem;
+    text-decoration: none;
+    background: theme('colors.paper');
+    border: 1px solid theme('colors.rule');
+    color: theme('colors.ink');
+    white-space: nowrap;
+  }
+  :global(.it-map-btn img) { width: 16px; height: 16px; object-fit: contain; }
+</style>
 
 <style>
   /* ── Filter nav ───────────────────────────────── */
@@ -406,5 +684,32 @@ function fmtDuration(it: typeof itineraries[number]): string {
     .scheda-testo { padding: 1.5rem; }
     .scheda-mappa { min-height: 180px; }
     .filtri-inner { padding: 0 1rem; overflow-x: auto; }
+
+    /* compact card on mobile */
+    .scheda-desc    { display: none; }
+    .scheda-mappa-area { display: none; }
+    .scheda-open-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: .65rem 1rem;
+      margin-top: .2rem;
+      background: none;
+      border: 1px solid theme('colors.rule');
+      border-radius: .4rem;
+      font-family: theme('fontFamily.mono');
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      color: theme('colors.ink');
+      cursor: pointer;
+    }
+    .scheda-wrap { cursor: pointer; }
+  }
+
+  @media (min-width: 701px) {
+    /* hide open-btn on desktop */
+    .scheda-open-btn { display: none; }
   }
 </style>

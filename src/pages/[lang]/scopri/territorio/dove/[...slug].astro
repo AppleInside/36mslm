@@ -14,16 +14,184 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const _lang = Astro.params.lang as Lang;
 const { Content } = await entry.render();
+
+const [lat, lng] = entry.data.coords ?? [];
+const hasCoords = lat != null && lng != null;
+const mapsQuery = encodeURIComponent(entry.data.address ?? entry.data.title);
+// Universal map link: Apple Maps on iOS/macOS, Google Maps elsewhere
+const mapLink = hasCoords
+  ? `https://maps.apple.com/?ll=${lat},${lng}&q=${mapsQuery}`
+  : `https://maps.apple.com/?q=${mapsQuery}`;
+const googleLink = hasCoords
+  ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
+  : `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
+const embedSrc = hasCoords
+  ? `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.01},${lat - 0.007},${lng + 0.01},${lat + 0.007}&layer=mapnik&marker=${lat},${lng}`
+  : null;
 ---
 <Base title={entry.data.title}>
-  <article class="mx-auto max-w-prose">
-    <p class="text-xs uppercase tracking-wider text-po">{entry.data.kind}</p>
-    <h1 class="mt-2 text-5xl">{entry.data.title}</h1>
-    <p class="mt-2 opacity-80">{entry.data.address}</p>
-    <div class="prose mt-8"><Content /></div>
-    <ul class="mt-8 space-y-1 text-sm">
-      {entry.data.phone && <li>Tel: <a href={`tel:${entry.data.phone}`}>{entry.data.phone}</a></li>}
-      {entry.data.website && <li>Web: <a href={entry.data.website}>{entry.data.website}</a></li>}
-    </ul>
+  <article class="place-detail">
+    <header class="place-header">
+      <p class="place-kind">{entry.data.kind}</p>
+      <h1 class="place-title">{entry.data.title}</h1>
+    </header>
+
+    <div class="place-body">
+      <div class="prose"><Content /></div>
+
+      <aside class="place-info">
+        {entry.data.address && (
+          <div class="info-block">
+            <span class="info-label">Indirizzo</span>
+            <a href={mapLink} class="info-address" target="_blank" rel="noopener">
+              {entry.data.address}
+              <svg class="map-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+            </a>
+            <div class="map-links">
+              <a href={mapLink} target="_blank" rel="noopener">Apple Maps</a>
+              <span>·</span>
+              <a href={googleLink} target="_blank" rel="noopener">Google Maps</a>
+            </div>
+          </div>
+        )}
+
+        {entry.data.phone && (
+          <div class="info-block">
+            <span class="info-label">Telefono</span>
+            <a href={`tel:${entry.data.phone}`} class="info-value">{entry.data.phone}</a>
+          </div>
+        )}
+
+        {entry.data.website && (
+          <div class="info-block">
+            <span class="info-label">Sito web</span>
+            <a href={entry.data.website} class="info-value" target="_blank" rel="noopener">
+              {entry.data.website.replace(/^https?:\/\/(www\.)?/, '')}
+            </a>
+          </div>
+        )}
+
+        {embedSrc && (
+          <div class="map-embed">
+            <a href={mapLink} target="_blank" rel="noopener" aria-label="Apri in Maps" class="map-tap-overlay"></a>
+            <iframe
+              src={embedSrc}
+              width="100%"
+              height="220"
+              loading="lazy"
+              title={`Mappa di ${entry.data.title}`}
+              style="border:0;border-radius:10px;"
+            ></iframe>
+          </div>
+        )}
+      </aside>
+    </div>
   </article>
 </Base>
+
+<style>
+  .place-detail {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 3rem 1.25rem 5rem;
+  }
+  @media (min-width: 1000px) {
+    .place-detail { padding: 4rem 2rem 7rem; }
+  }
+
+  .place-kind {
+    font-family: theme('fontFamily.mono');
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    color: theme('colors.acquadeep');
+    margin: 0 0 .4rem;
+  }
+  .place-title {
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    line-height: 1.1;
+    margin: 0 0 2rem;
+  }
+
+  .place-body {
+    display: grid;
+    gap: 2.5rem;
+  }
+  @media (min-width: 700px) {
+    .place-body { grid-template-columns: 1fr 280px; align-items: start; }
+  }
+
+  /* ── Info aside ── */
+  .place-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .info-block {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+  }
+  .info-label {
+    font-family: theme('fontFamily.mono');
+    font-size: .6rem;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: theme('colors.ink-soft');
+    opacity: .7;
+  }
+  .info-address {
+    font-size: .92rem;
+    color: theme('colors.acquadeep');
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    line-height: 1.4;
+  }
+  .info-address:hover { text-decoration: underline; }
+  .map-icon { flex-shrink: 0; opacity: .7; }
+
+  .map-links {
+    display: flex;
+    gap: .4rem;
+    font-size: .72rem;
+    margin-top: .2rem;
+    color: theme('colors.ink-soft');
+  }
+  .map-links a {
+    color: theme('colors.acquadeep');
+    text-decoration: none;
+  }
+  .map-links a:hover { text-decoration: underline; }
+
+  .info-value {
+    font-size: .92rem;
+    color: theme('colors.acquadeep');
+    text-decoration: none;
+    word-break: break-all;
+  }
+  .info-value:hover { text-decoration: underline; }
+
+  /* ── Map embed ── */
+  .map-embed {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid theme('colors.rule');
+  }
+  .map-tap-overlay {
+    display: none;
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+  }
+  @media (pointer: coarse) {
+    /* On touch devices overlay captures the tap and opens Maps app */
+    .map-tap-overlay { display: block; }
+  }
+</style>

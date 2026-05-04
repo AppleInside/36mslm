@@ -1,7 +1,6 @@
 ---
 import Base from '../../../../../layouts/Base.astro';
 import PageHeader from '../../../../../components/PageHeader.astro';
-import PageBody from '../../../../../components/PageBody.astro';
 import PlaceCard from '../../../../../components/PlaceCard.astro';
 import { getCollection } from 'astro:content';
 import { byLang, sortByDateDesc } from '../../../../../lib/content';
@@ -15,6 +14,47 @@ const lang = Astro.params.lang as Lang;
 const all = await getCollection('places');
 const places = sortByDateDesc(byLang(all, lang));
 const title = lang === 'it' ? 'Dove mangiare e dormire' : 'Where to eat & stay';
+
+type Kind = 'ristorante' | 'agriturismo' | 'b&b' | 'azienda' | 'altro';
+const kindLabels: Record<Kind, [string, string]> = {
+  ristorante:  [lang === 'it' ? 'Ristoranti' : 'Restaurants', '🍽'],
+  agriturismo: ['Agriturismo', '🌿'],
+  'b&b':       ['B&B', '🛏'],
+  azienda:     [lang === 'it' ? 'Aziende' : 'Shops', '🏪'],
+  altro:       [lang === 'it' ? 'Altro' : 'Other', '📍'],
+};
+
+const counts = places.reduce<Record<string, number>>((acc, p) => {
+  const k = p.data.kind as string;
+  acc[k] = (acc[k] ?? 0) + 1;
+  return acc;
+}, {});
+
+const activeKinds = (Object.keys(kindLabels) as Kind[]).filter(k => counts[k] > 0);
+
+// Render MDX body of each place for the modal
+const renderedPlaces = await Promise.all(
+  places.map(async e => {
+    const { Content } = await e.render();
+    return { slug: e.slug.replace(/^(it|en)\//, ''), Content };
+  })
+);
+
+// JSON data for the modal (server → client)
+const placesJson = Object.fromEntries(
+  places.map(e => {
+    const slug = e.slug.replace(/^(it|en)\//, '');
+    return [slug, {
+      title:   e.data.title,
+      kind:    e.data.kind,
+      address: e.data.address,
+      coords:  e.data.coords ?? null,
+      phone:   e.data.phone   ?? null,
+      website: e.data.website ?? null,
+      tags:    e.data.tags    ?? [],
+    }];
+  })
+);
 ---
 <Base title={title}>
   <PageHeader
@@ -23,9 +63,375 @@ const title = lang === 'it' ? 'Dove mangiare e dormire' : 'Where to eat & stay';
   >
     {lang === 'it' ? <>Dove <em>mangiare</em> e dormire</> : <>Where to <em>eat</em> &amp; stay</>}
   </PageHeader>
-  <PageBody>
-    <div class="grid gap-4 md:grid-cols-2">
-      {places.map((e) => <PlaceCard entry={e} />)}
-    </div>
-  </PageBody>
+
+  <div class="filters-bar">
+    <button class="fil active" data-filter="all">
+      {lang === 'it' ? 'Tutti' : 'All'} ({places.length})
+    </button>
+    {activeKinds.map(k => (
+      <button class="fil" data-filter={k}>
+        {kindLabels[k][0]} ({counts[k]})
+      </button>
+    ))}
+  </div>
+
+  <div class="places-grid">
+    {places.map(e => {
+      const slug = e.slug.replace(/^(it|en)\//, '');
+      return (
+        <div class="place-wrap" data-kind={e.data.kind} data-slug={slug}>
+          <PlaceCard entry={e} />
+        </div>
+      );
+    })}
+  </div>
 </Base>
+
+<!-- Hidden MDX bodies for modal (not rendered to the page) -->
+<div style="display:none" aria-hidden="true">
+  {renderedPlaces.map(({ slug, Content }) => (
+    <div data-place-body={slug}><Content /></div>
+  ))}
+</div>
+
+<!-- Place modal (outside Base to avoid stacking context issues) -->
+<div class="pm-overlay" id="placeModal" aria-modal="true" role="dialog" aria-label={lang === 'it' ? 'Luogo' : 'Place'}>
+  <div class="pm-box">
+    <div class="pm-band" id="pmBand">
+      <span class="pm-kind-label" id="pmKindLabel"></span>
+      <button class="pm-close" id="pmClose" aria-label="Chiudi">×</button>
+    </div>
+    <div class="pm-body" id="pmBody"></div>
+  </div>
+</div>
+
+<style>
+  /* ── Filters ── */
+  .filters-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    padding: .75rem 1.25rem .5rem;
+  }
+  .fil {
+    padding: .35rem 1rem;
+    border-radius: 999px;
+    border: 1px solid theme('colors.acquadeep');
+    background: transparent;
+    color: theme('colors.acquadeep');
+    font-family: theme('fontFamily.mono');
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    cursor: pointer;
+    transition: background .2s ease, color .2s ease;
+  }
+  .fil:hover { background: rgba(74,102,112,0.08); }
+  .fil.active { background: theme('colors.acquadeep'); color: #fff; }
+
+  /* ── Grid ── */
+  .places-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1rem 1.25rem 5rem;
+  }
+  @media (min-width: 600px) {
+    .places-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 1050px) {
+    .filters-bar  { padding: .75rem 4rem .5rem; }
+    .places-grid  { padding: 1rem 4rem 6rem; }
+  }
+
+  .place-wrap { display: contents; }
+  .place-wrap[hidden] { display: none; }
+
+  /* ── Place modal ── */
+  .pm-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(15,22,28,0.72);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+    opacity: 0; pointer-events: none;
+    transition: opacity .3s ease;
+  }
+  .pm-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .pm-box {
+    position: relative;
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 580px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.35);
+    transform: translateY(16px) scale(.98);
+    transition: transform .35s cubic-bezier(.2,.7,.2,1);
+  }
+  .pm-overlay.open .pm-box { transform: translateY(0) scale(1); }
+
+  .pm-band {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .65rem 1.1rem .65rem 1.25rem;
+    flex-shrink: 0;
+  }
+  .pm-kind-label {
+    font-family: theme('fontFamily.mono');
+    font-size: .6rem;
+    text-transform: uppercase;
+    letter-spacing: .26em;
+    color: rgba(255,255,255,.9);
+    font-weight: 600;
+  }
+  .pm-close {
+    width: 32px; height: 32px;
+    background: rgba(255,255,255,0.18); border: none; border-radius: 50%;
+    font-size: 1.2rem; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    transition: background .2s ease;
+    flex-shrink: 0;
+  }
+  .pm-close:hover { background: rgba(255,255,255,0.30); }
+
+  .pm-body {
+    overflow-y: auto;
+    padding: 1.5rem 1.75rem 2rem;
+    flex: 1;
+  }
+
+  /* ── Modal content (global — filled by JS) ── */
+  :global(.pm-title) {
+    font-family: theme('fontFamily.hand');
+    font-size: clamp(1.7rem, 5vw, 2.2rem);
+    font-weight: 700;
+    line-height: 1.1;
+    color: theme('colors.ink');
+    margin: 0 0 .6rem;
+  }
+  :global(.pm-address) {
+    font-family: theme('fontFamily.mono');
+    font-size: .78rem;
+    color: theme('colors.acquadeep');
+    text-decoration: none;
+    display: block;
+    margin-bottom: .3rem;
+  }
+  :global(.pm-address:hover) { text-decoration: underline; }
+  :global(.pm-contacts) {
+    font-family: theme('fontFamily.mono');
+    font-size: .75rem;
+    color: theme('colors.ink-soft');
+    margin: 0 0 1.25rem;
+    display: flex; flex-wrap: wrap; gap: .4rem .75rem;
+    align-items: center;
+  }
+  :global(.pm-contacts a) { color: theme('colors.ink-soft'); text-decoration: none; }
+  :global(.pm-contacts a:hover) { color: theme('colors.ink'); text-decoration: underline; }
+  :global(.pm-sep) { color: theme('colors.rule'); }
+  :global(.pm-desc) {
+    font-size: .93rem;
+    line-height: 1.65;
+    color: theme('colors.ink-soft');
+    border-top: 1px dashed theme('colors.rule');
+    padding-top: 1.1rem;
+    margin-top: .2rem;
+  }
+  :global(.pm-desc p) { margin: 0 0 .75rem; }
+  :global(.pm-desc p:last-child) { margin-bottom: 0; }
+  :global(.pm-tags) {
+    margin-top: 1rem;
+    display: flex; flex-wrap: wrap; gap: .35rem;
+  }
+  :global(.pm-tag) {
+    font-family: theme('fontFamily.mono');
+    font-size: .6rem;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: theme('colors.acquadeep');
+    border: 1px solid rgba(74,102,112,.3);
+    border-radius: 999px;
+    padding: .2rem .65rem;
+  }
+  :global(.pm-map-links) {
+    margin-top: 1.25rem;
+    padding-top: 1.1rem;
+    border-top: 1px dashed theme('colors.rule');
+    display: flex; gap: .6rem; flex-wrap: wrap;
+  }
+  :global(.pm-map-btn) {
+    display: inline-flex; align-items: center; gap: .4rem;
+    font-family: theme('fontFamily.mono');
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    padding: .45rem 1rem;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: opacity .2s ease;
+  }
+  :global(.pm-map-btn img) {
+    width: 16px; height: 16px;
+    object-fit: contain;
+    flex-shrink: 0;
+    border-radius: 3px;
+  }
+  :global(.pm-map-btn:hover) { opacity: .78; }
+  :global(.pm-map-btn--apple) {
+    background: theme('colors.paper');
+    border: 1px solid theme('colors.rule');
+    color: theme('colors.ink');
+  }
+  :global(.pm-map-btn--google) {
+    background: theme('colors.paper');
+    border: 1px solid theme('colors.rule');
+    color: theme('colors.ink');
+  }
+</style>
+
+<script define:vars={{ placesJson }}>
+  const data = placesJson;
+
+  const kindLabels = {
+    ristorante:  'Ristorante',
+    agriturismo: 'Agriturismo',
+    'b&b':       'B&B',
+    azienda:     'Azienda',
+    altro:       'Altro',
+  };
+  const kindColors = {
+    ristorante:  '#9b3520',
+    agriturismo: '#3d6b3f',
+    'b&b':       '#2a4f7c',
+    azienda:     '#6b4c20',
+    altro:       '#4a5568',
+  };
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  const overlay  = document.getElementById('placeModal');
+  const band     = document.getElementById('pmBand');
+  const kindLbl  = document.getElementById('pmKindLabel');
+  const body     = document.getElementById('pmBody');
+  const closeBtn = document.getElementById('pmClose');
+
+  function openPlace(slug) {
+    const p = data[slug];
+    if (!p) return;
+
+    // Band color
+    const color = kindColors[p.kind] || kindColors.altro;
+    band.style.background = color;
+    kindLbl.textContent   = kindLabels[p.kind] || p.kind;
+
+    // Address link
+    let addressHTML = '';
+    if (p.coords) {
+      const [lat, lng] = p.coords;
+      const q = encodeURIComponent(p.address);
+      addressHTML = `<a class="pm-address" href="https://maps.apple.com/?ll=${lat},${lng}&q=${q}" target="_blank" rel="noopener">${esc(p.address)}</a>`;
+    } else {
+      addressHTML = `<span class="pm-address" style="color:var(--color-ink-soft,#444)">${esc(p.address)}</span>`;
+    }
+
+    // Contacts row
+    const contactParts = [];
+    if (p.phone) contactParts.push(`<a href="tel:${esc(p.phone)}">${esc(p.phone)}</a>`);
+    if (p.website) {
+      try {
+        const host = new URL(p.website).hostname.replace(/^www\./, '');
+        contactParts.push(`<a href="${esc(p.website)}" target="_blank" rel="noopener">${esc(host)}</a>`);
+      } catch {}
+    }
+    const contactsHTML = contactParts.length
+      ? `<p class="pm-contacts">${contactParts.join('<span class="pm-sep"> · </span>')}</p>`
+      : '';
+
+    // MDX body
+    const bodyEl = document.querySelector(`[data-place-body="${CSS.escape(slug)}"]`);
+    const descHTML = bodyEl
+      ? `<div class="pm-desc">${bodyEl.innerHTML}</div>`
+      : '';
+
+    // Tags
+    const tagsHTML = p.tags && p.tags.length
+      ? `<div class="pm-tags">${p.tags.map(t => `<span class="pm-tag">${esc(t)}</span>`).join('')}</div>`
+      : '';
+
+    // Map buttons
+    let mapHTML = '';
+    if (p.coords) {
+      const [lat, lng] = p.coords;
+      const q = encodeURIComponent(p.address);
+      const appleHref  = `https://maps.apple.com/?ll=${lat},${lng}&q=${q}`;
+      const googleHref = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+      mapHTML = `
+        <div class="pm-map-links">
+          <a class="pm-map-btn pm-map-btn--apple"  href="${appleHref}"  target="_blank" rel="noopener"><img src="/icons/apple-icon-4.png" width="16" height="16" alt="" aria-hidden="true"> Apple Maps</a>
+          <a class="pm-map-btn pm-map-btn--google" href="${googleHref}" target="_blank" rel="noopener"><img src="/icons/google-logo.png"  width="16" height="16" alt="" aria-hidden="true"> Google Maps</a>
+        </div>`;
+    }
+
+    body.innerHTML = `
+      <h2 class="pm-title">${esc(p.title)}</h2>
+      ${addressHTML}
+      ${contactsHTML}
+      ${descHTML}
+      ${tagsHTML}
+      ${mapHTML}
+    `;
+
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    closeBtn.focus();
+  }
+
+  function closeModal() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // Intercept place card clicks
+  document.querySelectorAll('.place-card').forEach(card => {
+    card.addEventListener('click', e => {
+      e.preventDefault();
+      const wrap = card.closest('.place-wrap');
+      const slug = wrap?.dataset.slug;
+      if (slug) openPlace(slug);
+    });
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        const wrap = card.closest('.place-wrap');
+        const slug = wrap?.dataset.slug;
+        if (slug) openPlace(slug);
+      }
+    });
+  });
+
+  // Close
+  closeBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  // Filters
+  document.querySelectorAll('.fil').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.fil').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      document.querySelectorAll('.place-wrap').forEach(wrap => {
+        wrap.hidden = !(filter === 'all' || wrap.dataset.kind === filter);
+      });
+    });
+  });
+</script>

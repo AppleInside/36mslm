@@ -1,0 +1,204 @@
+---
+import Base from '../../../layouts/Base.astro';
+import PageHeader from '../../../components/PageHeader.astro';
+import { localizedPath } from '../../../i18n/utils';
+import type { Lang } from '../../../i18n/ui';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'it' } }, { params: { lang: 'en' } }];
+}
+
+const lang = Astro.params.lang as Lang;
+---
+
+<Base title={lang === 'it' ? 'Scopri il Po' : 'Discover the Po'}>
+  <PageHeader
+    eyebrow={lang === 'it' ? '— Scopri il Po —' : '— Discover the Po —'}
+    bg="/media/storico/Guareschi-sul-Po.jpg"
+  >
+    {lang === 'it' ? <>Scopri il <em>Po</em></> : <>Discover the <em>Po</em></>}
+  </PageHeader>
+
+  <div class="hub">
+
+    <!-- ── Il Territorio ─────────────────────────── -->
+    <div class="hub-card">
+      <a class="hub-img-link" href={localizedPath(lang, 'scopri/territorio')}>
+        <div class="hub-img" style="--img: url('/media/storico/Guareschi-sul-Po.jpg')">
+          <div class="hub-caption">
+            <p class="hub-eyebrow">{lang === 'it' ? '— Natura e paesaggio —' : '— Nature & landscape —'}</p>
+            <h2>{lang === 'it' ? 'Il Territorio' : 'The Territory'}</h2>
+          </div>
+        </div>
+      </a>
+      <ul class="hub-links">
+        <li>
+          <a href={localizedPath(lang, 'scopri/territorio')}>
+            {lang === 'it' ? 'Itinerari del fiume' : 'River itineraries'}
+            <span class="arr">→</span>
+          </a>
+        </li>
+        <li>
+          <a href={localizedPath(lang, 'scopri/fauna')}>
+            {lang === 'it' ? 'Fauna e flora' : 'Fauna & flora'}
+            <span class="arr">→</span>
+          </a>
+        </li>
+        <li>
+          <a href={localizedPath(lang, 'scopri/territorio/dove')}>
+            {lang === 'it' ? 'Dove mangiare o dormire' : 'Where to eat or sleep'}
+            <span class="arr">→</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- ── Memoria ───────────────────────────────── -->
+    <div class="hub-card">
+      <a class="hub-img-link" href={localizedPath(lang, 'scopri/ricettario')}>
+        <div class="hub-img" style="--img: url('/media/legacy/wp-content_uploads_2021_09_1953-Giovannino-Guareschi-Polesine-Due-Torri-1.jpg')">
+          <div class="hub-caption">
+            <p class="hub-eyebrow">{lang === 'it' ? '— Tradizione e cultura —' : '— Tradition & culture —'}</p>
+            <h2>{lang === 'it' ? 'Memoria' : 'Memory'}</h2>
+          </div>
+        </div>
+      </a>
+      <ul class="hub-links">
+        <li>
+          <a href={localizedPath(lang, 'scopri/ricettario')}>
+            {lang === 'it' ? 'Ricettario di casa' : 'Home recipes'}
+            <span class="arr">→</span>
+          </a>
+        </li>
+        <li>
+          <a href={localizedPath(lang, 'scopri/storie')}>
+            {lang === 'it' ? 'Dialetto e modi di dire' : 'Dialect & sayings'}
+            <span class="arr">→</span>
+          </a>
+        </li>
+        <li>
+          <a href={localizedPath(lang, 'scopri/immagini')}>
+            {lang === 'it' ? 'Immagini e ricordi' : 'Images & memories'}
+            <span class="arr">→</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+</Base>
+
+<style>
+  .hub {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    max-width: 1100px;
+    margin: 2rem auto 3rem;
+    padding: 0 1.25rem;
+  }
+
+  @media (min-width: 700px) {
+    .hub {
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 2.5rem;
+    }
+  }
+
+  /* ── Card ─────────────────────────────────────── */
+  .hub-card {
+    border: 1px solid theme('colors.rule');
+    border-radius: .5rem;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  @media (min-width: 700px) {
+    .hub-card { margin-bottom: 0; }
+  }
+
+  /* ── Image area ───────────────────────────────── */
+  .hub-img-link {
+    display: block;
+    text-decoration: none;
+  }
+  .hub-img {
+    position: relative;
+    height: 220px;
+    background-image: var(--img);
+    background-size: cover;
+    background-position: center 30%;
+    display: flex;
+    align-items: flex-end;
+  }
+  .hub-img::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(15,22,28,.15) 0%, rgba(15,22,28,.72) 100%);
+    transition: opacity .2s;
+  }
+  .hub-img-link:hover .hub-img::before {
+    opacity: .85;
+  }
+  @media (min-width: 700px) {
+    .hub-img { height: 260px; }
+  }
+
+  /* ── Caption inside image ─────────────────────── */
+  .hub-caption {
+    position: relative;
+    z-index: 1;
+    padding: 1rem 1.25rem 1.1rem;
+  }
+  .hub-eyebrow {
+    font-family: theme('fontFamily.mono');
+    font-size: .68rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: rgba(232,244,248,.75);
+    margin: 0 0 .3rem;
+  }
+  .hub-caption h2 {
+    margin: 0;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    color: #fff;
+    text-shadow: 0 2px 12px rgba(0,0,0,.4);
+    line-height: 1.1;
+  }
+
+  /* ── Sub-links ────────────────────────────────── */
+  .hub-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: theme('colors.paper');
+  }
+  .hub-links li {
+    border-top: 1px solid theme('colors.rule');
+  }
+  .hub-links a {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .8rem 1.25rem;
+    font-family: theme('fontFamily.serif');
+    font-size: 1rem;
+    color: theme('colors.ink');
+    text-decoration: none;
+    transition: background .15s, color .15s;
+  }
+  .hub-links a:hover {
+    background: theme('colors.paper-2');
+    color: theme('colors.acquadeep');
+  }
+  .arr {
+    font-size: .85rem;
+    color: theme('colors.ink-soft');
+    transition: transform .15s;
+  }
+  .hub-links a:hover .arr {
+    transform: translateX(3px);
+    color: theme('colors.acquadeep');
+  }
+</style>
