@@ -2,7 +2,7 @@
 export const prerender = false;
 
 import Base from '../../../layouts/Base.astro';
-import { formatEventDate, formatTime } from '../../../lib/dates';
+import { formatTime } from '../../../lib/dates';
 import type { Lang } from '../../../i18n/ui';
 import EventSignupForm from '../../../components/EventSignupForm.astro';
 import { getEvent } from '../../../server/db';
@@ -21,97 +21,240 @@ if (event.time_start) {
   timeObj.setUTCHours(parseInt(h), parseInt(m), 0, 0);
 }
 
-const dateStr = formatEventDate(dateObj, lang);
 const timeStr = timeObj ? formatTime(timeObj, lang) : null;
+
+const day  = dateObj.getUTCDate();
+const year = dateObj.getUTCFullYear();
+const monthsIt = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+const monthsEn = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+const monthStr = (lang === 'it' ? monthsIt : monthsEn)[dateObj.getUTCMonth()];
 ---
 
 <Base title={event.title}>
-  {event.cover_url && (
-    <div class="event-cover-wrap">
-      <img src={event.cover_url} alt={event.title} class="event-cover" />
+  <div class="ev-split">
+
+    <!-- ── Left: sticky image ── -->
+    <div class="ev-img-col">
+      {event.cover_url
+        ? <img src={event.cover_url} alt={event.title} class="ev-img" />
+        : <div class="ev-img-empty">
+            <span class="ev-img-num">36</span>
+          </div>
+      }
+      <!-- back link overlaid on image -->
+      <a class="ev-back" href={`/${lang}/eventi`}>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        {lang === 'it' ? 'Tutti gli eventi' : 'All events'}
+      </a>
     </div>
-  )}
-  <article class="event-article">
-    <div class="event-meta">
-      <span class="meta-date">{dateStr}{timeStr && ` · ${timeStr}`}</span>
-      <span class="meta-dot" aria-hidden="true"></span>
-      <span class="meta-place">{event.location}</span>
+
+    <!-- ── Right: scrollable content ── -->
+    <div class="ev-content">
+
+      <!-- Date stamp -->
+      <div class="ev-datestamp">
+        <span class="ds-day">{day}</span>
+        <div class="ds-aside">
+          <span class="ds-month">{monthStr}</span>
+          <span class="ds-year">{year}</span>
+        </div>
+      </div>
+
+      <!-- Location + time -->
+      <div class="ev-where">
+        {event.location && (
+          <span class="ev-loc">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <path d="M6 1a3.5 3.5 0 0 1 3.5 3.5C9.5 7.5 6 11 6 11S2.5 7.5 2.5 4.5A3.5 3.5 0 0 1 6 1z" stroke="currentColor" stroke-width="1.1"/>
+              <circle cx="6" cy="4.5" r="1.1" fill="currentColor"/>
+            </svg>
+            {event.location}
+          </span>
+        )}
+        {timeStr && (
+          <span class="ev-time">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.1"/>
+              <path d="M6 3.5V6l1.75 1.75" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+            </svg>
+            {timeStr}
+          </span>
+        )}
+      </div>
+
+      <!-- Title -->
+      <h1 class="ev-title">{event.title}</h1>
+
+      <!-- Description -->
+      {event.description && (
+        <div class="ev-body">
+          {event.description.split('\n').map(line => line.trim()).filter(Boolean).map(line => (
+            <p>{line}</p>
+          ))}
+        </div>
+      )}
+
+      <!-- Signup -->
+      {event.signup_required && (
+        <div class="ev-signup">
+          <EventSignupForm eventSlug={event.slug} />
+        </div>
+      )}
+
     </div>
-
-    <h1>{event.title}</h1>
-
-    {event.description && (
-      <div class="event-body prose">
-        {event.description.split('\n').map(line => line.trim()).filter(Boolean).map(line => (
-          <p>{line}</p>
-        ))}
-      </div>
-    )}
-
-    {event.signup_required && (
-      <div class="event-signup-wrap">
-        <EventSignupForm eventSlug={event.slug} />
-      </div>
-    )}
-  </article>
+  </div>
 </Base>
 
 <style>
-  .event-cover-wrap {
-    width: 100%;
-    max-height: 420px;
-    overflow: hidden;
+  /* ── Split container ── */
+  .ev-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - 72px);
+    align-items: start;
   }
-  .event-cover {
-    width: 100%;
-    height: 100%;
-    max-height: 420px;
+
+  /* ── Left column ── */
+  .ev-img-col {
+    position: sticky;
+    top: 72px;
+    height: calc(100vh - 72px);
+    overflow: hidden;
+    background: theme('colors.ink');
+  }
+  .ev-img {
+    width: 100%; height: 100%;
     object-fit: cover;
     display: block;
+    filter: saturate(.88);
+  }
+  .ev-img-empty {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(160deg, theme('colors.ink') 0%, theme('colors.acquadeep') 100%);
+  }
+  .ev-img-num {
+    font-family: theme('fontFamily.serif');
+    font-style: italic; font-weight: 300;
+    font-size: 14rem; line-height: 1;
+    color: rgba(244,235,217,.12);
+    letter-spacing: -0.04em;
+    user-select: none;
   }
 
-  .event-article {
-    max-width: 68ch;
-    margin: 0 auto;
-    padding: 4rem 2rem 6rem;
-  }
-
-  .event-meta {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
+  /* back link */
+  .ev-back {
+    position: absolute;
+    top: 1.5rem; left: 1.5rem;
+    display: inline-flex; align-items: center; gap: .4rem;
     font-family: theme('fontFamily.mono');
-    font-size: .75rem;
+    font-size: .65rem;
     text-transform: uppercase;
     letter-spacing: .18em;
-    color: theme('colors.ink-soft');
-    margin-bottom: 1.25rem;
+    color: rgba(244,235,217,.85);
+    text-decoration: none;
+    background: rgba(31,42,42,.45);
+    backdrop-filter: blur(6px);
+    padding: .45rem .8rem;
+    border-radius: 999px;
+    border: 1px solid rgba(244,235,217,.2);
+    transition: background .2s ease, color .2s ease;
   }
-  .meta-dot {
-    width: 4px; height: 4px;
-    border-radius: 50%;
-    background: theme('colors.gold');
+  .ev-back:hover {
+    background: rgba(31,42,42,.7);
+    color: #fff;
   }
-  .meta-place { color: theme('colors.acquadeep'); }
 
-  h1 {
-    font-size: clamp(2.6rem, 5vw, 4.4rem);
+  /* ── Right column ── */
+  .ev-content {
+    padding: 4rem 4.5rem 6rem;
+    max-width: 60ch;
+  }
+
+  /* ── Date stamp ── */
+  .ev-datestamp {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px dashed theme('colors.rule');
+  }
+  .ds-day {
+    font-family: theme('fontFamily.serif');
+    font-style: italic; font-weight: 300;
+    font-size: clamp(5rem, 10vw, 8rem);
+    line-height: .85;
+    color: theme('colors.gold');
+    letter-spacing: -0.02em;
+  }
+  .ds-aside {
+    display: flex; flex-direction: column; gap: .1rem;
+  }
+  .ds-month {
+    font-family: theme('fontFamily.mono');
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .3em;
+    color: theme('colors.ink');
+    font-weight: 500;
+  }
+  .ds-year {
+    font-family: theme('fontFamily.mono');
+    font-size: .65rem;
+    letter-spacing: .2em;
+    color: theme('colors.ink-soft');
+  }
+
+  /* ── Where / time ── */
+  .ev-where {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-bottom: 1.75rem;
+  }
+  .ev-loc, .ev-time {
+    display: inline-flex; align-items: center; gap: .4rem;
+    font-family: theme('fontFamily.mono');
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .16em;
+    color: theme('colors.acquadeep');
+  }
+  .ev-time { color: theme('colors.ink-soft'); }
+
+  /* ── Title ── */
+  .ev-title {
+    font-size: clamp(2.4rem, 4.5vw, 4rem);
     line-height: 1.05;
-    margin: 0 0 2rem;
+    margin: 0 0 2.5rem;
   }
 
-  .event-body {
-    font-size: 1.1rem;
-    line-height: 1.7;
+  /* ── Body ── */
+  .ev-body {
+    font-size: 1.05rem;
+    line-height: 1.75;
     color: theme('colors.ink-soft');
-    border-top: 1px dashed theme('colors.rule');
-    padding-top: 2rem;
   }
-  .event-body p { margin: 0 0 1.25em; }
+  .ev-body p { margin: 0 0 1.25em; }
 
-  .event-signup-wrap {
+  /* ── Signup ── */
+  .ev-signup {
     margin-top: 3rem;
     padding-top: 2.5rem;
     border-top: 1px solid theme('colors.rule');
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .ev-split { grid-template-columns: 1fr; }
+    .ev-img-col {
+      position: relative; top: 0;
+      height: 55vw; min-height: 260px; max-height: 420px;
+    }
+    .ev-content { padding: 2.5rem 1.5rem 4rem; max-width: none; }
+    .ev-back { top: 1rem; left: 1rem; }
   }
 </style>
