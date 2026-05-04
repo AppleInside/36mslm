@@ -5,11 +5,10 @@ if (!url) throw new Error('DATABASE_URL not set');
 
 function toProxyUrl(coverUrl: string | null): string | null {
   if (!coverUrl) return null;
-  const base = import.meta.env.SUPABASE_URL;
-  const bucket = import.meta.env.SUPABASE_BUCKET;
-  const prefix = `${base}/storage/v1/object/public/${bucket}/`;
-  if (!coverUrl.startsWith(prefix)) return coverUrl;
-  return `/api/media/${coverUrl.slice(prefix.length)}`;
+  // Extract the path after /storage/v1/object/[public/]<bucket>/
+  const m = coverUrl.match(/\/storage\/v1\/object\/(?:public\/)?[^/]+\/(.+)$/);
+  if (!m) return coverUrl;
+  return `/api/media/${m[1]}`;
 }
 
 export const sql = postgres(url, {

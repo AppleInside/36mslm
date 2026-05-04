@@ -10,9 +10,18 @@ export const GET: APIRoute = async ({ params }) => {
   const path = params.path;
   if (!path) return new Response('Not found', { status: 404 });
 
+  if (!SUPABASE_URL || !SUPABASE_KEY || !BUCKET) {
+    return new Response('Storage not configured', { status: 500 });
+  }
+
   const res = await fetch(
     `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`,
-    { headers: { Authorization: `Bearer ${SUPABASE_KEY}` } }
+    {
+      headers: {
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        apikey: SUPABASE_KEY,
+      },
+    }
   );
 
   if (!res.ok) return new Response('Not found', { status: 404 });
