@@ -1,19 +1,18 @@
 ---
+export const prerender = false;
+
 import Base from '../../layouts/Base.astro';
 import { getCollection } from 'astro:content';
+import { getEvents } from '../../server/db';
 import { useTranslations, localizedPath } from '../../i18n/utils';
 import type { Lang } from '../../i18n/ui';
 
-export function getStaticPaths() {
-  return [{ params: { lang: 'it' } }, { params: { lang: 'en' } }];
-}
 const lang = Astro.params.lang as Lang;
 const t = useTranslations(lang);
 const now = new Date();
 
-const allEvents = await getCollection('events', (e) => e.slug.startsWith(`${lang}/`) && !e.data.draft && e.data.date >= now);
-allEvents.sort((a, b) => a.data.date.getTime() - b.data.date.getTime());
-const upcoming = allEvents.slice(0, 3);
+const allEvents = await getEvents(lang);
+const upcoming = allEvents.filter(e => new Date(e.date) >= now).slice(0, 3);
 const [hero] = upcoming;
 
 const allNotices = await getCollection('notices', (n) => n.slug.startsWith(`${lang}/`) && !n.data.draft);
@@ -24,13 +23,13 @@ const monthsIt = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set',
 const monthsEn = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
 function stamp(d: Date) {
   const months = lang === 'it' ? monthsIt : monthsEn;
-  return { d: d.getDate(), m: months[d.getMonth()] };
+  return { d: new Date(d).getUTCDate(), m: months[new Date(d).getUTCMonth()] };
 }
 function fmtNoticeDate(d: Date) {
   return d.toLocaleDateString(lang === 'it' ? 'it-IT' : 'en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
 }
 function eventHref(slug: string) {
-  return localizedPath(lang, `eventi/${slug.replace(/^[a-z]{2}\//, '')}`);
+  return localizedPath(lang, `eventi/${slug}`);
 }
 ---
 <Base title={t('nav.events')}>
@@ -54,7 +53,6 @@ function eventHref(slug: string) {
         </div>
       </div>
       <div class="image">
-        {hero.data.cover && <img src={hero.data.cover} alt="" />}
         <div class="quota">36<small>{lang === 'it' ? 'metri sul mare' : 'metres above sea'}</small></div>
       </div>
     </section>
@@ -74,16 +72,15 @@ function eventHref(slug: string) {
 
       <div class="events">
         {upcoming.map((e, i) => {
-          const s = stamp(e.data.date);
+          const s = stamp(e.date);
           return (
             <a class={`event ${i === 0 ? 'big' : ''}`} href={eventHref(e.slug)}>
               <div class="pic">
-                {e.data.cover && <img src={e.data.cover} alt="" loading="lazy" />}
                 <div class="event-stamp"><span class="d">{s.d}</span><span class="m">{s.m}</span></div>
               </div>
-              <h3>{e.data.title}</h3>
-              <p class="where">{e.data.location}</p>
-              {e.data.signupRequired && <span class="signup">→ {lang === 'it' ? 'iscrizione richiesta' : 'signup required'}</span>}
+              <h3>{e.title}</h3>
+              <p class="where">{e.location}</p>
+              {e.signup_required && <span class="signup">→ {lang === 'it' ? 'iscrizione richiesta' : 'signup required'}</span>}
             </a>
           );
         })}

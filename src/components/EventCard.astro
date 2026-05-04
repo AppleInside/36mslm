@@ -1,35 +1,31 @@
 ---
-import { formatEventDate, formatTime } from '../lib/dates';
-import { getLangFromUrl, localizedPath } from '../i18n/utils';
-import type { Lang } from '../i18n/ui';
-const { entry } = Astro.props;
-const lang = getLangFromUrl(Astro.url) as Lang;
-const slug = entry.slug.replace(/^(it|en)\//, '');
-const href = localizedPath(lang, `eventi/${slug}`);
+import { localizedPath } from '../i18n/utils';
+import type { DbEvent } from '../server/db';
 
-const d = entry.data.date;
-const day = d.getDate();
+const { event } = Astro.props as { event: DbEvent };
+const lang = event.lang;
+const href = localizedPath(lang, `eventi/${event.slug}`);
+
+const d = new Date(event.date);
+const day = d.getUTCDate();
 const months = lang === 'it'
   ? ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic']
   : ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
-const mon = months[d.getMonth()];
+const mon = months[d.getUTCMonth()];
 ---
 
 <a href={href} class="ev-card">
   <div class="ev-pic">
-    {entry.data.cover
-      ? <img src={entry.data.cover} alt={entry.data.title} loading="lazy" />
-      : <div class="ev-placeholder" aria-hidden="true"></div>
-    }
+    <div class="ev-placeholder" aria-hidden="true"></div>
     <div class="ev-stamp">
       <span class="ev-d">{day}</span>
       <span class="ev-m">{mon}</span>
     </div>
   </div>
   <div class="ev-body">
-    <p class="ev-where">{entry.data.location}</p>
-    <h3 class="ev-title">{entry.data.title}</h3>
-    {entry.data.signupRequired && (
+    <p class="ev-where">{event.location}</p>
+    <h3 class="ev-title">{event.title}</h3>
+    {event.signup_required && (
       <span class="ev-badge">
         {lang === 'it' ? 'Iscrizione richiesta' : 'Registration required'}
       </span>
@@ -63,13 +59,6 @@ const mon = months[d.getMonth()];
     overflow: hidden;
     background: theme('colors.paper-2');
   }
-  .ev-pic img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    filter: saturate(.88) contrast(1.02);
-    transition: transform .8s cubic-bezier(.2,.7,.2,1);
-  }
-  .ev-card:hover .ev-pic img { transform: scale(1.06); }
 
   .ev-placeholder {
     width: 100%; height: 100%;

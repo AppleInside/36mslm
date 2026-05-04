@@ -1,27 +1,24 @@
-﻿---
+---
+export const prerender = false;
+
 import Base from '../../../layouts/Base.astro';
 import PageHeader from '../../../components/PageHeader.astro';
 import EventCard from '../../../components/EventCard.astro';
-import { getCollection } from 'astro:content';
+import { getEvents } from '../../../server/db';
 import { useTranslations } from '../../../i18n/utils';
-import { byLang, splitFutureFromPast } from '../../../lib/content';
 import type { Lang } from '../../../i18n/ui';
-
-export function getStaticPaths() {
-  return [{ params: { lang: 'it' } }, { params: { lang: 'en' } }];
-}
 
 const lang = Astro.params.lang as Lang;
 const t = useTranslations(lang);
-const all = await getCollection('events');
-const { future, past } = splitFutureFromPast(byLang(all, lang), new Date());
+const now = new Date();
 
-// future ASC (prossimo prima), past DESC (più recente prima)
+const all = await getEvents(lang);
+const future = all.filter(e => new Date(e.date) >= now);
+const past = all.filter(e => new Date(e.date) < now).reverse();
 const events = [
-  ...future.map((e) => ({ entry: e, past: false })),
-  ...past.map((e)   => ({ entry: e, past: true  })),
+  ...future.map(e => ({ event: e, past: false })),
+  ...past.map(e  => ({ event: e, past: true  })),
 ];
-const hasPast = past.length > 0;
 ---
 
 <Base title={t('nav.events')}>
@@ -32,13 +29,14 @@ const hasPast = past.length > 0;
   >
     {lang === 'it' ? <>Tutti gli <em>eventi</em></> : <>All <em>events</em></>}
   </PageHeader>
+
   {events.length === 0 && (
     <p class="empty">{lang === 'it' ? 'Nessun evento in programma. Torna presto.' : 'No events yet. Check back soon.'}</p>
   )}
 
   {events.length > 0 && (
     <section class="events-list">
-      {events.map(({ entry, past: isPast }, i) => (
+      {events.map(({ event, past: isPast }, i) => (
         <>
           {isPast && i > 0 && !events[i - 1].past && (
             <div class="past-divider">
@@ -46,7 +44,7 @@ const hasPast = past.length > 0;
             </div>
           )}
           <div class:list={['ev-wrap', { 'ev-past': isPast }]}>
-            <EventCard entry={entry} />
+            <EventCard event={event} />
           </div>
         </>
       ))}
@@ -62,7 +60,6 @@ const hasPast = past.length > 0;
     margin-top: 1.5rem;
   }
 
-  /* ── Events list ── mobile first: 1 col */
   .events-list {
     display: grid;
     grid-template-columns: 1fr;
@@ -70,7 +67,6 @@ const hasPast = past.length > 0;
     padding: 2rem 1.25rem 5rem;
   }
 
-  /* ── Past dimming */
   .ev-wrap { position: relative; }
   .ev-past {
     opacity: 0.45;
@@ -82,7 +78,6 @@ const hasPast = past.length > 0;
     filter: saturate(0.7);
   }
 
-  /* ── Separatore futuri / passati */
   .past-divider {
     grid-column: 1 / -1;
     display: flex;
@@ -106,12 +101,10 @@ const hasPast = past.length > 0;
     white-space: nowrap;
   }
 
-  /* ── Tablet ≥ 600px: 2 colonne */
   @media (min-width: 600px) {
     .events-list { grid-template-columns: repeat(2, 1fr); gap: 1.75rem; }
   }
 
-  /* ── Desktop ≥ 1000px */
   @media (min-width: 1000px) {
     .events-list { grid-template-columns: repeat(3, 1fr); gap: 2rem; padding: 3rem 4rem 6rem; }
   }

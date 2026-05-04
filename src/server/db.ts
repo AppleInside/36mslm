@@ -20,3 +20,34 @@ export type EventSignupRow = {
   source_lang: 'it' | 'en';
   created_at: Date;
 };
+
+export type DbEvent = {
+  id: number;
+  lang: string;
+  slug: string;
+  title: string;
+  date: Date;
+  time_start: string | null;
+  location: string | null;
+  description: string | null;
+  signup_required: boolean;
+};
+
+export async function getEvents(lang: string): Promise<DbEvent[]> {
+  return sql<DbEvent[]>`
+    SELECT id, lang, slug, title, date, time_start, location, description, signup_required
+    FROM events
+    WHERE lang = ${lang} AND status = 'published'
+    ORDER BY date ASC
+  `;
+}
+
+export async function getEvent(lang: string, slug: string): Promise<DbEvent | null> {
+  const rows = await sql<DbEvent[]>`
+    SELECT id, lang, slug, title, date, time_start, location, description, signup_required
+    FROM events
+    WHERE lang = ${lang} AND slug = ${slug} AND status = 'published'
+    LIMIT 1
+  `;
+  return rows[0] ?? null;
+}
