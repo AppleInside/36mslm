@@ -51,3 +51,30 @@ export async function getEvent(lang: string, slug: string): Promise<DbEvent | nu
   `;
   return rows[0] ?? null;
 }
+
+export type DbItinerary = {
+  id: number;
+  lang: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  distance_km: number | null;
+  duration_min: number | null;
+  body: string | null;
+  category: 'naturalistico' | 'storico' | 'sportivo';
+  difficulty: 'facile' | 'medio' | 'impegnativo';
+  terrain: string | null;
+  duration_label: string | null;
+  coords: [number, number][];
+  bbox: [number, number, number, number] | null;
+};
+
+export async function getItineraries(lang: string): Promise<DbItinerary[]> {
+  return sql<DbItinerary[]>`
+    SELECT id, lang, slug, title, description, distance_km, duration_min, body,
+           category, difficulty, terrain, duration_label, coords, bbox
+    FROM itineraries
+    WHERE lang = ${lang} AND status = 'published'
+    ORDER BY id ASC
+  `;
+}
