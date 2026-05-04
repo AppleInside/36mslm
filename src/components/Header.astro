@@ -202,9 +202,10 @@ const navItems = [
     <span class="indicator" id="indicator" aria-hidden="true"></span>
   </nav>
 
-  <div class="lang">
-    <a href={itPath} class={lang === 'it' ? 'on' : ''}><span class="flag flag-it" aria-hidden="true"></span>IT</a>
-    <a href={enPath} class={lang === 'en' ? 'on' : ''}><span class="flag flag-gb" aria-hidden="true"></span>EN</a>
+  <div class="lang" id="lang-toggle" data-active={lang}>
+    <span class="lang-pill" aria-hidden="true"></span>
+    <a href={itPath} class={lang === 'it' ? 'on' : ''} data-lang="it"><span class="flag flag-it" aria-hidden="true"></span>IT</a>
+    <a href={enPath} class={lang === 'en' ? 'on' : ''} data-lang="en"><span class="flag flag-gb" aria-hidden="true"></span>EN</a>
   </div>
 
   <button class="burger" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="drawer"><span aria-hidden="true"></span></button>
@@ -251,15 +252,40 @@ const navItems = [
   </div>
 </header>
 
-<div class="drawer" id="drawer">
+<div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label={lang === 'it' ? 'Menu di navigazione' : 'Navigation menu'}>
   <button class="close" id="drawerClose" aria-label="Close">×</button>
   <ol>
     {navItems.map((item) => (
-      <li><a href={item.href}>{item.label}</a></li>
+      <li class="drawer-item">
+        <button
+          class="drawer-toggle"
+          aria-expanded="false"
+          aria-controls={`dsub-${item.key}`}
+        >
+          {item.label}
+          <span class="drawer-chevron" aria-hidden="true">›</span>
+        </button>
+        <div class="drawer-sub" id={`dsub-${item.key}`}>
+          <div class="drawer-sub-inner">
+            <a class="drawer-sub-main" href={item.href}>
+              {lang === 'it' ? 'Vai a' : 'Go to'} <em>{item.label}</em> →
+            </a>
+            {item.cols.map((col) => (
+              <div class="drawer-col">
+                <p class="drawer-col-title">{col.title}</p>
+                {col.links.map((l) => (
+                  <a href={l.href} class="drawer-col-link"><span set:html={l.label}></span></a>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </li>
     ))}
   </ol>
   <div class="drawer-foot">
-    <span>🇮🇹 IT · 🇬🇧 EN</span>
+    <a href={itPath} class:list={['drawer-lang', lang === 'it' && 'on']}>🇮🇹 IT</a>
+    <a href={enPath} class:list={['drawer-lang', lang === 'en' && 'on']}>🇬🇧 EN</a>
     <span>info@polesineparmense36.it</span>
   </div>
 </div>
@@ -341,7 +367,7 @@ const navItems = [
     z-index: 60; padding: 5.5rem 1.75rem 2.5rem;
     transform: translateY(-100%);
     transition: transform .45s cubic-bezier(.2,.7,.2,1);
-    overflow: auto;
+    overflow-y: auto;
   }
   .drawer.open { transform: translateY(0); }
   .drawer .close {
@@ -352,24 +378,84 @@ const navItems = [
     display: flex; align-items: center; justify-content: center;
   }
   .drawer ol { list-style: none; padding: 0; margin: 0; }
-  .drawer li { border-bottom: 1px solid theme('colors.rule'); }
-  .drawer li a {
-    display: flex; padding: 1.35rem 0;
-    text-decoration: none; color: theme('colors.ink');
+  .drawer-item { border-bottom: 1px solid theme('colors.rule'); }
+
+  /* Accordion toggle button */
+  .drawer-toggle {
+    width: 100%; display: flex; justify-content: space-between; align-items: center;
+    padding: 1.2rem 0; background: none; border: none; cursor: pointer;
+    color: theme('colors.ink');
     font-family: theme('fontFamily.hand');
     font-size: 2.4rem; font-weight: 700; line-height: 1.1;
+    text-align: left;
     transition: color .2s ease;
   }
-  .drawer li a:hover { color: theme('colors.brand'); }
-  .drawer li a:focus-visible { outline: 2px solid theme('colors.brand'); outline-offset: 3px; border-radius: 3px; }
+  .drawer-toggle:hover { color: theme('colors.brand'); }
+  .drawer-toggle:focus-visible { outline: 2px solid theme('colors.brand'); outline-offset: 3px; border-radius: 3px; }
+  .drawer-toggle[aria-expanded="true"] { color: theme('colors.brand'); }
+  .drawer-chevron {
+    font-size: 1.8rem; line-height: 1;
+    transition: transform .3s cubic-bezier(.2,.7,.2,1);
+    color: theme('colors.brand');
+  }
+  .drawer-toggle[aria-expanded="true"] .drawer-chevron {
+    transform: rotate(90deg);
+  }
+
+  /* Accordion sub-section */
+  .drawer-sub {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows .35s cubic-bezier(.2,.7,.2,1);
+  }
+  .drawer-sub.open { grid-template-rows: 1fr; }
+  .drawer-sub-inner {
+    overflow: hidden;
+    padding-bottom: 0;
+    transition: padding-bottom .35s ease;
+  }
+  .drawer-sub.open .drawer-sub-inner { padding-bottom: 1.25rem; }
+
+  /* Featured link inside sub */
+  .drawer-sub-main {
+    display: block; padding: .6rem 0 .9rem;
+    text-decoration: none;
+    font-family: theme('fontFamily.mono');
+    font-size: .72rem; text-transform: uppercase; letter-spacing: .18em;
+    color: theme('colors.brand'); border-bottom: 1px dashed theme('colors.rule');
+    margin-bottom: .75rem;
+  }
+  .drawer-sub-main em { font-style: italic; font-family: theme('fontFamily.serif'); text-transform: none; font-size: .9rem; }
+  .drawer-sub-main:focus-visible { outline: 2px solid theme('colors.brand'); outline-offset: 2px; border-radius: 2px; }
+
+  /* Column of links */
+  .drawer-col { margin-bottom: .85rem; }
+  .drawer-col-title {
+    font-family: theme('fontFamily.mono');
+    font-size: .65rem; text-transform: uppercase; letter-spacing: .2em;
+    color: theme('colors.ink-soft'); margin: 0 0 .35rem; font-weight: 500;
+  }
+  .drawer-col-link {
+    display: block; padding: .45rem 0;
+    text-decoration: none; color: theme('colors.ink');
+    font-family: theme('fontFamily.serif'); font-size: 1.1rem;
+    border-bottom: 1px solid theme('colors.rule');
+    transition: color .2s ease, padding-left .2s ease;
+  }
+  .drawer-col-link:hover { color: theme('colors.brand'); padding-left: .4rem; }
+  .drawer-col-link:focus-visible { outline: 2px solid theme('colors.brand'); outline-offset: 2px; border-radius: 2px; }
+  .drawer-col-link :global(em) { font-style: italic; color: theme('colors.acquadeep'); }
+
   .drawer .close:focus-visible { outline: 2px solid theme('colors.brand'); outline-offset: 3px; }
   .drawer-foot {
     margin-top: 2.5rem;
-    display: flex; justify-content: space-between; align-items: center;
+    display: flex; justify-content: space-between; align-items: center; gap: 1rem;
     font-family: theme('fontFamily.mono');
     font-size: .72rem; color: theme('colors.ink-soft');
     text-transform: uppercase; letter-spacing: .18em;
   }
+  .drawer-lang { text-decoration: none; color: theme('colors.ink-soft'); }
+  .drawer-lang.on { color: theme('colors.brand'); font-weight: 700; }
 
   /* ── Desktop (≥ 1001px) ────────────────────────────── */
   @media (min-width: 1001px) {
@@ -546,20 +632,54 @@ const navItems = [
     .links a:focus-visible .arrow { opacity: 1; transform: translateX(0); }
 
     .lang {
+      position: relative;
       display: flex; gap: .15rem;
       font-family: theme('fontFamily.mono'); font-size: .82rem;
       background: rgba(255,255,255,0.10);
       border: 1px solid rgba(232,244,248,0.18);
       border-radius: 999px; padding: .2rem;
     }
+    /* sliding pill */
+    .lang-pill {
+      position: absolute;
+      top: .2rem; bottom: .2rem; left: .2rem;
+      width: calc(50% - .275rem);
+      border-radius: 999px;
+      background: theme('colors.brand');
+      transition: transform .4s cubic-bezier(.34, 1.56, .64, 1);
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .lang-pill::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        105deg,
+        transparent 35%,
+        rgba(255,255,255,0.22) 50%,
+        transparent 65%
+      );
+      background-size: 250% 100%;
+      animation: lang-shimmer 3.5s ease-in-out infinite;
+    }
+    @keyframes lang-shimmer {
+      0%   { background-position: 250% center; }
+      45%  { background-position: -250% center; }
+      100% { background-position: -250% center; }
+    }
+    .lang[data-active="en"] .lang-pill {
+      transform: translateX(calc(50% - .125rem));
+    }
     .lang a {
+      position: relative; z-index: 1;
       padding: .35rem .75rem; text-decoration: none;
       color: rgba(232,244,248,0.70);
       border-radius: 999px;
       display: flex; align-items: center; gap: .4rem;
-      transition: all .25s ease;
+      transition: color .25s ease;
     }
-    .lang a.on { background: theme('colors.brand'); color: #E8F4F8; }
+    .lang a.on { color: #E8F4F8; }
     .lang a:not(.on):hover { color: #E8F4F8; }
     .lang a:focus-visible { outline: 2px solid theme('colors.gold'); outline-offset: 2px; }
 
@@ -749,19 +869,58 @@ const navItems = [
       }));
     }
 
+    // Lang pill slide on click
+    const langToggle = document.getElementById('lang-toggle') as HTMLElement | null;
+    langToggle?.querySelectorAll<HTMLAnchorElement>('a[data-lang]').forEach((a) => {
+      a.addEventListener('click', () => {
+        if (langToggle.dataset.active !== a.dataset.lang) {
+          langToggle.dataset.active = a.dataset.lang ?? langToggle.dataset.active;
+        }
+      });
+    });
+
     const burger = document.getElementById('burger') as HTMLButtonElement | null;
     const drawer = document.getElementById('drawer');
     const closeBtn = document.getElementById('drawerClose');
-    burger?.addEventListener('click', () => {
-      const isOpen = drawer?.classList.toggle('open');
-      burger.classList.toggle('open', isOpen);
-      burger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-    });
-    closeBtn?.addEventListener('click', () => {
+
+    function openDrawer() {
+      drawer?.classList.add('open');
+      burger?.classList.add('open');
+      burger?.setAttribute('aria-expanded', 'true');
+      // focus first toggle
+      (drawer?.querySelector('.drawer-toggle') as HTMLElement | null)?.focus();
+    }
+    function closeDrawer() {
       drawer?.classList.remove('open');
       burger?.classList.remove('open');
       burger?.setAttribute('aria-expanded', 'false');
       burger?.focus();
+    }
+
+    burger?.addEventListener('click', () => {
+      drawer?.classList.contains('open') ? closeDrawer() : openDrawer();
+    });
+    closeBtn?.addEventListener('click', closeDrawer);
+
+    // ESC closes drawer too
+    drawer?.addEventListener('keydown', (e) => {
+      if ((e as KeyboardEvent).key === 'Escape') closeDrawer();
+    });
+
+    // Accordion toggles
+    drawer?.querySelectorAll<HTMLButtonElement>('.drawer-toggle').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const isOpen = btn.getAttribute('aria-expanded') === 'true';
+        // close all first
+        drawer.querySelectorAll<HTMLButtonElement>('.drawer-toggle').forEach((b) => {
+          b.setAttribute('aria-expanded', 'false');
+          document.getElementById(b.getAttribute('aria-controls') ?? '')?.classList.remove('open');
+        });
+        if (!isOpen) {
+          btn.setAttribute('aria-expanded', 'true');
+          document.getElementById(btn.getAttribute('aria-controls') ?? '')?.classList.add('open');
+        }
+      });
     });
   })();
 </script>

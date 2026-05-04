@@ -1,43 +1,54 @@
-# Astro Starter Kit: Minimal
+# Polesine Parmense 36 — Sito ufficiale
 
-```sh
-npm create astro@latest -- --template minimal
+Sito dell'associazione Polesine Parmense 36, costruito con Astro.
+
+## Stack
+
+- **Framework:** [Astro](https://astro.build) (modalità ibrida: pagine statiche + API server-side)
+- **Stili:** Tailwind CSS
+- **Database:** PostgreSQL tramite [Neon](https://neon.tech)
+- **Email:** [Resend](https://resend.com)
+
+## Infrastruttura di produzione
+
+| Servizio | Provider | Account |
+|----------|----------|---------|
+| Hosting  | [Vercel](https://vercel.com) | an.mindmash@gmail.com |
+| Database | [Neon](https://neon.tech)   | an.mindmash@gmail.com |
+
+## Variabili d'ambiente
+
+Copiale da `.env.example` e valorizzale:
+
+```
+DATABASE_URL=        # Connection string pooled da Neon
+RESEND_API_KEY=      # Chiave API Resend
+ADMIN_EMAIL=         # Email destinatario notifiche iscrizioni
+SITE_URL=            # URL pubblico del sito
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Sviluppo locale
 
-## 🚀 Project Structure
+**Prerequisiti:** Docker, Node.js >= 22.12
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```bash
+npm install
+npm run db:up    # avvia PostgreSQL in Docker
+npm run dev      # http://localhost:4321
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+Per fermare il database:
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+```bash
+npm run db:down
+```
 
-Any static assets, like images, can be placed in the `public/` directory.
+## Deploy
 
-## 🧞 Commands
+Il deploy avviene automaticamente su Vercel ad ogni push su `main`.
 
-All commands are run from the root of the project, from a terminal:
+Per un deploy manuale:
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+```bash
+npx vercel --prod
+```

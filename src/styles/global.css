@@ -25,6 +25,9 @@
   em { font-style: italic; color: theme('colors.acquadeep'); }
 }
 
+/* Leaflet maps must not escape their container's stacking context */
+.leaflet-container { isolation: isolate; }
+
 @layer components {
   .waterline {
     display: block;
