@@ -2,9 +2,9 @@ export const prerender = false;
 
 import type { APIRoute } from 'astro';
 
-const SUPABASE_URL = import.meta.env.SUPABASE_URL;
-const SUPABASE_KEY = import.meta.env.SUPABASE_SERVICE_KEY;
-const BUCKET      = import.meta.env.SUPABASE_BUCKET;
+const SUPABASE_URL = import.meta.env.SUPABASE_URL ?? process.env.SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.SUPABASE_SERVICE_KEY ?? process.env.SUPABASE_SERVICE_KEY;
+const BUCKET      = import.meta.env.SUPABASE_BUCKET ?? process.env.SUPABASE_BUCKET;
 
 export const GET: APIRoute = async ({ params }) => {
   const path = params.path;
