@@ -53,6 +53,7 @@ function eventHref(slug: string) {
         </div>
       </div>
       <div class="image">
+        {hero.cover_url && <img src={hero.cover_url} alt={hero.title} />}
         <div class="quota">36<small>{lang === 'it' ? 'metri sul mare' : 'metres above sea'}</small></div>
       </div>
     </section>
@@ -76,6 +77,7 @@ function eventHref(slug: string) {
           return (
             <a class={`event ${i === 0 ? 'big' : ''}`} href={eventHref(e.slug)}>
               <div class="pic">
+                {e.cover_url && <img src={e.cover_url} alt={e.title} loading="lazy" />}
                 <div class="event-stamp"><span class="d">{s.d}</span><span class="m">{s.m}</span></div>
               </div>
               <h3>{e.title}</h3>

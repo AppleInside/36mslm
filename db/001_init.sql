@@ -45,6 +45,7 @@ CREATE TABLE events (
   location        TEXT,
   description     TEXT,
   cover_image_id  INT REFERENCES images(id) ON DELETE SET NULL,
+  cover_url       TEXT,
   signup_required BOOLEAN NOT NULL DEFAULT false,
   status          TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','published')),
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),

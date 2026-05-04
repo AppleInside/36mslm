@@ -16,7 +16,10 @@ const mon = months[d.getUTCMonth()];
 
 <a href={href} class="ev-card">
   <div class="ev-pic">
-    <div class="ev-placeholder" aria-hidden="true"></div>
+    {event.cover_url
+      ? <img src={event.cover_url} alt={event.title} class="ev-cover" loading="lazy" />
+      : <div class="ev-placeholder" aria-hidden="true"></div>
+    }
     <div class="ev-stamp">
       <span class="ev-d">{day}</span>
       <span class="ev-m">{mon}</span>
@@ -64,6 +67,11 @@ const mon = months[d.getUTCMonth()];
     width: 100%; height: 100%;
     background: linear-gradient(135deg, theme('colors.paper-2'), theme('colors.acqua') 80%);
     opacity: .5;
+  }
+  .ev-cover {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
   }
 
   .ev-stamp {

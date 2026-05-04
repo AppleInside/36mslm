@@ -31,11 +31,12 @@ export type DbEvent = {
   location: string | null;
   description: string | null;
   signup_required: boolean;
+  cover_url: string | null;
 };
 
 export async function getEvents(lang: string): Promise<DbEvent[]> {
   return sql<DbEvent[]>`
-    SELECT id, lang, slug, title, date, time_start, location, description, signup_required
+    SELECT id, lang, slug, title, date, time_start, location, description, signup_required, cover_url
     FROM events
     WHERE lang = ${lang} AND status = 'published'
     ORDER BY date ASC
@@ -44,7 +45,7 @@ export async function getEvents(lang: string): Promise<DbEvent[]> {
 
 export async function getEvent(lang: string, slug: string): Promise<DbEvent | null> {
   const rows = await sql<DbEvent[]>`
-    SELECT id, lang, slug, title, date, time_start, location, description, signup_required
+    SELECT id, lang, slug, title, date, time_start, location, description, signup_required, cover_url
     FROM events
     WHERE lang = ${lang} AND slug = ${slug} AND status = 'published'
     LIMIT 1
