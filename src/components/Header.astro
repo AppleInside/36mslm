@@ -129,11 +129,11 @@ const navItems = [
     lead: {
       eyebrow: lang === 'it' ? "L'associazione" : 'The association',
       headline: lang === 'it'
-        ? 'Una APS che <em>misura</em> il proprio paese in metri sul mare'
-        : 'An association that <em>measures</em> its town in metres above sea level',
+        ? 'Un\'associazione <em>di associazioni</em> che vive a 36 metri sul mare'
+        : 'An <em>association of associations</em> living 36 metres above sea level',
       blurb: lang === 'it'
-        ? 'Statuto, persone, trasparenza, press kit: tutto quello che ci riguarda.'
-        : 'Bylaws, people, transparency, press kit: everything about us.',
+        ? 'Sette realtà storiche di Polesine Parmense unite per valorizzare il patrimonio umano e naturale del territorio.'
+        : 'Seven historic local organisations united to promote the human and natural heritage of Polesine Parmense.',
       img: '/media/legacy/wp-content_uploads_2021_09_Giovanni-Guareschi-al-bar-in-piazza.jpg',
       href: localizedPath(lang, 'chi-siamo'),
     },
@@ -143,7 +143,6 @@ const navItems = [
         links: [
           { label: lang === 'it' ? "L'<em>associazione</em>" : 'The <em>association</em>', href: localizedPath(lang, 'chi-siamo/storia') },
           { label: lang === 'it' ? 'Lo <em>statuto</em>' : 'The <em>bylaws</em>', href: localizedPath(lang, 'chi-siamo/statuto') },
-          { label: lang === 'it' ? '<em>Trasparenza</em>' : '<em>Transparency</em>', href: localizedPath(lang, 'chi-siamo/trasparenza') },
         ],
       },
       {
@@ -208,7 +207,11 @@ const navItems = [
     <a href={enPath} class={lang === 'en' ? 'on' : ''} data-lang="en"><span class="flag flag-gb" aria-hidden="true"></span>EN</a>
   </div>
 
-  <button class="burger" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="drawer"><span aria-hidden="true"></span></button>
+  <button class="burger" id="burger" aria-label="Menu" aria-expanded="false" aria-controls="drawer" aria-hidden="false">
+    <span class="b1" aria-hidden="true"></span>
+    <span class="b2" aria-hidden="true"></span>
+    <span class="b3" aria-hidden="true"></span>
+  </button>
 
   <div class="megapanel" id="megapanel" role="region" aria-label={lang === 'it' ? 'Sottomenu' : 'Submenu'}>
     {navItems.map((item) => (
@@ -329,28 +332,35 @@ const navItems = [
   .lang      { display: none; }
   .megapanel { display: none; }
   .burger {
-    display: inline-flex;
-    width: 44px; height: 44px;
-    align-items: center; justify-content: center;
-    background: transparent; border: 1px solid theme('colors.rule');
-    border-radius: 999px; cursor: pointer; flex-shrink: 0;
+    display: inline-flex; flex-direction: column;
+    align-items: flex-end; justify-content: center; gap: 5px;
+    width: 44px; height: 44px; padding: 0 11px;
+    background: transparent; border: none;
+    cursor: pointer; flex-shrink: 0;
+    transition: gap .25s ease;
   }
-  .burger span {
-    display: block; width: 18px; height: 1.5px;
-    background: #E8F4F8; position: relative;
-    transition: transform .3s ease;
+  .burger .b1, .burger .b2, .burger .b3 {
+    display: block; height: 1.5px;
+    background: rgba(232,244,248,.75);
+    border-radius: 2px;
+    transform-origin: right center;
+    transition: width .25s ease, transform .3s cubic-bezier(.2,.7,.2,1), opacity .2s ease, background .2s ease;
   }
-  .burger span::before, .burger span::after {
-    content: ""; position: absolute; left: 0; width: 18px; height: 1.5px;
-    background: #E8F4F8;
-    transition: transform .3s ease;
+  .burger .b1 { width: 22px; }
+  .burger .b2 { width: 14px; }
+  .burger .b3 { width: 18px; }
+  .burger:hover .b1, .burger:hover .b2, .burger:hover .b3 {
+    background: theme('colors.gold');
   }
-  .burger span::before { top: -6px; }
-  .burger span::after  { top:  6px; }
-  .burger.open span { background: transparent; }
-  .burger.open span::before { transform: translateY(6px) rotate(45deg); }
-  .burger.open span::after  { transform: translateY(-6px) rotate(-45deg); }
-  .burger:focus-visible { outline: 2px solid theme('colors.gold'); outline-offset: 3px; }
+  .burger:hover .b1 { width: 22px; }
+  .burger:hover .b2 { width: 22px; }
+  .burger:hover .b3 { width: 22px; }
+  /* Open → × */
+  .burger.open { gap: 0; }
+  .burger.open .b1 { width: 20px; transform: translateY(1px) rotate(-45deg); background: rgba(232,244,248,.9); }
+  .burger.open .b2 { opacity: 0; width: 0; }
+  .burger.open .b3 { width: 20px; transform: translateY(-1px) rotate(45deg); background: rgba(232,244,248,.9); }
+  .burger:focus-visible { outline: 2px solid theme('colors.gold'); outline-offset: 3px; border-radius: 4px; }
 
   /* Flags */
   .flag {
