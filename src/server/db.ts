@@ -3,6 +3,15 @@ import postgres from 'postgres';
 const url = import.meta.env.DATABASE_URL;
 if (!url) throw new Error('DATABASE_URL not set');
 
+function toProxyUrl(coverUrl: string | null): string | null {
+  if (!coverUrl) return null;
+  const base = import.meta.env.SUPABASE_URL;
+  const bucket = import.meta.env.SUPABASE_BUCKET;
+  const prefix = `${base}/storage/v1/object/public/${bucket}/`;
+  if (!coverUrl.startsWith(prefix)) return coverUrl;
+  return `/api/media/${coverUrl.slice(prefix.length)}`;
+}
+
 export const sql = postgres(url, {
   max: 1,
   idle_timeout: 20,
@@ -35,12 +44,13 @@ export type DbEvent = {
 };
 
 export async function getEvents(lang: string): Promise<DbEvent[]> {
-  return sql<DbEvent[]>`
+  const rows = await sql<DbEvent[]>`
     SELECT id, lang, slug, title, date, time_start, location, description, signup_required, cover_url
     FROM events
     WHERE lang = ${lang} AND status = 'published'
     ORDER BY date ASC
   `;
+  return rows.map(r => ({ ...r, cover_url: toProxyUrl(r.cover_url) }));
 }
 
 export async function getEvent(lang: string, slug: string): Promise<DbEvent | null> {
@@ -50,7 +60,8 @@ export async function getEvent(lang: string, slug: string): Promise<DbEvent | nu
     WHERE lang = ${lang} AND slug = ${slug} AND status = 'published'
     LIMIT 1
   `;
-  return rows[0] ?? null;
+  const row = rows[0];
+  return row ? { ...row, cover_url: toProxyUrl(row.cover_url) } : null;
 }
 
 export type DbItinerary = {

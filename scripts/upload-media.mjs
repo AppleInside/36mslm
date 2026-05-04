@@ -100,7 +100,7 @@ async function main() {
 
     for (const full of files) {
       total++;
-      const rel = full.replace(localBase, '').replace(/\\/g, '/').replace(/^\//, '');
+      const rel = full.replace(/\\/g, '/').replace(localBase, '').replace(/^\//, '');
 
       if (WP_THUMB.test(rel)) { skipped++; continue; }
 
