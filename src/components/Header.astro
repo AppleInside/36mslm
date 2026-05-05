@@ -45,13 +45,13 @@ const navItems = [
         links: [
           { label: lang === 'it' ? 'Tutti gli <em>eventi</em>' : 'All <em>events</em>', href: localizedPath(lang, 'eventi') },
           { label: lang === 'it' ? 'Bacheca <em>e avvisi</em>' : 'Notice <em>board</em>', href: localizedPath(lang, 'partecipa/bacheca') },
+          { label: lang === 'it' ? 'Segnala <em>un evento</em>' : 'Report <em>an event</em>', href: localizedPath(lang, 'contatti') },
         ],
       },
       {
         title: lang === 'it' ? 'Per chi viene da fuori' : 'If you come from out of town',
         links: [
           { label: lang === 'it' ? 'Come <em>arrivare</em>' : 'How to <em>get here</em>', href: localizedPath(lang, 'contatti') },
-          { label: lang === 'it' ? 'Dove <em>mangiare</em>' : 'Where to <em>eat</em>', href: localizedPath(lang, 'scopri/territorio/dove') },
         ],
       },
     ],
@@ -83,7 +83,7 @@ const navItems = [
       {
         title: lang === 'it' ? 'Memoria' : 'Memory',
         links: [
-          { label: lang === 'it' ? 'Ricettario <em>di casa</em>' : 'Home <em>recipes</em>', href: localizedPath(lang, 'scopri/ricettario') },
+          { label: lang === 'it' ? 'Ricettario <em>della bassa</em>' : 'Recipes <em>of the lowlands</em>', href: localizedPath(lang, 'scopri/ricettario') },
           { label: lang === 'it' ? 'Dialetto <em>e modi di dire</em>' : 'Dialect <em>and sayings</em>', href: localizedPath(lang, 'scopri/storie') },
           { label: lang === 'it' ? 'Immagini <em>e ricordi</em>' : 'Images <em>and memories</em>', href: localizedPath(lang, 'scopri/immagini') },
         ],
@@ -91,41 +91,9 @@ const navItems = [
     ],
   },
   {
-    key: 'partecipa',
-    href: localizedPath(lang, 'partecipa'),
-    label: t('nav.participate'),
-    lead: {
-      eyebrow: lang === 'it' ? 'Modi per esserci' : 'Ways to be there',
-      headline: lang === 'it'
-        ? "Diventa <em>volontario</em> dell'associazione"
-        : 'Become an association <em>volunteer</em>',
-      blurb: lang === 'it'
-        ? "Una mano in più a un evento, un'idea per la bacheca, una segnalazione: tutto conta."
-        : 'A spare hand at an event, an idea for the notice board, a tip: it all counts.',
-      img: '/media/legacy/wp-content_uploads_2021_09_Tortelli-1959-.jpg',
-      href: localizedPath(lang, 'partecipa/volontari'),
-    },
-    cols: [
-      {
-        title: lang === 'it' ? 'Sostieni' : 'Support',
-        links: [
-          { label: lang === 'it' ? '<em>5×1000</em> all\'associazione' : '<em>5×1000</em> to the association', href: localizedPath(lang, 'partecipa/5x1000') },
-          { label: lang === 'it' ? '<em>Volontari</em> per gli eventi' : '<em>Volunteers</em> for events', href: localizedPath(lang, 'partecipa/volontari') },
-        ],
-      },
-      {
-        title: lang === 'it' ? 'Contribuisci' : 'Contribute',
-        links: [
-          { label: lang === 'it' ? 'Bacheca <em>e avvisi</em>' : 'Notice <em>board</em>', href: localizedPath(lang, 'partecipa/bacheca') },
-          { label: lang === 'it' ? 'Segnala <em>un evento</em>' : 'Report <em>an event</em>', href: localizedPath(lang, 'contatti') },
-        ],
-      },
-    ],
-  },
-  {
     key: 'chisiamo',
     href: localizedPath(lang, 'chi-siamo'),
-    label: t('nav.about'),
+    label: lang === 'it' ? "L'associazione" : 'The association',
     lead: {
       eyebrow: lang === 'it' ? "L'associazione" : 'The association',
       headline: lang === 'it'
@@ -139,15 +107,17 @@ const navItems = [
     },
     cols: [
       {
+        title: lang === 'it' ? 'Sostieni' : 'Support',
+        links: [
+          { label: lang === 'it' ? '<em>5×1000</em> all\'associazione' : '<em>5×1000</em> to the association', href: localizedPath(lang, 'partecipa/5x1000') },
+          { label: lang === 'it' ? '<em>Volontari</em> per gli eventi' : '<em>Volunteers</em> for events', href: localizedPath(lang, 'partecipa/volontari') },
+        ],
+      },
+      {
         title: lang === 'it' ? 'Documenti' : 'Documents',
         links: [
           { label: lang === 'it' ? "L'<em>associazione</em>" : 'The <em>association</em>', href: localizedPath(lang, 'chi-siamo/storia') },
           { label: lang === 'it' ? 'Lo <em>statuto</em>' : 'The <em>bylaws</em>', href: localizedPath(lang, 'chi-siamo/statuto') },
-        ],
-      },
-      {
-        title: lang === 'it' ? 'Stampa' : 'Press',
-        links: [
           { label: lang === 'it' ? '<em>Press kit</em>' : '<em>Press kit</em>', href: localizedPath(lang, 'chi-siamo/press-kit') },
         ],
       },

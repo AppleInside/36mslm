@@ -71,21 +71,26 @@ const itinerariesJson = Object.fromEntries(
   <!-- ── Filter tabs ─────────────────────────────── -->
   <nav class="filtri" aria-label={lang === 'it' ? 'Filtra per categoria' : 'Filter by category'}>
     <div class="filtri-inner">
+      <span class="filtri-label" aria-hidden="true">{lang === 'it' ? 'Filtra' : 'Filter'}</span>
       <button class="filtri-btn attivo" data-filter="all">
+        <span class="filtri-dot" style="background:theme('colors.ink-soft')"></span>
         {lang === 'it' ? 'Tutti' : 'All'} <span class="cnt">{counts.all}</span>
       </button>
       {counts.naturalistico > 0 && (
         <button class="filtri-btn" data-filter="naturalistico" data-color="#2d6a4f">
+          <span class="filtri-dot" style="background:#2d6a4f"></span>
           {lang === 'it' ? 'Naturalistici' : 'Nature'} <span class="cnt">{counts.naturalistico}</span>
         </button>
       )}
       {counts.storico > 0 && (
         <button class="filtri-btn" data-filter="storico" data-color="#8b4e14">
+          <span class="filtri-dot" style="background:#8b4e14"></span>
           {lang === 'it' ? 'Storici' : 'Historical'} <span class="cnt">{counts.storico}</span>
         </button>
       )}
       {counts.sportivo > 0 && (
         <button class="filtri-btn" data-filter="sportivo" data-color="#1e4e8a">
+          <span class="filtri-dot" style="background:#1e4e8a"></span>
           {lang === 'it' ? 'Sportivi' : 'Sport'} <span class="cnt">{counts.sportivo}</span>
         </button>
       )}
@@ -517,8 +522,8 @@ const itinerariesJson = Object.fromEntries(
   /* ── Filter nav ───────────────────────────────── */
   .filtri {
     --active-color: #4a6670;
-    border-bottom: 1px solid rgba(74, 86, 104, .1);
-    background: theme('colors.paper');
+    background: theme('colors.sabbia');
+    border-bottom: 1px solid rgba(31,42,42,.1);
     position: sticky;
     top: 0;
     z-index: 20;
@@ -526,41 +531,67 @@ const itinerariesJson = Object.fromEntries(
   .filtri-inner {
     max-width: 1100px;
     margin: 0 auto;
-    padding: 0 2rem;
+    padding: .85rem 2rem;
     display: flex;
-    gap: 0;
+    gap: .55rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filtri-label {
+    font-family: theme('fontFamily.mono');
+    font-size: .62rem;
+    text-transform: uppercase;
+    letter-spacing: .22em;
+    color: theme('colors.ink-soft');
+    opacity: .55;
+    margin-right: .35rem;
   }
   .filtri-btn {
     font-family: theme('fontFamily.mono');
-    font-size: .72rem;
+    font-size: .7rem;
     text-transform: uppercase;
-    letter-spacing: .16em;
+    letter-spacing: .14em;
     color: theme('colors.ink');
-    opacity: .48;
-    background: none;
-    border: none;
-    padding: .9rem 1.15rem;
-    cursor: pointer;
-    border-bottom: 2.5px solid transparent;
-    transition: opacity .18s, border-color .18s, color .18s;
-    display: flex;
-    align-items: center;
-    gap: .45rem;
-    white-space: nowrap;
-  }
-  .filtri-btn:hover { opacity: .75; }
-  .filtri-btn.attivo {
-    opacity: 1;
-    color: var(--active-color);
-    border-bottom-color: var(--active-color);
-  }
-  .cnt {
-    font-size: .62rem;
-    background: rgba(74, 86, 104, .1);
+    background: rgba(255,255,255,.55);
+    border: 1.5px solid rgba(31,42,42,.15);
     border-radius: 999px;
-    padding: .08rem .4rem;
+    padding: .45rem 1rem .45rem .85rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    white-space: nowrap;
+    transition: background .18s, border-color .18s, color .18s, box-shadow .18s;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
   }
-  .filtri-btn.attivo .cnt { background: rgba(0,0,0,.1); }
+  .filtri-btn:hover {
+    background: rgba(255,255,255,.85);
+    border-color: rgba(31,42,42,.28);
+  }
+  .filtri-btn.attivo {
+    background: var(--active-color);
+    border-color: var(--active-color);
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,.18);
+  }
+  .filtri-btn .filtri-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: .45;
+    flex-shrink: 0;
+    transition: opacity .18s;
+  }
+  .filtri-btn.attivo .filtri-dot { opacity: .7; background: rgba(255,255,255,.7); }
+  .cnt {
+    font-size: .6rem;
+    background: rgba(0,0,0,.1);
+    border-radius: 999px;
+    padding: .06rem .42rem;
+    min-width: 1.2rem;
+    text-align: center;
+  }
+  .filtri-btn.attivo .cnt { background: rgba(255,255,255,.22); }
 
   /* ── Layout ───────────────────────────────────── */
   .lista {

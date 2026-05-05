@@ -59,42 +59,18 @@ function eventHref(slug: string) {
     </section>
   )}
 
-  <div class="waterline" aria-hidden="true"></div>
-
-  <!-- Mobile-only quick nav -->
-  <nav class="mob-nav" aria-label={lang === 'it' ? 'Navigazione rapida' : 'Quick navigation'}>
-    <a class="mob-nav-item" href={localizedPath(lang, 'eventi')}>
-      <span class="mob-nav-label">{lang === 'it' ? 'Eventi' : 'Events'}</span>
-      <span class="mob-nav-arrow">→</span>
-    </a>
-    <a class="mob-nav-item" href={localizedPath(lang, 'scopri')}>
-      <span class="mob-nav-label">{lang === 'it' ? 'Scopri il Po' : 'Discover the Po'}</span>
-      <span class="mob-nav-arrow">→</span>
-    </a>
-    <a class="mob-nav-item" href={localizedPath(lang, 'scopri/territorio/dove')}>
-      <span class="mob-nav-label">{lang === 'it' ? 'Dove mangiare' : 'Where to eat'}</span>
-      <span class="mob-nav-arrow">→</span>
-    </a>
-    <a class="mob-nav-item" href={localizedPath(lang, 'scopri/ricettario')}>
-      <span class="mob-nav-label">{lang === 'it' ? 'Ricettario' : 'Recipes'}</span>
-      <span class="mob-nav-arrow">→</span>
-    </a>
-    <a class="mob-nav-item" href={localizedPath(lang, 'partecipa')}>
-      <span class="mob-nav-label">{lang === 'it' ? 'Partecipa' : 'Get involved'}</span>
-      <span class="mob-nav-arrow">→</span>
-    </a>
-    <a class="mob-nav-item" href={localizedPath(lang, 'chi-siamo')}>
-      <span class="mob-nav-label">{lang === 'it' ? 'Chi siamo' : 'About us'}</span>
-      <span class="mob-nav-arrow">→</span>
-    </a>
-  </nav>
+  <div class="wave wave--sand" aria-hidden="true">
+    <svg viewBox="0 0 1440 48" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,24 C240,48 480,0 720,24 C960,48 1200,0 1440,24 L1440,48 L0,48 Z" fill="#F2EDE0"/>
+    </svg>
+  </div>
 
   {upcoming.length > 0 && (
-    <section class="section">
+    <section class="section section-sand">
       <div class="section-head">
         <div>
           <p class="eyebrow">— {lang === 'it' ? 'Cosa succede' : "What's on"} —</p>
-          <h2>{lang === 'it' ? <>Le prossime <em>uscite</em></> : <>Upcoming <em>events</em></>}</h2>
+          <h2>{lang === 'it' ? <>I prossimi <em>eventi</em></> : <>Upcoming <em>events</em></>}</h2>
         </div>
         <a class="all" href={localizedPath(lang, 'eventi')}>{t('common.allEvents')} →</a>
       </div>
@@ -118,8 +94,14 @@ function eventHref(slug: string) {
     </section>
   )}
 
+  <div class="wave wave--acqua" aria-hidden="true">
+    <svg viewBox="0 0 1440 48" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,12 C360,48 720,0 1080,24 C1260,36 1380,12 1440,24 L1440,48 L0,48 Z" fill="#C5D3D7"/>
+    </svg>
+  </div>
+
   {notices.length > 0 && (
-    <section class="section section-soft">
+    <section class="section section-acqua">
       <div class="section-head">
         <div>
           <p class="eyebrow">— {lang === 'it' ? 'In bacheca' : 'Notice board'} —</p>
@@ -142,44 +124,6 @@ function eventHref(slug: string) {
     </section>
   )}
 
-  <section class="threecol">
-    <a class="col" href={localizedPath(lang, 'scopri/territorio')}>
-      <div class="num">i.</div>
-      <h3>{lang === 'it' ? <>Itinerari del <em>fiume</em></> : <>River <em>itineraries</em></>}</h3>
-      <p>{lang === 'it' ? 'Anelli in golena, lance, capanni di caccia, traghetti scomparsi.' : 'Floodplain loops, boats, hunting blinds, lost ferries.'}</p>
-      <span class="arrow-link">{lang === 'it' ? 'cammina con noi →' : 'walk with us →'}</span>
-    </a>
-    <a class="col" href={localizedPath(lang, 'scopri/ricettario')}>
-      <div class="num">ii.</div>
-      <h3>{lang === 'it' ? <>Ricettario di <em>casa</em></> : <>Home <em>recipes</em></>}</h3>
-      <p>{lang === 'it' ? 'Risòt ad süca, tortelli del 1959, dolce di zucca: cucina di paese.' : 'Pumpkin risotto, 1959 tortelli, pumpkin cake: village cooking.'}</p>
-      <span class="arrow-link">{lang === 'it' ? 'apri il quaderno →' : 'open the notebook →'}</span>
-    </a>
-    <a class="col" href={localizedPath(lang, 'scopri/storie')}>
-      <div class="num">iii.</div>
-      <h3>{lang === 'it' ? <>Il dialetto e <em>i modi di dire</em></> : <>The dialect <em>and its sayings</em></>}</h3>
-      <p>{lang === 'it' ? 'Cinquantacinque modi di dire del dialetto di Polesine, nella voce di Giacomo Sartori.' : 'Fifty-five sayings in the Polesine dialect, in the voice of Giacomo Sartori.'}</p>
-      <span class="arrow-link">{lang === 'it' ? 'ascolta →' : 'listen →'}</span>
-    </a>
-  </section>
-
-  <section class="pull">
-    <blockquote>
-      {lang === 'it'
-        ? <>Qui il fiume non è uno sfondo: è il <em>protagonista</em>.<br />Ogni cosa, ogni storia, ogni ricetta, comincia dall'argine.</>
-        : <>Here the river isn't a backdrop: it's the <em>protagonist</em>.<br />Every thing, every story, every recipe begins at the embankment.</>}
-    </blockquote>
-  </section>
-
-  <section class="cta">
-    <h2>{lang === 'it' ? <>Partecipa al <em>diario</em>.</> : <>Join the <em>diary</em>.</>}</h2>
-    <div class="opts">
-      <a class="opt" href={localizedPath(lang, 'partecipa/volontari')}><span class="label">{lang === 'it' ? <><em>Volontari</em> — dai una mano a un evento</> : <><em>Volunteers</em> — lend a hand at an event</>}</span><span class="arrow">→</span></a>
-      <a class="opt" href={localizedPath(lang, 'partecipa/5x1000')}><span class="label">{lang === 'it' ? <><em>5×1000</em> — destinaci la tua firma</> : <><em>5×1000</em> — give us your signature</>}</span><span class="arrow">→</span></a>
-      <a class="opt" href={localizedPath(lang, 'partecipa/bacheca')}><span class="label">{lang === 'it' ? <><em>Bacheca</em> — avvisi e comunicazioni</> : <><em>Notice board</em> — announcements</>}</span><span class="arrow">→</span></a>
-      <a class="opt" href={localizedPath(lang, 'partecipa/segnalazioni')}><span class="label">{lang === 'it' ? <><em>Segnalazioni</em> — proponi un evento o una storia</> : <><em>Tips</em> — suggest an event or a story</>}</span><span class="arrow">→</span></a>
-    </div>
-  </section>
 </Base>
 
 <style>
@@ -308,8 +252,15 @@ function eventHref(slug: string) {
     display: block; margin-top: .5rem; opacity: .85;
   }
 
-  .section { padding: 6rem 4rem; border-bottom: 1px solid theme('colors.rule'); }
-  .section-soft { background: linear-gradient(180deg, transparent, rgba(123,143,111,0.07)); }
+  .section { padding: 6rem 4rem; }
+  .section-sand { background: theme('colors.sabbia'); }
+  .section-acqua { background: theme('colors.acqua'); }
+
+  /* ── Wave dividers ── */
+  .wave { display: block; line-height: 0; margin-bottom: -1px; }
+  .wave svg { display: block; width: 100%; height: 48px; }
+  .wave--sand { background: theme('colors.ink'); }
+  .wave--acqua { background: theme('colors.sabbia'); }
   .section-head {
     display: grid; grid-template-columns: 1fr auto;
     align-items: end; gap: 2rem;
