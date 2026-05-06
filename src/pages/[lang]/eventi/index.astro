@@ -1,111 +1,184 @@
 ---
-export const prerender = false;
-
 import Base from '../../../layouts/Base.astro';
 import PageHeader from '../../../components/PageHeader.astro';
-import EventCard from '../../../components/EventCard.astro';
-import { getEvents } from '../../../server/db';
-import { useTranslations } from '../../../i18n/utils';
+import { localizedPath } from '../../../i18n/utils';
 import type { Lang } from '../../../i18n/ui';
 
-const lang = Astro.params.lang as Lang;
-const t = useTranslations(lang);
-const now = new Date();
+export function getStaticPaths() {
+  return [{ params: { lang: 'it' } }, { params: { lang: 'en' } }];
+}
 
-const all = await getEvents(lang);
-const future = all.filter(e => new Date(e.date) >= now);
-const past = all.filter(e => new Date(e.date) < now).reverse();
-const events = [
-  ...future.map(e => ({ event: e, past: false })),
-  ...past.map(e  => ({ event: e, past: true  })),
-];
+const lang = Astro.params.lang as Lang;
 ---
 
-<Base title={t('nav.events')}>
-
+<Base title={lang === 'it' ? 'Eventi' : 'Events'}>
   <PageHeader
-    eyebrow={`— ${lang === 'it' ? 'Calendario' : 'Calendar'} —`}
+    eyebrow={lang === 'it' ? '— Calendario ed eventi —' : '— Calendar & events —'}
     bg="/media/storico/cercavano-il-fresco-destate-sulla-Via-Alzaia-FILEminimizer.jpg"
   >
-    {lang === 'it' ? <>Tutti gli <em>eventi</em></> : <>All <em>events</em></>}
+    {lang === 'it' ? <>Gli <em>eventi</em></> : <>Our <em>events</em></>}
   </PageHeader>
 
-  {events.length === 0 && (
-    <p class="empty">{lang === 'it' ? 'Nessun evento in programma. Torna presto.' : 'No events yet. Check back soon.'}</p>
-  )}
+  <div class="hub">
 
-  {events.length > 0 && (
-    <section class="events-list">
-      {events.map(({ event, past: isPast }, i) => (
-        <>
-          {isPast && i > 0 && !events[i - 1].past && (
-            <div class="past-divider">
-              <span>{lang === 'it' ? 'Passati' : 'Past events'}</span>
-            </div>
-          )}
-          <div class:list={['ev-wrap', { 'ev-past': isPast }]}>
-            <EventCard event={event} />
+    <!-- ── Calendario ─────────────────────────── -->
+    <div class="hub-card">
+      <a class="hub-img-link" href={localizedPath(lang, 'eventi/calendario')}>
+        <div class="hub-img" style="--img: url('/media/storico/cercavano-il-fresco-destate-sulla-Via-Alzaia-FILEminimizer.jpg')">
+          <div class="hub-caption">
+            <p class="hub-eyebrow">{lang === 'it' ? '— In programma —' : '— Upcoming —'}</p>
+            <h2>{lang === 'it' ? 'Calendario' : 'Calendar'}</h2>
           </div>
-        </>
-      ))}
-    </section>
-  )}
+        </div>
+      </a>
+      <ul class="hub-links">
+        <li>
+          <a href={localizedPath(lang, 'eventi/calendario')}>
+            {lang === 'it' ? 'Tutti gli eventi' : 'All events'}
+            <span class="arr">→</span>
+          </a>
+        </li>
+        <li>
+          <a href={localizedPath(lang, 'partecipa/bacheca')}>
+            {lang === 'it' ? 'Bacheca e avvisi' : 'Notice board'}
+            <span class="arr">→</span>
+          </a>
+        </li>
+        <li>
+          <a href={localizedPath(lang, 'contatti')}>
+            {lang === 'it' ? 'Segnala un evento' : 'Report an event'}
+            <span class="arr">→</span>
+          </a>
+        </li>
+      </ul>
+    </div>
 
+    <!-- ── Per chi viene da fuori ─────────────── -->
+    <div class="hub-card">
+      <a class="hub-img-link" href={localizedPath(lang, 'contatti')}>
+        <div class="hub-img" style="--img: url('/media/storico/Guareschi-sul-Po.jpg')">
+          <div class="hub-caption">
+            <p class="hub-eyebrow">{lang === 'it' ? '— Logistica —' : '— Getting here —'}</p>
+            <h2>{lang === 'it' ? 'Per chi viene da fuori' : 'Visiting from afar'}</h2>
+          </div>
+        </div>
+      </a>
+      <ul class="hub-links">
+        <li>
+          <a href={localizedPath(lang, 'contatti')}>
+            {lang === 'it' ? 'Come arrivare' : 'How to get here'}
+            <span class="arr">→</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+  </div>
 </Base>
 
 <style>
-  .empty {
-    font-style: italic;
-    color: theme('colors.ink-soft');
-    margin-top: 1.5rem;
-  }
-
-  .events-list {
+  .hub {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 1.5rem;
-    padding: 2rem 1.25rem 5rem;
+    gap: 0;
+    max-width: 1100px;
+    margin: 2rem auto 3rem;
+    padding: 0 1.25rem;
   }
 
-  .ev-wrap { position: relative; }
-  .ev-past {
-    opacity: 0.45;
-    filter: saturate(0.4);
-    transition: opacity .25s ease, filter .25s ease;
-  }
-  .ev-past:hover {
-    opacity: 0.75;
-    filter: saturate(0.7);
+  @media (min-width: 700px) {
+    .hub {
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 2.5rem;
+    }
   }
 
-  .past-divider {
-    grid-column: 1 / -1;
+  .hub-card {
+    border: 1px solid theme('colors.rule');
+    border-radius: .5rem;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  @media (min-width: 700px) {
+    .hub-card { margin-bottom: 0; }
+  }
+
+  .hub-img-link {
+    display: block;
+    text-decoration: none;
+  }
+  .hub-img {
+    position: relative;
+    height: 220px;
+    background-image: var(--img);
+    background-size: cover;
+    background-position: center 30%;
     display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin: 1rem 0 .5rem;
-    color: theme('colors.ink-soft');
+    align-items: flex-end;
   }
-  .past-divider::before,
-  .past-divider::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: theme('colors.rule');
+  .hub-img::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(15,22,28,.15) 0%, rgba(15,22,28,.72) 100%);
+    transition: opacity .2s;
   }
-  .past-divider span {
+  .hub-img-link:hover .hub-img::before { opacity: .85; }
+  @media (min-width: 700px) {
+    .hub-img { height: 260px; }
+  }
+
+  .hub-caption {
+    position: relative;
+    z-index: 1;
+    padding: 1rem 1.25rem 1.1rem;
+  }
+  .hub-eyebrow {
     font-family: theme('fontFamily.mono');
-    font-size: .7rem;
+    font-size: .68rem;
+    letter-spacing: .22em;
     text-transform: uppercase;
-    letter-spacing: .2em;
-    white-space: nowrap;
+    color: rgba(232,244,248,.75);
+    margin: 0 0 .3rem;
+  }
+  .hub-caption h2 {
+    margin: 0;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    color: #fff;
+    text-shadow: 0 2px 12px rgba(0,0,0,.4);
+    line-height: 1.1;
   }
 
-  @media (min-width: 600px) {
-    .events-list { grid-template-columns: repeat(2, 1fr); gap: 1.75rem; }
+  .hub-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: theme('colors.paper');
   }
-
-  @media (min-width: 1000px) {
-    .events-list { grid-template-columns: repeat(3, 1fr); gap: 2rem; padding: 3rem 4rem 6rem; }
+  .hub-links li { border-top: 1px solid theme('colors.rule'); }
+  .hub-links a {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .8rem 1.25rem;
+    font-family: theme('fontFamily.serif');
+    font-size: 1rem;
+    color: theme('colors.ink');
+    text-decoration: none;
+    transition: background .15s, color .15s;
+  }
+  .hub-links a:hover {
+    background: theme('colors.paper-2');
+    color: theme('colors.acquadeep');
+  }
+  .arr {
+    font-size: .85rem;
+    color: theme('colors.ink-soft');
+    transition: transform .15s;
+  }
+  .hub-links a:hover .arr {
+    transform: translateX(3px);
+    color: theme('colors.acquadeep');
   }
 </style>

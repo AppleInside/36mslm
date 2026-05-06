@@ -1,4 +1,4 @@
-﻿---
+---
 import Base from '../../layouts/Base.astro';
 import PageHeader from '../../components/PageHeader.astro';
 import PageBody from '../../components/PageBody.astro';
@@ -13,6 +13,7 @@ export function getStaticPaths() {
 const lang = Astro.params.lang as Lang;
 const t = useTranslations(lang);
 ---
+
 <Base title={t('nav.contact')}>
   <PageHeader
     eyebrow={lang === 'it' ? '— Scrivici —' : '— Write to us —'}
@@ -20,24 +21,109 @@ const t = useTranslations(lang);
   >
     {lang === 'it' ? <>Contatti e <em>recapiti</em></> : <>Contacts and <em>info</em></>}
   </PageHeader>
+
   <PageBody narrow>
-    <div class="prose">
-      <p>{lang === 'it'
+    <div class="contact-block">
+      <p class="intro">{lang === 'it'
         ? 'Per qualsiasi domanda — eventi, foto, segnalazioni — scrivici. Rispondiamo nel giro di qualche giorno.'
         : 'Any question — events, photos, reports — drop us a line. We reply within a few days.'}</p>
-      <ul>
-        <li>Email: <a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
-        <li>{lang === 'it' ? 'Sede' : 'Office'}: {SITE.address}</li>
-        <li>{lang === 'it' ? 'Codice fiscale' : 'Tax code'}: {SITE.codiceFiscale}</li>
+
+      <ul class="info-list">
+        <li>
+          <span class="info-label">{lang === 'it' ? 'Email' : 'Email'}</span>
+          <a href={`mailto:${SITE.email}`} class="info-value">{SITE.email}</a>
+        </li>
+        <li>
+          <span class="info-label">{lang === 'it' ? 'Sede' : 'Office'}</span>
+          <span class="info-value">{SITE.address}</span>
+        </li>
+        <li>
+          <span class="info-label">{lang === 'it' ? 'Codice fiscale' : 'Tax code'}</span>
+          <span class="info-value">{SITE.codiceFiscale}</span>
+        </li>
       </ul>
+
+      <div class="social-buttons">
+        <a href="https://www.facebook.com/polesineparmense36" target="_blank" rel="noopener" class="social-btn facebook">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+          </svg>
+          Facebook
+        </a>
+        <a href="https://www.instagram.com/polesineparmense36" target="_blank" rel="noopener" class="social-btn instagram">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+            <circle cx="12" cy="12" r="4"/>
+            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+          </svg>
+          Instagram
+        </a>
+      </div>
     </div>
   </PageBody>
 </Base>
 
 <style>
-  .prose { font-size: 1.05rem; line-height: 1.7; color: theme('colors.ink-soft'); }
-  .prose p { margin: 0 0 1.2em; }
-  .prose ul { padding-left: 1.25rem; }
-  .prose li { margin-bottom: .5em; }
-  .prose a { color: theme('colors.brand'); text-decoration: underline; text-underline-offset: 3px; }
+  .contact-block { display: flex; flex-direction: column; gap: 2rem; }
+
+  .intro {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: theme('colors.ink-soft');
+    margin: 0;
+  }
+
+  .info-list {
+    list-style: none;
+    padding: 0; margin: 0;
+    border: 1px solid theme('colors.rule');
+    border-radius: .5rem;
+    overflow: hidden;
+  }
+  .info-list li {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    padding: .85rem 1.25rem;
+    border-bottom: 1px solid theme('colors.rule');
+  }
+  .info-list li:last-child { border-bottom: none; }
+  .info-label {
+    font-family: theme('fontFamily.mono');
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .16em;
+    color: theme('colors.ink-soft');
+    flex-shrink: 0;
+    min-width: 7rem;
+  }
+  .info-value {
+    font-family: theme('fontFamily.serif');
+    font-size: 1rem;
+    color: theme('colors.ink');
+    text-decoration: none;
+  }
+  a.info-value:hover { color: theme('colors.brand'); text-decoration: underline; text-underline-offset: 3px; }
+
+  .social-buttons {
+    display: flex;
+    gap: .75rem;
+    flex-wrap: wrap;
+  }
+  .social-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    padding: .7rem 1.4rem;
+    border-radius: .4rem;
+    font-family: theme('fontFamily.mono');
+    font-size: .8rem;
+    letter-spacing: .08em;
+    text-decoration: none;
+    font-weight: 600;
+    transition: opacity .18s, transform .18s;
+  }
+  .social-btn:hover { opacity: .85; transform: translateY(-1px); }
+  .facebook  { background: #1877f2; color: #fff; }
+  .instagram { background: #e1306c; color: #fff; }
 </style>

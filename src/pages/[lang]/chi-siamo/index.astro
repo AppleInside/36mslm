@@ -1,7 +1,6 @@
-﻿---
+---
 import Base from '../../../layouts/Base.astro';
 import PageHeader from '../../../components/PageHeader.astro';
-import PageBody from '../../../components/PageBody.astro';
 import { useTranslations, localizedPath } from '../../../i18n/utils';
 import type { Lang } from '../../../i18n/ui';
 
@@ -11,21 +10,8 @@ export function getStaticPaths() {
 
 const lang = Astro.params.lang as Lang;
 const t = useTranslations(lang);
-
-const cards = lang === 'it'
-  ? [
-    { href: 'chi-siamo/storia', title: "L'associazione", body: 'Chi siamo, le associazioni aderenti, la nostra missione.' },
-    { href: 'chi-siamo/statuto', title: 'Statuto', body: 'Atto costitutivo e regolamento.' },
-    { href: 'chi-siamo/trasparenza', title: 'Trasparenza', body: 'Organi sociali, bilanci, obblighi APS.' },
-    { href: 'chi-siamo/press-kit', title: 'Press kit', body: 'Foto e materiali per la stampa.' },
-  ]
-  : [
-    { href: 'chi-siamo/storia', title: 'The association', body: 'Who we are, our member associations, our mission.' },
-    { href: 'chi-siamo/statuto', title: 'Bylaws', body: 'Founding act and regulations.' },
-    { href: 'chi-siamo/trasparenza', title: 'Transparency', body: 'Officers, balance sheets, APS duties.' },
-    { href: 'chi-siamo/press-kit', title: 'Press kit', body: 'Photos and materials for press.' },
-  ];
 ---
+
 <Base title={t('nav.about')}>
   <PageHeader
     eyebrow={lang === 'it' ? "— L'associazione —" : '— About us —'}
@@ -33,40 +19,173 @@ const cards = lang === 'it'
   >
     {lang === 'it' ? <>Chi <em>siamo</em></> : <>About <em>us</em></>}
   </PageHeader>
-  <PageBody>
-    <div class="grid gap-4 md:grid-cols-2">
-      {cards.map((c) => (
-        <a href={localizedPath(lang, c.href)} class="card">
-          <h2>{c.title}</h2>
-          <p>{c.body}</p>
-        </a>
-      ))}
+
+  <div class="hub">
+
+    <!-- ── Sostieni ───────────────────────────── -->
+    <div class="hub-card">
+      <a class="hub-img-link" href={localizedPath(lang, 'partecipa/5x1000')}>
+        <div class="hub-img" style="--img: url('/media/legacy/wp-content_uploads_2021_09_partecipavano-allultima-serata-del-bar-della-Brucata.jpg')">
+          <div class="hub-caption">
+            <p class="hub-eyebrow">{lang === 'it' ? '— Partecipa —' : '— Get involved —'}</p>
+            <h2>{lang === 'it' ? 'Sostieni' : 'Support us'}</h2>
+          </div>
+        </div>
+      </a>
+      <ul class="hub-links">
+        <li>
+          <a href={localizedPath(lang, 'partecipa/5x1000')}>
+            {lang === 'it' ? '5×1000 all\'associazione' : '5×1000 to the association'}
+            <span class="arr">→</span>
+          </a>
+        </li>
+        <li>
+          <a href={localizedPath(lang, 'partecipa/volontari')}>
+            {lang === 'it' ? 'Volontari per gli eventi' : 'Volunteers for events'}
+            <span class="arr">→</span>
+          </a>
+        </li>
+      </ul>
     </div>
-  </PageBody>
+
+    <!-- ── Documenti ──────────────────────────── -->
+    <div class="hub-card">
+      <a class="hub-img-link" href={localizedPath(lang, 'chi-siamo/storia')}>
+        <div class="hub-img" style="--img: url('/media/legacy/wp-content_uploads_2021_09_Giovanni-Guareschi-al-bar-in-piazza.jpg')">
+          <div class="hub-caption">
+            <p class="hub-eyebrow">{lang === 'it' ? '— Documenti —' : '— Documents —'}</p>
+            <h2>{lang === 'it' ? 'L\'associazione' : 'The association'}</h2>
+          </div>
+        </div>
+      </a>
+      <ul class="hub-links">
+        <li>
+          <a href={localizedPath(lang, 'chi-siamo/storia')}>
+            {lang === 'it' ? 'Chi siamo' : 'Who we are'}
+            <span class="arr">→</span>
+          </a>
+        </li>
+        <li>
+          <a href={localizedPath(lang, 'chi-siamo/statuto')}>
+            {lang === 'it' ? 'Statuto' : 'Bylaws'}
+            <span class="arr">→</span>
+          </a>
+        </li>
+        <li>
+          <a href={localizedPath(lang, 'chi-siamo/press-kit')}>
+            {lang === 'it' ? 'Press kit' : 'Press kit'}
+            <span class="arr">→</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+  </div>
 </Base>
 
 <style>
-  .card {
-    display: block;
+  .hub {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    max-width: 1100px;
+    margin: 2rem auto 3rem;
+    padding: 0 1.25rem;
+  }
+
+  @media (min-width: 700px) {
+    .hub {
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 2.5rem;
+    }
+  }
+
+  .hub-card {
     border: 1px solid theme('colors.rule');
-    border-radius: 12px;
-    padding: 1.5rem;
+    border-radius: .5rem;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  @media (min-width: 700px) {
+    .hub-card { margin-bottom: 0; }
+  }
+
+  .hub-img-link {
+    display: block;
     text-decoration: none;
-    color: inherit;
-    background: rgba(255,255,255,0.25);
-    transition: background .2s ease, transform .2s ease;
   }
-  .card:hover {
-    background: rgba(255,255,255,0.45);
-    transform: translateY(-3px);
+  .hub-img {
+    position: relative;
+    height: 220px;
+    background-image: var(--img);
+    background-size: cover;
+    background-position: center 30%;
+    display: flex;
+    align-items: flex-end;
   }
-  .card h2 {
-    font-size: 1.8rem;
-    margin: 0 0 .4rem;
+  .hub-img::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(15,22,28,.15) 0%, rgba(15,22,28,.72) 100%);
+    transition: opacity .2s;
   }
-  .card p {
-    font-size: .9rem;
-    color: theme('colors.ink-soft');
+  .hub-img-link:hover .hub-img::before { opacity: .85; }
+  @media (min-width: 700px) {
+    .hub-img { height: 260px; }
+  }
+
+  .hub-caption {
+    position: relative;
+    z-index: 1;
+    padding: 1rem 1.25rem 1.1rem;
+  }
+  .hub-eyebrow {
+    font-family: theme('fontFamily.mono');
+    font-size: .68rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: rgba(232,244,248,.75);
+    margin: 0 0 .3rem;
+  }
+  .hub-caption h2 {
     margin: 0;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    color: #fff;
+    text-shadow: 0 2px 12px rgba(0,0,0,.4);
+    line-height: 1.1;
+  }
+
+  .hub-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: theme('colors.paper');
+  }
+  .hub-links li { border-top: 1px solid theme('colors.rule'); }
+  .hub-links a {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .8rem 1.25rem;
+    font-family: theme('fontFamily.serif');
+    font-size: 1rem;
+    color: theme('colors.ink');
+    text-decoration: none;
+    transition: background .15s, color .15s;
+  }
+  .hub-links a:hover {
+    background: theme('colors.paper-2');
+    color: theme('colors.acquadeep');
+  }
+  .arr {
+    font-size: .85rem;
+    color: theme('colors.ink-soft');
+    transition: transform .15s;
+  }
+  .hub-links a:hover .arr {
+    transform: translateX(3px);
+    color: theme('colors.acquadeep');
   }
 </style>
