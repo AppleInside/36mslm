@@ -4,7 +4,7 @@ const { entry } = Astro.props;
 const lang = getLangFromUrl(Astro.url);
 const slug = entry.slug.replace(/^(it|en)\//, '');
 ---
-<a href={localizedPath(lang, `scopri/territorio/${slug}`)} class="block rounded-2xl border border-argento bg-sabbia p-5 no-underline transition hover:bg-argento/40">
+<a href={localizedPath(lang, `scopri/itinerari/${slug}`)} class="block rounded-2xl border border-argento bg-sabbia p-5 no-underline transition hover:bg-argento/40">
   <p class="text-xs uppercase tracking-wider text-po">{entry.data.distanceKm} km · {entry.data.durationMin} min · {entry.data.difficulty}</p>
   <h3 class="mt-1 text-2xl">{entry.data.title}</h3>
 </a>

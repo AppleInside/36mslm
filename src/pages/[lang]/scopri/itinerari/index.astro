@@ -55,6 +55,7 @@ const itinerariesJson = Object.fromEntries(
       coords:      it.coords ?? [],
       bbox:        it.bbox ?? null,
       color:       accent[it.category],
+      mode:        it.mode ?? ['piedi'],
     },
   ])
 );
@@ -142,7 +143,29 @@ const itinerariesJson = Object.fromEntries(
             <!-- Card body: text + map -->
             <div class="scheda-body">
               <div class="scheda-testo">
-                <h2 class="scheda-titolo">{it.title}</h2>
+                <div class="titolo-row">
+                  <h2 class="scheda-titolo">{it.title}</h2>
+                  <div class="mode-icons">
+                    {it.mode?.includes('piedi') && (
+                      <span class="mode-icon" title={lang === 'it' ? 'A piedi' : 'On foot'}>
+                        <svg width="13" height="16" viewBox="0 0 13 18" fill="none" aria-hidden="true">
+                          <circle cx="8.5" cy="2" r="1.8" fill="currentColor"/>
+                          <path d="M8.5 3.8 L7 8.5 M7 8.5 L4.5 12.5 M7 8.5 L10 11.5 M10 11.5 L8.5 15.5 M4.5 12.5 L4 16 M8 6 L11 8 M7.5 6.5 L5 8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </span>
+                    )}
+                    {it.mode?.includes('bici') && (
+                      <span class="mode-icon" title={lang === 'it' ? 'In bicicletta' : 'By bike'}>
+                        <svg width="16" height="12" viewBox="0 0 20 14" fill="none" aria-hidden="true">
+                          <circle cx="4.5" cy="10" r="3.5" stroke="currentColor" stroke-width="1.5"/>
+                          <circle cx="15.5" cy="10" r="3.5" stroke="currentColor" stroke-width="1.5"/>
+                          <path d="M4.5 10 L9 3 L13.5 3 M15.5 10 L11 5.5 L9 3 M11 5.5 L13.5 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                          <path d="M13.5 3 L15.5 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                      </span>
+                    )}
+                  </div>
+                </div>
 
                 <div class="pills">
                   <span class="pill">
@@ -659,6 +682,28 @@ const itinerariesJson = Object.fromEntries(
     flex: 1;
     min-height: 200px;
     box-shadow: 0 1px 8px rgba(0, 0, 0, .12);
+  }
+
+  /* ── Title row with mode icons ──────────────────── */
+  .titolo-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .6rem;
+  }
+  .mode-icons {
+    display: flex;
+    gap: .3rem;
+    flex-shrink: 0;
+    padding-top: .35rem;
+  }
+  .mode-icon {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--accent) 10%, #fff);
+    border: 1px solid color-mix(in srgb, var(--accent) 22%, #ddd);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
   }
 
   /* ── Title ───────────────────────────────────── */

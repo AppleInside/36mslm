@@ -78,12 +78,13 @@ export type DbItinerary = {
   duration_label: string | null;
   coords: [number, number][];
   bbox: [number, number, number, number] | null;
+  mode: ('piedi' | 'bici')[];
 };
 
 export async function getItineraries(lang: string): Promise<DbItinerary[]> {
   return sql<DbItinerary[]>`
     SELECT id, lang, slug, title, description, distance_km, duration_min, body,
-           category, difficulty, terrain, duration_label, coords, bbox
+           category, difficulty, terrain, duration_label, coords, bbox, mode
     FROM itineraries
     WHERE lang = ${lang} AND status = 'published'
     ORDER BY id ASC

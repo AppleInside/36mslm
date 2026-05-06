@@ -23,7 +23,7 @@ const lang = Astro.params.lang as Lang;
 
     <!-- ── Il Territorio ─────────────────────────── -->
     <div class="hub-card">
-      <a class="hub-img-link" href={localizedPath(lang, 'scopri/territorio')}>
+      <a class="hub-img-link" href={localizedPath(lang, 'scopri/itinerari')}>
         <div class="hub-img" style="--img: url('/media/storico/Guareschi-sul-Po.jpg')">
           <div class="hub-caption">
             <p class="hub-eyebrow">{lang === 'it' ? '— Natura e paesaggio —' : '— Nature & landscape —'}</p>
@@ -33,7 +33,7 @@ const lang = Astro.params.lang as Lang;
       </a>
       <ul class="hub-links">
         <li>
-          <a href={localizedPath(lang, 'scopri/territorio')}>
+          <a href={localizedPath(lang, 'scopri/itinerari')}>
             {lang === 'it' ? 'Itinerari del fiume' : 'River itineraries'}
             <span class="arr">→</span>
           </a>

@@ -1,17 +1,28 @@
 ---
-export const prerender = false;
-
 import Base from '../../../../layouts/Base.astro';
 import PageHeader from '../../../../components/PageHeader.astro';
 import PageBody from '../../../../components/PageBody.astro';
 import NoticeCard from '../../../../components/NoticeCard.astro';
-import { getNotices } from '../../../../server/db';
+import { getCollection } from 'astro:content';
+import { byLang, sortByDateDesc } from '../../../../lib/content';
 import { formatEventDate } from '../../../../lib/dates';
-import { marked } from 'marked';
 import type { Lang } from '../../../../i18n/ui';
 
+export function getStaticPaths() {
+  return [{ params: { lang: 'it' } }, { params: { lang: 'en' } }];
+}
+
 const lang = Astro.params.lang as Lang;
-const notices = await getNotices(lang);
+const all = await getCollection('notices');
+const notices = sortByDateDesc(byLang(all, lang));
+
+const rendered = await Promise.all(
+  notices.map(async (entry) => {
+    const { Content } = await entry.render();
+    const slug = entry.slug.replace(/^(it|en)\//, '');
+    return { entry, Content, slug };
+  })
+);
 ---
 
 <Base title={lang === 'it' ? 'Bacheca' : 'Notice board'}>
@@ -23,31 +34,31 @@ const notices = await getNotices(lang);
   </PageHeader>
   <PageBody>
     <div class="notice-grid grid gap-4 md:grid-cols-2">
-      {notices.map((notice) => (
-        <div data-notice-open={notice.slug}>
-          <NoticeCard notice={notice} />
+      {rendered.map(({ entry, slug }) => (
+        <div data-notice-open={slug}>
+          <NoticeCard entry={entry} />
         </div>
       ))}
     </div>
   </PageBody>
 
   <!-- Pre-rendered notice content (hidden, consumed by the modal) -->
-  {notices.map((notice) => (
-    <div id={`nc-${notice.slug}`} hidden aria-hidden="true">
+  {rendered.map(({ entry, Content, slug }) => (
+    <div id={`nc-${slug}`} hidden aria-hidden="true">
       <div class="nc-header">
-        <p class="nc-meta">{formatEventDate(new Date(notice.date ?? notice.created_at), lang)}</p>
-        <h2 class="nc-title">{notice.title}</h2>
+        <p class="nc-meta">{formatEventDate(entry.data.date, lang)}</p>
+        <h2 class="nc-title">{entry.data.title}</h2>
       </div>
-      <div class="prose mt-6" set:html={marked.parse(notice.body)} />
-      {notice.cta && (
-        <button class="nc-cta-btn" data-cta-label={notice.cta}>{notice.cta}</button>
-      )}
-      {(notice.attachments as {label: string; url: string}[])?.length > 0 && (
+      <div class="prose mt-6"><Content /></div>
+      {entry.data.attachments.length > 0 && (
         <ul class="nc-attachments">
-          {(notice.attachments as {label: string; url: string}[]).map((a) => (
+          {entry.data.attachments.map(a => (
             <li><a href={a.url} target="_blank" rel="noopener">{a.label}</a></li>
           ))}
         </ul>
+      )}
+      {entry.data.cta && (
+        <button class="nc-cta-btn" data-cta-label={entry.data.cta}>{entry.data.cta}</button>
       )}
     </div>
   ))}
@@ -85,7 +96,7 @@ const notices = await getNotices(lang);
     position: relative; z-index: 1;
     width: 100%; max-width: 680px;
     max-height: 90dvh;
-    background: theme('colors.sabbia');
+    background: theme('colors.paper');
     border-radius: 1rem 1rem 0 0;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -123,10 +134,10 @@ const notices = await getNotices(lang);
   .nmodal-close:focus-visible { outline: 2px solid theme('colors.brand'); outline-offset: 2px; }
 
   .nmodal-body .nc-header {
-    background: theme('colors.acqua');
+    background: theme('colors.paper-2');
     margin: -2rem -1.5rem 2rem;
     padding: 3rem 1.5rem 1.5rem;
-    border-bottom: 2px solid theme('colors.po');
+    border-bottom: 2px solid theme('colors.rule');
     position: relative;
   }
   .nmodal-body .nc-header::after {
@@ -157,14 +168,14 @@ const notices = await getNotices(lang);
   .nmodal-body .nc-attachments {
     margin-top: 1.75rem;
     padding: 1rem 1.25rem;
-    background: theme('colors.argento');
-    border: 1px solid theme('colors.pioppo');
+    background: theme('colors.paper-2');
+    border: 1px solid theme('colors.rule');
     border-radius: .5rem;
     list-style: none;
     display: flex; flex-direction: column; gap: .4rem;
   }
   .nmodal-body .nc-attachments a {
-    color: theme('colors.brand-deep'); font-size: .9rem;
+    color: theme('colors.brand'); font-size: .9rem;
     text-decoration: underline; text-underline-offset: 3px;
   }
 
