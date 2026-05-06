@@ -2,8 +2,7 @@
 export const prerender = false;
 
 import Base from '../../layouts/Base.astro';
-import { getCollection } from 'astro:content';
-import { getEvents } from '../../server/db';
+import { getEvents, getNotices } from '../../server/db';
 import { useTranslations, localizedPath } from '../../i18n/utils';
 import type { Lang } from '../../i18n/ui';
 
@@ -15,9 +14,7 @@ const allEvents = await getEvents(lang);
 const upcoming = allEvents.filter(e => new Date(e.date) >= now).slice(0, 3);
 const [hero] = upcoming;
 
-const allNotices = await getCollection('notices', (n) => n.slug.startsWith(`${lang}/`) && !n.data.draft);
-allNotices.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
-const notices = allNotices.slice(0, 3);
+const notices = (await getNotices(lang)).slice(0, 3);
 
 const monthsIt = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
 const monthsEn = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
@@ -107,15 +104,15 @@ function eventHref(slug: string) {
           <p class="eyebrow">— {lang === 'it' ? 'In bacheca' : 'Notice board'} —</p>
           <h2>{lang === 'it' ? <>Annunci <em>e avvisi</em></> : <>Announcements <em>& notices</em></>}</h2>
         </div>
-        <a class="all" href={localizedPath(lang, 'partecipa/bacheca')}>{lang === 'it' ? 'Tutta la bacheca' : 'All notices'} →</a>
+        <a class="all" href={localizedPath(lang, 'eventi/bacheca')}>{lang === 'it' ? 'Tutta la bacheca' : 'All notices'} →</a>
       </div>
 
       <ol class="notices">
         {notices.map((n) => (
           <li class="notice">
-            <a href={localizedPath(lang, `partecipa/bacheca/${n.slug.replace(/^[a-z]{2}\//, '')}`)}>
-              <time datetime={n.data.date.toISOString()}>{fmtNoticeDate(n.data.date)}</time>
-              <h3>{n.data.title}</h3>
+            <a href={localizedPath(lang, 'eventi/bacheca')}>
+              <time datetime={new Date(n.date ?? n.created_at).toISOString()}>{fmtNoticeDate(new Date(n.date ?? n.created_at))}</time>
+              <h3>{n.title}</h3>
               <span class="arrow">→</span>
             </a>
           </li>

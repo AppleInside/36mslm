@@ -89,3 +89,30 @@ export async function getItineraries(lang: string): Promise<DbItinerary[]> {
     ORDER BY id ASC
   `;
 }
+
+export type DbNotice = {
+  id: number;
+  slug: string;
+  lang: string;
+  title: string;
+  body: string;
+  date: Date | null;
+  priority: boolean;
+  cta: string | null;
+  tags: string[];
+  attachments: { label: string; url: string }[];
+  expires_at: Date | null;
+  created_at: Date;
+};
+
+export async function getNotices(lang: string): Promise<DbNotice[]> {
+  return sql<DbNotice[]>`
+    SELECT id, slug, lang, title, body, date, priority, cta, tags, attachments, expires_at, created_at
+    FROM notices
+    WHERE lang = ${lang}
+      AND status = 'published'
+      AND slug IS NOT NULL
+      AND (expires_at IS NULL OR expires_at > now())
+    ORDER BY priority DESC, date DESC NULLS LAST, created_at DESC
+  `;
+}

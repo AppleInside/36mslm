@@ -43,21 +43,18 @@ const t = useTranslations(lang);
         </li>
       </ul>
 
-      <div class="social-buttons">
-        <a href="https://www.facebook.com/polesineparmense36" target="_blank" rel="noopener" class="social-btn facebook">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
-          </svg>
-          Facebook
-        </a>
-        <a href="https://www.instagram.com/polesineparmense36" target="_blank" rel="noopener" class="social-btn instagram">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-            <circle cx="12" cy="12" r="4"/>
-            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
-          </svg>
-          Instagram
-        </a>
+      <div class="social-section">
+        <p class="social-label">{lang === 'it' ? 'Seguici su' : 'Follow us on'}</p>
+        <div class="social-buttons">
+          <a href="https://www.facebook.com/polesineparmense36" target="_blank" rel="noopener" class="social-btn">
+            <img src="/icons/Facebook_icon.png" alt="Facebook" width="28" height="28" />
+            Facebook
+          </a>
+          <a href="https://www.instagram.com/polesineparmense36" target="_blank" rel="noopener" class="social-btn">
+            <img src="/icons/Instragram_icon.png" alt="Instagram" width="28" height="28" />
+            Instagram
+          </a>
+        </div>
       </div>
     </div>
   </PageBody>
@@ -105,6 +102,15 @@ const t = useTranslations(lang);
   }
   a.info-value:hover { color: theme('colors.brand'); text-decoration: underline; text-underline-offset: 3px; }
 
+  .social-section { display: flex; flex-direction: column; gap: .75rem; }
+  .social-label {
+    font-family: theme('fontFamily.mono');
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    color: theme('colors.ink-soft');
+    margin: 0;
+  }
   .social-buttons {
     display: flex;
     gap: .75rem;
@@ -114,16 +120,17 @@ const t = useTranslations(lang);
     display: inline-flex;
     align-items: center;
     gap: .55rem;
-    padding: .7rem 1.4rem;
+    padding: .65rem 1.25rem;
     border-radius: .4rem;
+    border: 1px solid theme('colors.rule');
+    background: theme('colors.paper');
     font-family: theme('fontFamily.mono');
     font-size: .8rem;
-    letter-spacing: .08em;
+    letter-spacing: .06em;
+    color: theme('colors.ink');
     text-decoration: none;
     font-weight: 600;
-    transition: opacity .18s, transform .18s;
+    transition: background .18s, transform .18s;
   }
-  .social-btn:hover { opacity: .85; transform: translateY(-1px); }
-  .facebook  { background: #1877f2; color: #fff; }
-  .instagram { background: #e1306c; color: #fff; }
+  .social-btn:hover { background: theme('colors.paper-2'); transform: translateY(-1px); }
 </style>

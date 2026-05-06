@@ -1,11 +1,83 @@
 ---
 import { getLangFromUrl, localizedPath } from '../i18n/utils';
 import { formatEventDate } from '../lib/dates';
-const { entry } = Astro.props;
+import type { DbNotice } from '../server/db';
+const { notice }: { notice: DbNotice } = Astro.props;
 const lang = getLangFromUrl(Astro.url);
-const slug = entry.slug.replace(/^(it|en)\//, '');
+const isPriority = notice.priority ?? false;
 ---
-<a href={localizedPath(lang, `partecipa/bacheca/${slug}`)} class="block rounded-2xl border border-argento bg-sabbia p-5 no-underline transition hover:bg-argento/40">
-  <p class="text-xs uppercase tracking-wider text-po">{formatEventDate(entry.data.date, lang)}</p>
-  <h3 class="mt-1 text-2xl">{entry.data.title}</h3>
+
+<a
+  href={localizedPath(lang, `eventi/bacheca`)}
+  class:list={['notice-card rounded-2xl border border-argento bg-sabbia p-5 no-underline transition hover:bg-argento/40', { 'is-priority': isPriority }]}
+>
+  {isPriority && (
+    <div class="excl-wrap" aria-hidden="true">
+      <svg class="excl" width="16" height="50" viewBox="0 0 16 50" fill="none">
+        <path
+          class="excl-body"
+          d="M8 3 C7.1 8, 8.9 16, 8 27 C7.5 31, 8.3 34, 8 37"
+          stroke="currentColor" stroke-width="3.2" stroke-linecap="round"
+        />
+        <ellipse class="excl-dot" cx="8" cy="45" rx="3.4" ry="3.4" fill="currentColor"/>
+      </svg>
+    </div>
+  )}
+  <div class="notice-body">
+    <p class="text-xs uppercase tracking-wider text-po">{formatEventDate(new Date(notice.date ?? notice.created_at), lang)}</p>
+    <h3 class="mt-1 text-2xl">{notice.title}</h3>
+  </div>
 </a>
+
+<style>
+  .notice-card { display: block; }
+
+  .notice-card.is-priority {
+    display: flex;
+    align-items: flex-start;
+    gap: .9rem;
+    border-left: 3px solid #b5451b;
+  }
+
+  /* ── Exclamation wrapper ───────────────────── */
+  .excl-wrap {
+    flex-shrink: 0;
+    padding-top: .15rem;
+    color: #b5451b;
+    transform-origin: 50% 92%;
+    animation: excl-swing 3.2s ease-in-out 1.4s infinite;
+  }
+
+  @keyframes excl-swing {
+    0%, 100% { transform: rotate(0deg); }
+    18%  { transform: rotate(-10deg); }
+    36%  { transform: rotate(8deg); }
+    52%  { transform: rotate(-4deg); }
+    68%  { transform: rotate(3deg); }
+    82%  { transform: rotate(0deg); }
+  }
+
+  /* ── Draw-on: body stroke ──────────────────── */
+  .excl-body {
+    stroke-dasharray: 50;
+    stroke-dashoffset: 50;
+    animation: draw-body .55s ease-out .1s forwards;
+  }
+  @keyframes draw-body {
+    to { stroke-dashoffset: 0; }
+  }
+
+  /* ── Pop-in: dot ───────────────────────────── */
+  .excl-dot {
+    transform-box: fill-box;
+    transform-origin: center;
+    transform: scale(0);
+    opacity: 0;
+    animation: pop-dot .28s cubic-bezier(.34, 1.56, .64, 1) .65s forwards;
+  }
+  @keyframes pop-dot {
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .notice-body { flex: 1; min-width: 0; }
+</style>

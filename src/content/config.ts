@@ -69,6 +69,8 @@ const notices = defineCollection({
   type: 'content',
   schema: z.object({
     ...baseFrontmatter,
+    priority: z.boolean().default(false),
+    cta: z.string().optional(),
     attachments: z.array(z.object({ label: z.string(), url: z.string() })).default([]),
   }),
 });
