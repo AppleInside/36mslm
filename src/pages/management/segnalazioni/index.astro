@@ -25,7 +25,16 @@ try {
     ORDER BY read ASC, created_at DESC
   `;
 } catch {
-  tableExists = false;
+  try {
+    const rows = await sql<Omit<SegnalazioneRow, 'source'>[]>`
+      SELECT id, name, email, subject, body, read, created_at
+      FROM reports
+      ORDER BY read ASC, created_at DESC
+    `;
+    segnalazioni = rows.map(r => ({ ...r, source: null }));
+  } catch {
+    tableExists = false;
+  }
 }
 
 const unread = segnalazioni.filter(s => !s.read).length;

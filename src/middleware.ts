@@ -18,13 +18,17 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
 
   if (!userId) return ctx.redirect('/management', 302);
 
-  const rows = await sql<{ display_name: string }[]>`
-    SELECT display_name FROM users WHERE id = ${userId} LIMIT 1
-  `;
-  if (!rows.length) return ctx.redirect('/management', 302);
-
-  ctx.locals.userId = userId;
-  ctx.locals.userDisplayName = rows[0].display_name;
+  try {
+    const rows = await sql<{ display_name: string }[]>`
+      SELECT display_name FROM users WHERE id = ${userId} LIMIT 1
+    `;
+    if (!rows.length) return ctx.redirect('/management', 302);
+    ctx.locals.userId = userId;
+    ctx.locals.userDisplayName = rows[0].display_name;
+  } catch (err) {
+    console.error('[middleware] db error:', err);
+    return ctx.redirect('/management?err=db', 302);
+  }
 
   return next();
 });
