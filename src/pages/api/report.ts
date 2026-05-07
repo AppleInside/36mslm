@@ -19,7 +19,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   );
 
   const lang = (raw.lang === 'en') ? 'en' : 'it';
-  const back = (typeof raw.back === 'string' && raw.back.startsWith('/'))
+  const back = (typeof raw.back === 'string' && raw.back.startsWith('/') && !raw.back.startsWith('//'))
     ? raw.back
     : `/${lang}/partecipa/segnalazioni`;
 
