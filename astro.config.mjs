@@ -12,4 +12,7 @@ export default defineConfig({
     defaultLocale: 'it',
     locales: ['it', 'en'],
   },
+  security: {
+    checkOrigin: false,
+  },
 });
