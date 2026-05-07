@@ -26,11 +26,13 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   const parsed = schema.safeParse(raw);
   if (!parsed.success) return redirect(`${back}?err=1`, 303);
 
+  const source = (typeof raw.source === 'string' && raw.source.length <= 50) ? raw.source : null;
+
   const d = parsed.data;
   try {
     await sql`
-      INSERT INTO reports (lang, name, email, subject, body)
-      VALUES (${d.lang}, ${d.name}, ${d.email}, ${d.subject}, ${d.body})
+      INSERT INTO reports (lang, name, email, subject, body, source)
+      VALUES (${d.lang}, ${d.name}, ${d.email}, ${d.subject}, ${d.body}, ${source})
     `;
   } catch {
     return redirect(`${back}?err=1`, 303);

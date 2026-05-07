@@ -1,0 +1,449 @@
+---
+export const prerender = false;
+import Management from '../../../layouts/Management.astro';
+import { sql } from '../../../server/db';
+
+const userDisplayName = Astro.locals.userDisplayName;
+
+type SegnalazioneRow = {
+  id: number;
+  name: string;
+  email: string;
+  subject: string;
+  body: string;
+  read: boolean;
+  source: string | null;
+  created_at: Date;
+};
+
+let segnalazioni: SegnalazioneRow[] = [];
+let tableExists = true;
+try {
+  segnalazioni = await sql<SegnalazioneRow[]>`
+    SELECT id, name, email, subject, body, read, source, created_at
+    FROM reports
+    ORDER BY read ASC, created_at DESC
+  `;
+} catch {
+  tableExists = false;
+}
+
+const unread = segnalazioni.filter(s => !s.read).length;
+
+const ok  = Astro.url.searchParams.get('ok');
+const err = Astro.url.searchParams.get('err');
+
+function fmtDate(d: Date) {
+  return new Date(d).toLocaleDateString('it-IT', {
+    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+  });
+}
+---
+
+<Management title="Segnalazioni" userDisplayName={userDisplayName}>
+
+  <div class="page">
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Segnalazioni</h1>
+        <p class="page-count">
+          {unread > 0
+            ? `${unread} non ${unread === 1 ? 'letta' : 'lette'} · ${segnalazioni.length} totali`
+            : `${segnalazioni.length} ${segnalazioni.length === 1 ? 'segnalazione' : 'segnalazioni'}`
+          }
+        </p>
+      </div>
+      {unread > 0 && (
+        <span class="unread-pill">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+            <circle cx="5" cy="5" r="4.5" fill="#D8A14A" opacity="0.25" stroke="#D8A14A" stroke-width="1"/>
+          </svg>
+          {unread} da leggere
+        </span>
+      )}
+    </div>
+
+    {!tableExists && (
+      <div class="flash flash--setup" role="alert">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <circle cx="7" cy="7" r="6.5" stroke="currentColor"/>
+          <line x1="7" y1="4" x2="7" y2="7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          <circle cx="7" cy="9.5" r="0.75" fill="currentColor"/>
+        </svg>
+        Tabella non trovata. Esegui la migration SQL per creare la tabella <code>segnalazioni</code>.
+      </div>
+    )}
+
+    {ok && (
+      <div class="flash flash--ok" role="status">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <circle cx="7" cy="7" r="6.5" stroke="currentColor"/>
+          <path d="M4.5 7L6.5 9L9.5 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Segnalazione eliminata.
+      </div>
+    )}
+    {err && (
+      <div class="flash flash--err" role="alert">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <circle cx="7" cy="7" r="6.5" stroke="currentColor"/>
+          <line x1="7" y1="4" x2="7" y2="7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          <circle cx="7" cy="9.5" r="0.75" fill="currentColor"/>
+        </svg>
+        Si è verificato un errore. Riprova.
+      </div>
+    )}
+
+    {segnalazioni.length === 0 && (
+      <div class="empty">
+        <svg class="empty-icon" width="52" height="52" viewBox="0 0 52 52" fill="none" aria-hidden="true">
+          <path d="M6 6H46V36H30L20 46V36H6V6Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+          <path d="M16 18H36M16 24H28" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.6"/>
+        </svg>
+        <p class="empty-title">Nessuna segnalazione</p>
+        <p class="empty-sub">Le segnalazioni inviate dai visitatori appariranno qui.</p>
+      </div>
+    )}
+
+    {segnalazioni.length > 0 && (
+      <div class="cards">
+        {segnalazioni.map((s, i) => (
+          <article class={`card${s.read ? ' card--read' : ''}`} style={`--i:${i}`} id={`s-${s.id}`}>
+            <div class="card-header">
+              <div class="card-meta">
+                {!s.read && <span class="unread-dot" aria-label="Non letta"></span>}
+                <span class="sender-name">{s.name}</span>
+                {s.source === 'evento' && <span class="source-badge">Proposta evento</span>}
+                <span class="sender-email">{s.email}</span>
+                <span class="card-date">{fmtDate(s.created_at)}</span>
+              </div>
+              <div class="card-actions">
+                {!s.read && (
+                  <form method="POST" action={`/api/management/segnalazioni/${s.id}/mark-read`}>
+                    <button type="submit" class="act-read" title="Segna come letta">
+                      <svg width="17" height="17" viewBox="0 0 17 17" fill="none" aria-hidden="true">
+                        <circle cx="8.5" cy="8.5" r="7.5" stroke="currentColor" stroke-width="1.2"/>
+                        <path d="M5.5 8.5L7.5 10.5L11.5 6.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
+                  </form>
+                )}
+                <form
+                  method="POST"
+                  action={`/api/management/segnalazioni/${s.id}/delete`}
+                  onsubmit="return confirm('Eliminare questa segnalazione?')"
+                >
+                  <button type="submit" class="act-delete" title="Elimina">
+                    <svg width="17" height="17" viewBox="0 0 17 17" fill="none" aria-hidden="true">
+                      <path d="M3 5H14M6 5V3.5C6 3.22 6.22 3 6.5 3H10.5C10.78 3 11 3.22 11 3.5V5M6.5 7.5V12.5M10.5 7.5V12.5M4 5L4.7 13.5C4.73 13.8 4.98 14 5.28 14H11.72C12.02 14 12.27 13.8 12.3 13.5L13 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                </form>
+              </div>
+            </div>
+            <p class="card-subject">{s.subject}</p>
+            <div class="card-body-wrap">
+              <p class="card-body" id={`body-${s.id}`}>{s.body}</p>
+              <button class="expand-btn" data-id={s.id} type="button">Mostra tutto</button>
+            </div>
+          </article>
+        ))}
+      </div>
+    )}
+
+  </div>
+
+</Management>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.expand-btn').forEach(btn => {
+    const id = btn.dataset.id;
+    const body = document.getElementById(`body-${id}`);
+    if (!body) return;
+
+    if (body.scrollHeight <= body.clientHeight + 2) {
+      btn.style.display = 'none';
+      return;
+    }
+
+    btn.addEventListener('click', () => {
+      const expanded = body.classList.toggle('expanded');
+      btn.textContent = expanded ? 'Mostra meno' : 'Mostra tutto';
+    });
+  });
+</script>
+
+<style>
+  .page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    animation: page-in 0.45s cubic-bezier(0.22,1,0.36,1) both;
+  }
+
+  @keyframes page-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Header ── */
+  .page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(232,220,200,0.06);
+  }
+
+  .page-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 2.1rem;
+    font-weight: 300;
+    color: #E8DCC8;
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+
+  .page-count {
+    margin-top: 0.4rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(232,220,200,0.3);
+  }
+
+  .unread-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 20px;
+    background: rgba(216,161,74,0.10);
+    border: 1px solid rgba(216,161,74,0.22);
+    color: #D8A14A;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+
+  /* ── Flash ── */
+  .flash {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    border: 1px solid;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+  }
+  .flash--ok    { color: #7BC4B4; background: rgba(74,102,112,0.1);   border-color: rgba(74,102,112,0.28); }
+  .flash--err   { color: #E07B5A; background: rgba(224,123,90,0.07);  border-color: rgba(224,123,90,0.22); }
+  .flash--setup { color: #D8A14A; background: rgba(216,161,74,0.07);  border-color: rgba(216,161,74,0.22); }
+  .flash--setup code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    background: rgba(216,161,74,0.12);
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+  }
+
+  /* ── Empty ── */
+  .empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 4rem 2rem;
+    text-align: center;
+  }
+  .empty-icon  { color: rgba(232,220,200,0.15); margin-bottom: 0.5rem; }
+  .empty-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.35rem;
+    font-weight: 300;
+    color: rgba(232,220,200,0.5);
+  }
+  .empty-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.82rem;
+    color: rgba(232,220,200,0.28);
+    max-width: 300px;
+    line-height: 1.65;
+  }
+
+  /* ── Cards ── */
+  .cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .card {
+    background: rgba(232,220,200,0.03);
+    border: 1px solid rgba(232,220,200,0.10);
+    border-left: 3px solid #D8A14A;
+    border-radius: 6px;
+    padding: 1.1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    animation: card-in 0.4s cubic-bezier(0.22,1,0.36,1) both;
+    animation-delay: calc(var(--i, 0) * 45ms + 60ms);
+    transition: background 0.2s;
+  }
+
+  @keyframes card-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card:hover { background: rgba(232,220,200,0.05); }
+
+  .card--read {
+    opacity: 0.45;
+    border-left-color: rgba(232,220,200,0.12);
+  }
+  .card--read:hover { opacity: 0.65; }
+
+  /* Card header */
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
+  .unread-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #D8A14A;
+    flex-shrink: 0;
+    box-shadow: 0 0 6px rgba(216,161,74,0.5);
+  }
+
+  .sender-name {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1rem;
+    font-weight: 300;
+    color: #E8DCC8;
+  }
+
+  .source-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.55rem;
+    border-radius: 20px;
+    background: rgba(74,102,112,0.15);
+    border: 1px solid rgba(74,102,112,0.3);
+    color: #7BC4B4;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .sender-email {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: rgba(232,220,200,0.4);
+    letter-spacing: 0.02em;
+  }
+
+  .card-date {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(232,220,200,0.3);
+    letter-spacing: 0.04em;
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  /* Card actions */
+  .card-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+  }
+
+  .act-read,
+  .act-delete {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 5px;
+    border: 1px solid transparent;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.18s, border-color 0.18s, color 0.18s;
+  }
+
+  .act-read  { color: rgba(74,196,180,0.5); }
+  .act-read:hover  { color: #7BC4B4; background: rgba(74,102,112,0.15); border-color: rgba(74,102,112,0.3); }
+
+  .act-delete { color: rgba(224,123,90,0.4); }
+  .act-delete:hover { color: #E07B5A; background: rgba(224,123,90,0.10); border-color: rgba(224,123,90,0.22); }
+
+  /* Subject */
+  .card-subject {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: rgba(232,220,200,0.75);
+  }
+
+  /* Body */
+  .card-body-wrap { display: flex; flex-direction: column; gap: 0.4rem; }
+
+  .card-body {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 0.9rem;
+    font-weight: 300;
+    color: rgba(232,220,200,0.6);
+    line-height: 1.65;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: pre-wrap;
+  }
+
+  .card-body.expanded {
+    display: block;
+    -webkit-line-clamp: unset;
+  }
+
+  .expand-btn {
+    align-self: flex-start;
+    background: none;
+    border: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(216,161,74,0.55);
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.15s;
+  }
+  .expand-btn:hover { color: #D8A14A; }
+</style>

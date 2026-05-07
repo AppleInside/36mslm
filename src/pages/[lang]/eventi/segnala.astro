@@ -54,7 +54,8 @@ const t = {
 
     {!ok && (
       <form method="POST" action="/api/report" class="mt-8 grid gap-4">
-        <input type="hidden" name="lang" value={lang} />
+        <input type="hidden" name="lang"   value={lang} />
+        <input type="hidden" name="source" value="evento" />
         <input type="hidden" name="back" value={`/${lang}/eventi/segnala`} />
 
         <label class="grid gap-1 text-sm font-medium">
