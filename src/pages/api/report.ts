@@ -27,10 +27,14 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   if (!parsed.success) return redirect(`${back}?err=1`, 303);
 
   const d = parsed.data;
-  await sql`
-    INSERT INTO reports (lang, name, email, subject, body)
-    VALUES (${d.lang}, ${d.name}, ${d.email}, ${d.subject}, ${d.body})
-  `;
+  try {
+    await sql`
+      INSERT INTO reports (lang, name, email, subject, body)
+      VALUES (${d.lang}, ${d.name}, ${d.email}, ${d.subject}, ${d.body})
+    `;
+  } catch {
+    return redirect(`${back}?err=1`, 303);
+  }
 
   return redirect(`${back}?ok=1`, 303);
 };
