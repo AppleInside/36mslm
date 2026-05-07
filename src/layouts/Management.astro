@@ -1,6 +1,6 @@
 ---
-import '../styles/global.css';
 import { SITE } from '../consts';
+import { sql } from '../server/db';
 
 interface Props {
   title: string;
@@ -8,6 +8,12 @@ interface Props {
 }
 const { title, userDisplayName } = Astro.props;
 const pathname = Astro.url.pathname;
+
+let unreadSegnalazioni = 0;
+try {
+  const rows = await sql<{ n: string }[]>`SELECT COUNT(*)::text AS n FROM reports WHERE read = false`;
+  unreadSegnalazioni = parseInt(rows[0]?.n ?? '0');
+} catch { /* table might not exist yet */ }
 ---
 <!DOCTYPE html>
 <html lang="it">
@@ -18,50 +24,107 @@ const pathname = Astro.url.pathname;
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=IBM+Plex+Mono:wght@400;500&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=IBM+Plex+Mono:wght@300;400;500&display=swap" />
   </head>
-  <body class="min-h-screen flex flex-col bg-sabbia text-testo font-sans">
+  <body>
 
-    <!-- Topbar -->
-    <header class="bg-pioppo text-white flex items-center justify-between px-4 py-3 shadow-sm">
-      <div class="flex items-center gap-3">
-        <button id="sidebar-toggle" class="lg:hidden p-1 rounded hover:bg-white/10" aria-label="Menu">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+    <header class="topbar">
+      <div class="topbar-left">
+        <button id="sidebar-toggle" class="hamburger" aria-label="Menu">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+            <path d="M1 1H17M1 6H11M1 11H17" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
           </svg>
         </button>
-        <span class="font-serif font-medium tracking-wide">36 m s.l.m. — Gestione</span>
+        <a href="/management/eventi" class="topbar-brand">
+          <img src="/media/storico/logo.jpg" alt="36 m s.l.m." class="topbar-logo" />
+          <span class="brand-section">Gestione</span>
+        </a>
       </div>
-      <div class="flex items-center gap-4 text-sm">
-        <span class="hidden sm:inline opacity-80">{userDisplayName}</span>
+      <div class="topbar-right">
+        <span class="user-name">{userDisplayName}</span>
         <form method="POST" action="/api/management/logout">
-          <button type="submit" class="px-3 py-1 rounded border border-white/40 hover:bg-white/10 transition-colors text-sm">
-            Esci
-          </button>
+          <button type="submit" class="exit-btn">Esci</button>
         </form>
       </div>
     </header>
 
-    <div class="flex flex-1">
-      <!-- Sidebar -->
-      <aside id="sidebar" class="hidden lg:flex flex-col w-44 bg-argento/60 border-r border-pioppo/20 pt-4">
-        <nav class="flex flex-col gap-1 px-2">
+    <div class="shell">
+      <aside id="sidebar" class="sidebar">
+        <p class="nav-label">Sezioni</p>
+        <nav class="sidebar-nav">
           <a
             href="/management/eventi"
-            class:list={[
-              'px-3 py-2 rounded text-sm font-medium transition-colors',
-              pathname.startsWith('/management/eventi')
-                ? 'bg-pioppo text-white'
-                : 'text-testo hover:bg-pioppo/20'
-            ]}
+            class={`nav-item${pathname.startsWith('/management/eventi') ? ' active' : ''}`}
           >
-            Eventi
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+              <rect x="1" y="4.5" width="13" height="9.5" rx="1.5" stroke="currentColor" stroke-width="1.25"/>
+              <path d="M4.5 1V6M10.5 1V6" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+              <path d="M4 9H7M4 11.5H11" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+            </svg>
+            <span>Eventi</span>
           </a>
+
+          <a
+            href="/management/avvisi"
+            class={`nav-item${pathname.startsWith('/management/avvisi') ? ' active' : ''}`}
+          >
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+              <rect x="1" y="1" width="13" height="13" rx="1.5" stroke="currentColor" stroke-width="1.25"/>
+              <path d="M4 5H11M4 7.5H8.5M4 10H7" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+            </svg>
+            <span>Avvisi</span>
+          </a>
+
+          <a
+            href="/management/segnalazioni"
+            class={`nav-item${pathname.startsWith('/management/segnalazioni') ? ' active' : ''}`}
+          >
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+              <path d="M2 2H13V10H8.5L5 13V10H2V2Z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/>
+              <path d="M5 5.5H10M5 7.5H8" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+            </svg>
+            <span>Segnalazioni</span>
+            {unreadSegnalazioni > 0 && (
+              <span class="nav-badge">{unreadSegnalazioni > 99 ? '99+' : unreadSegnalazioni}</span>
+            )}
+          </a>
+        </nav>
+
+        <p class="nav-label" style="margin-top:1rem">Contenuti</p>
+        <nav class="sidebar-nav">
+          <span class="nav-item nav-item--soon">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+              <path d="M2 13V3.5L7.5 2L13 3.5V13" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/>
+              <rect x="5" y="8" width="2" height="5" rx="0.5" stroke="currentColor" stroke-width="1.1"/>
+              <rect x="8" y="5.5" width="2" height="2.5" rx="0.5" stroke="currentColor" stroke-width="1.1"/>
+            </svg>
+            <span>Ricettario</span>
+            <span class="nav-soon-pill">presto</span>
+          </span>
+
+          <span class="nav-item nav-item--soon">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+              <rect x="1.5" y="2.5" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.25"/>
+              <circle cx="5" cy="6" r="1.2" stroke="currentColor" stroke-width="1.1"/>
+              <path d="M1.5 10L4.5 7.5L7 9.5L10 7L13.5 10" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Immagini e ricordi</span>
+            <span class="nav-soon-pill">presto</span>
+          </span>
+
+          <span class="nav-item nav-item--soon">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+              <path d="M2 4.5C2 4.5 4 3 7.5 3C11 3 13 4.5 13 4.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+              <path d="M2 7.5C2 7.5 4 6 7.5 6C11 6 13 7.5 13 7.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+              <path d="M2 10.5C2 10.5 4 9 7.5 9C11 9 13 10.5 13 10.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+            </svg>
+            <span>Proverbi</span>
+            <span class="nav-soon-pill">presto</span>
+          </span>
         </nav>
       </aside>
 
-      <!-- Main -->
-      <main class="flex-1 p-6">
+      <main class="content">
         <slot />
       </main>
     </div>
@@ -69,10 +132,248 @@ const pathname = Astro.url.pathname;
     <script>
       const btn = document.getElementById('sidebar-toggle');
       const sidebar = document.getElementById('sidebar');
-      btn?.addEventListener('click', () => {
-        sidebar?.classList.toggle('hidden');
-        sidebar?.classList.toggle('flex');
-      });
+      btn?.addEventListener('click', () => sidebar?.classList.toggle('open'));
     </script>
+
   </body>
 </html>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:           #0B1918;
+    --bg-topbar:    #0C1E1C;
+    --bg-sidebar:   rgba(10,25,23,0.8);
+    --cream:        #E8DCC8;
+    --cream-dim:    rgba(232,220,200,0.45);
+    --cream-faint:  rgba(232,220,200,0.10);
+    --cream-ghost:  rgba(232,220,200,0.05);
+    --gold:         #D8A14A;
+    --teal:         #4A6670;
+    --alga:         #7B8F6F;
+    --ff-serif:   'Fraunces', Georgia, serif;
+    --ff-mono:    'IBM Plex Mono', ui-monospace, monospace;
+  }
+
+  html, body { height: 100%; }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    color: var(--cream);
+    font-family: var(--ff-mono);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Topbar ── */
+  .topbar {
+    position: relative;
+    z-index: 20;
+    flex-shrink: 0;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    background: var(--bg-topbar);
+    border-bottom: 1px solid var(--cream-ghost);
+  }
+
+  .topbar::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(216,161,74,0.35) 50%, transparent 100%);
+    pointer-events: none;
+  }
+
+  .topbar-left { display: flex; align-items: center; gap: 1rem; }
+
+  .hamburger {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--cream-dim);
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: color 0.2s;
+  }
+  .hamburger:hover { color: var(--cream); }
+
+  .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    text-decoration: none;
+  }
+
+  .topbar-logo {
+    height: 30px;
+    width: auto;
+    border-radius: 3px;
+    display: block;
+    box-shadow: 0 0 10px rgba(15,113,184,0.3);
+  }
+
+  .brand-section {
+    font-family: var(--ff-mono);
+    font-size: 0.72rem;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--cream-dim);
+  }
+
+  .topbar-right { display: flex; align-items: center; gap: 1.25rem; }
+
+  .user-name {
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--cream-dim);
+  }
+
+  .exit-btn {
+    background: none;
+    border: 1px solid var(--cream-faint);
+    color: var(--cream-dim);
+    font-family: var(--ff-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 0.32rem 0.9rem;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .exit-btn:hover { border-color: rgba(216,161,74,0.45); color: var(--gold); }
+
+  /* ── Shell ── */
+  .shell { display: flex; flex: 1; min-height: 0; }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--cream-ghost);
+    padding: 1.5rem 1rem 1.5rem 1.1rem;
+  }
+
+  .nav-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgba(232,220,200,0.2);
+    padding: 0 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.6rem 0.65rem 0.6rem 0.7rem;
+    border-radius: 5px;
+    font-size: 0.82rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--cream-dim);
+    border-left: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+  }
+
+  .nav-item:hover {
+    color: var(--cream);
+    background: var(--cream-ghost);
+  }
+
+  .nav-item.active {
+    color: var(--gold);
+    border-left-color: var(--gold);
+    background: rgba(216,161,74,0.07);
+  }
+
+  .nav-item--soon {
+    opacity: 0.35;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .nav-soon-pill {
+    margin-left: auto;
+    font-size: 0.52rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(232,220,200,0.35);
+    border: 1px solid rgba(232,220,200,0.15);
+    padding: 0.1rem 0.4rem;
+    border-radius: 20px;
+  }
+
+  /* ── Unread badge ── */
+  .nav-badge {
+    margin-left: auto;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 10px;
+    background: #D8A14A;
+    color: #1A0E00;
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  /* ── Content ── */
+  .content {
+    flex: 1;
+    padding: 2rem 2.5rem;
+    overflow-y: auto;
+    min-width: 0;
+    background:
+      radial-gradient(ellipse 700px 450px at 85% 0%, rgba(74,102,112,0.10), transparent 55%),
+      radial-gradient(ellipse 450px 350px at 0% 100%, rgba(123,143,111,0.07), transparent 50%);
+  }
+
+  /* ── Mobile ── */
+  @media (max-width: 768px) {
+    .hamburger { display: flex; }
+    .user-name  { display: none; }
+
+    .sidebar {
+      position: fixed;
+      top: 52px; left: 0; bottom: 0;
+      z-index: 30;
+      width: 240px;
+      transform: translateX(-100%);
+      transition: transform 0.28s cubic-bezier(0.22,1,0.36,1);
+      background: #0B1918;
+      border-right-color: rgba(232,220,200,0.08);
+    }
+
+    .sidebar.open { transform: translateX(0); }
+    .content { padding: 1.25rem 1rem; }
+  }
+</style>
