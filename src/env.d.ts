@@ -1,0 +1,8 @@
+/// <reference types="astro/client" />
+
+declare namespace App {
+  interface Locals {
+    userId: number | null;
+    userDisplayName: string;
+  }
+}
