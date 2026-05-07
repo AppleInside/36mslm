@@ -1,0 +1,113 @@
+---
+export const prerender = false;
+import Management from '../../../layouts/Management.astro';
+import { sql } from '../../../server/db';
+
+const userId = Astro.locals.userId!;
+const userDisplayName = Astro.locals.userDisplayName;
+
+type EventRow = {
+  id: number;
+  title: string;
+  date: string;
+  location: string | null;
+  signup_required: boolean;
+  status: 'draft' | 'published';
+};
+
+const events = await sql<EventRow[]>`
+  SELECT id, title, date::text, location, signup_required, status
+  FROM events
+  WHERE lang = 'it'
+  ORDER BY date DESC
+`;
+
+const ok = Astro.url.searchParams.get('ok');
+const err = Astro.url.searchParams.get('err');
+---
+<Management title="Eventi" userDisplayName={userDisplayName}>
+  <div class="max-w-5xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="font-serif text-2xl font-medium">Eventi</h1>
+      <a
+        href="/management/eventi/nuovo"
+        class="bg-pioppo hover:bg-pioppo/90 text-white text-sm font-medium px-4 py-2 rounded transition-colors"
+      >
+        + Nuovo evento
+      </a>
+    </div>
+
+    {ok && (
+      <p class="mb-4 px-4 py-2 bg-green-50 border border-green-200 rounded text-sm text-green-700">
+        Operazione completata.
+      </p>
+    )}
+    {err && (
+      <p class="mb-4 px-4 py-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+        Si è verificato un errore. Riprova.
+      </p>
+    )}
+
+    <div class="bg-white rounded-xl shadow-sm border border-argento overflow-hidden">
+      {events.length === 0 ? (
+        <p class="px-6 py-8 text-center text-sm text-testo/50">Nessun evento. Creane uno!</p>
+      ) : (
+        <table class="w-full text-sm">
+          <thead class="bg-argento/40 border-b border-argento text-left">
+            <tr>
+              <th class="px-4 py-3 font-medium">Titolo</th>
+              <th class="px-4 py-3 font-medium">Data</th>
+              <th class="px-4 py-3 font-medium hidden md:table-cell">Luogo</th>
+              <th class="px-4 py-3 font-medium hidden sm:table-cell">Iscrizioni</th>
+              <th class="px-4 py-3 font-medium">Stato</th>
+              <th class="px-4 py-3 font-medium text-right">Azioni</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-argento/40">
+            {events.map(ev => (
+              <tr class="hover:bg-sabbia/60 transition-colors">
+                <td class="px-4 py-3 font-medium">{ev.title}</td>
+                <td class="px-4 py-3 font-mono text-xs">{ev.date}</td>
+                <td class="px-4 py-3 hidden md:table-cell text-testo/70">{ev.location ?? '—'}</td>
+                <td class="px-4 py-3 hidden sm:table-cell">
+                  {ev.signup_required ? (
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-brand/10 text-brand">Sì</span>
+                  ) : (
+                    <span class="text-xs text-testo/40">No</span>
+                  )}
+                </td>
+                <td class="px-4 py-3">
+                  {ev.status === 'published' ? (
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">Pubblicato</span>
+                  ) : (
+                    <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Bozza</span>
+                  )}
+                </td>
+                <td class="px-4 py-3 text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    <a
+                      href={`/management/eventi/${ev.id}`}
+                      class="text-brand hover:underline text-xs"
+                    >
+                      Modifica
+                    </a>
+                    <form
+                      method="POST"
+                      action={`/api/management/eventi/${ev.id}/delete`}
+                      class="inline"
+                      onsubmit="return confirm('Eliminare questo evento?')"
+                    >
+                      <button type="submit" class="text-red-500 hover:underline text-xs">
+                        Elimina
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  </div>
+</Management>
