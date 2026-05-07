@@ -5,7 +5,7 @@ const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 export const COOKIE_NAME = 'mgmt_session';
 
 function secret(): string {
-  const s = process.env.SESSION_SECRET;
+  const s = import.meta.env.SESSION_SECRET ?? process.env.SESSION_SECRET;
   if (!s) throw new Error('SESSION_SECRET not set');
   return s;
 }

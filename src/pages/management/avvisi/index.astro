@@ -3,23 +3,22 @@ export const prerender = false;
 import Management from '../../../layouts/Management.astro';
 import { sql } from '../../../server/db';
 
-const userId = Astro.locals.userId!;
 const userDisplayName = Astro.locals.userDisplayName;
 
-type EventRow = {
+type NoticeRow = {
   id: number;
   title: string;
-  date: string;
-  location: string | null;
-  signup_required: boolean;
+  date: string | null;
+  expires_at: string | null;
+  priority: boolean;
   status: 'draft' | 'published';
 };
 
-const events = await sql<EventRow[]>`
-  SELECT id, title, date::text, location, signup_required, status
-  FROM events
+const notices = await sql<NoticeRow[]>`
+  SELECT id, title, date::text, expires_at::text, priority, status
+  FROM notices
   WHERE lang = 'it'
-  ORDER BY date DESC
+  ORDER BY priority DESC, created_at DESC
 `;
 
 const ok  = Astro.url.searchParams.get('ok');
@@ -27,38 +26,37 @@ const err = Astro.url.searchParams.get('err');
 
 const todayStr = new Date().toISOString().slice(0, 10);
 
-function isPast(d: string) {
-  return d < todayStr;
+function isExpired(d: string | null) {
+  return d ? d < todayStr : false;
 }
 
-function fmtDate(d: string) {
+function fmtDate(d: string | null) {
+  if (!d) return '—';
   return new Date(d + 'T00:00:00').toLocaleDateString('it-IT', {
     day: '2-digit', month: 'short', year: 'numeric'
   });
 }
 ---
 
-<Management title="Eventi" userDisplayName={userDisplayName}>
+<Management title="Avvisi" userDisplayName={userDisplayName}>
 
   <div class="page">
 
-    <!-- Page header -->
     <div class="page-header">
       <div>
-        <h1 class="page-title">Eventi</h1>
+        <h1 class="page-title">Avvisi</h1>
         <p class="page-count">
-          {events.length === 0 ? 'Nessun evento' : `${events.length} ${events.length === 1 ? 'evento' : 'eventi'}`}
+          {notices.length === 0 ? 'Nessun avviso' : `${notices.length} ${notices.length === 1 ? 'avviso' : 'avvisi'}`}
         </p>
       </div>
-      <a href="/management/eventi/nuovo" class="btn-primary">
+      <a href="/management/avvisi/nuovo" class="btn-primary">
         <svg width="11" height="11" viewBox="0 0 11 11" fill="none" aria-hidden="true">
           <path d="M5.5 1V10M1 5.5H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
-        Nuovo evento
+        Nuovo avviso
       </a>
     </div>
 
-    <!-- Flash messages -->
     {ok && (
       <div class="flash flash--ok" role="status">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -79,83 +77,73 @@ function fmtDate(d: string) {
       </div>
     )}
 
-    <!-- Empty state -->
-    {events.length === 0 && (
+    {notices.length === 0 && (
       <div class="empty">
         <svg class="empty-icon" width="52" height="52" viewBox="0 0 52 52" fill="none" aria-hidden="true">
-          <rect x="8" y="14" width="36" height="30" rx="3" stroke="currentColor" stroke-width="1.4"/>
-          <path d="M8 22H44" stroke="currentColor" stroke-width="1.4"/>
-          <path d="M18 8V18M34 8V18" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-          <path d="M19 32H29M19 37H33" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+          <rect x="8" y="8" width="36" height="36" rx="3" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M16 20H36M16 27H30M16 34H24" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity="0.7"/>
+          <path d="M36 30L44 38M41 35L44 38L41 41" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
         </svg>
-        <p class="empty-title">Nessun evento ancora</p>
-        <p class="empty-sub">Crea il primo evento del programma dell'associazione.</p>
-        <a href="/management/eventi/nuovo" class="btn-primary">Crea evento</a>
+        <p class="empty-title">Nessun avviso ancora</p>
+        <p class="empty-sub">Pubblica comunicazioni, avvisi urgenti e bacheca per i soci.</p>
+        <a href="/management/avvisi/nuovo" class="btn-primary">Crea avviso</a>
       </div>
     )}
 
-    <!-- Table -->
-    {events.length > 0 && (
+    {notices.length > 0 && (
       <div class="table-wrap">
         <table class="table">
           <thead>
             <tr>
               <th>Titolo</th>
-              <th>Data</th>
-              <th class="hide-md">Luogo</th>
-              <th class="hide-sm">Iscrizioni</th>
+              <th class="hide-sm">Data avviso</th>
+              <th class="hide-md">Scade il</th>
+              <th>Priorità</th>
               <th>Stato</th>
               <th class="th-actions">Azioni</th>
             </tr>
           </thead>
           <tbody>
-            {events.map((ev, i) => {
-              const past = isPast(ev.date);
+            {notices.map((n, i) => {
+              const expired = isExpired(n.expires_at);
               return (
-              <tr style={`--i:${i}`} class={past ? 'row--past' : ''}>
+              <tr style={`--i:${i}`} class={expired ? 'row--expired' : ''}>
                 <td>
-                  <span class="ev-title">{ev.title}</span>
-                  {past && <span class="past-label">passato</span>}
-                </td>
-                <td>
-                  <span class="ev-date">{fmtDate(ev.date)}</span>
-                </td>
-                <td class="hide-md">
-                  <span class="ev-location">{ev.location ?? '—'}</span>
+                  <span class="n-title">{n.title}</span>
+                  {expired && <span class="expired-label">scaduto</span>}
                 </td>
                 <td class="hide-sm">
-                  {ev.signup_required
-                    ? <span class="badge badge--gold">Sì</span>
-                    : <span class="ev-no">—</span>
+                  <span class="n-date">{fmtDate(n.date)}</span>
+                </td>
+                <td class="hide-md">
+                  <span class={n.expires_at ? (expired ? 'n-expired-date' : 'n-date') : 'n-none'}>
+                    {fmtDate(n.expires_at)}
+                  </span>
+                </td>
+                <td>
+                  {n.priority
+                    ? <span class="badge badge--priority">Alta</span>
+                    : <span class="n-none">—</span>
                   }
                 </td>
                 <td>
-                  {ev.status === 'published'
+                  {n.status === 'published'
                     ? <span class="badge badge--teal">Pubblicato</span>
                     : <span class="badge badge--dim">Bozza</span>
                   }
                 </td>
                 <td>
                   <div class="row-actions">
-                    {past ? (
-                      <span class="act-disabled" title="Evento passato, non modificabile">
-                        <svg width="18" height="18" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                          <path d="M9.5 2.5L11.5 4.5L5 11H3V9L9.5 2.5Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
-                          <path d="M8 4L10 6" stroke="currentColor" stroke-width="1.2"/>
-                        </svg>
-                      </span>
-                    ) : (
-                      <a href={`/management/eventi/${ev.id}`} class="act-edit" title="Modifica">
-                        <svg width="18" height="18" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                          <path d="M9.5 2.5L11.5 4.5L5 11H3V9L9.5 2.5Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
-                          <path d="M8 4L10 6" stroke="currentColor" stroke-width="1.2"/>
-                        </svg>
-                      </a>
-                    )}
+                    <a href={`/management/avvisi/${n.id}`} class="act-edit" title="Modifica">
+                      <svg width="18" height="18" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                        <path d="M9.5 2.5L11.5 4.5L5 11H3V9L9.5 2.5Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+                        <path d="M8 4L10 6" stroke="currentColor" stroke-width="1.2"/>
+                      </svg>
+                    </a>
                     <form
                       method="POST"
-                      action={`/api/management/eventi/${ev.id}/delete`}
-                      onsubmit="return confirm('Eliminare questo evento?')"
+                      action={`/api/management/avvisi/${n.id}/delete`}
+                      onsubmit="return confirm('Eliminare questo avviso?')"
                     >
                       <button type="submit" class="act-delete" title="Elimina">
                         <svg width="18" height="18" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -189,7 +177,6 @@ function fmtDate(d: string) {
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* ── Page header ── */
   .page-header {
     display: flex;
     align-items: flex-end;
@@ -242,7 +229,6 @@ function fmtDate(d: string) {
     transform: translateY(-1px);
   }
 
-  /* ── Flash ── */
   .flash {
     display: flex;
     align-items: center;
@@ -255,19 +241,9 @@ function fmtDate(d: string) {
     letter-spacing: 0.03em;
   }
 
-  .flash--ok {
-    color: #7BC4B4;
-    background: rgba(74,102,112,0.1);
-    border-color: rgba(74,102,112,0.28);
-  }
+  .flash--ok  { color: #7BC4B4; background: rgba(74,102,112,0.1);  border-color: rgba(74,102,112,0.28); }
+  .flash--err { color: #E07B5A; background: rgba(224,123,90,0.07); border-color: rgba(224,123,90,0.22); }
 
-  .flash--err {
-    color: #E07B5A;
-    background: rgba(224,123,90,0.07);
-    border-color: rgba(224,123,90,0.22);
-  }
-
-  /* ── Empty ── */
   .empty {
     display: flex;
     flex-direction: column;
@@ -277,10 +253,7 @@ function fmtDate(d: string) {
     text-align: center;
   }
 
-  .empty-icon {
-    color: rgba(232,220,200,0.15);
-    margin-bottom: 0.5rem;
-  }
+  .empty-icon  { color: rgba(232,220,200,0.15); margin-bottom: 0.5rem; }
 
   .empty-title {
     font-family: 'Fraunces', Georgia, serif;
@@ -294,12 +267,11 @@ function fmtDate(d: string) {
     font-size: 0.82rem;
     letter-spacing: 0.04em;
     color: rgba(232,220,200,0.28);
-    max-width: 300px;
+    max-width: 320px;
     line-height: 1.65;
     margin-bottom: 0.5rem;
   }
 
-  /* ── Table ── */
   .table-wrap {
     border: 1px solid rgba(232,220,200,0.07);
     border-radius: 6px;
@@ -331,7 +303,6 @@ function fmtDate(d: string) {
   }
 
   .table th:last-child { border-right: none; }
-
   .th-actions { text-align: right; }
 
   .table tbody tr {
@@ -347,11 +318,7 @@ function fmtDate(d: string) {
   }
 
   .table tbody tr:last-child { border-bottom: none; }
-
   .table tbody tr:hover { background: rgba(74,102,112,0.10); }
-
-  .row--past { opacity: 0.4; }
-  .row--past:hover { opacity: 0.6; background: rgba(74,102,112,0.06); }
 
   .table td {
     padding: 0.9rem 1rem;
@@ -361,8 +328,10 @@ function fmtDate(d: string) {
 
   .table td:last-child { border-right: none; }
 
-  /* Cell content */
-  .ev-title {
+  .row--expired { opacity: 0.45; }
+  .row--expired:hover { opacity: 0.65; background: rgba(74,102,112,0.06); }
+
+  .n-title {
     font-family: 'Fraunces', Georgia, serif;
     font-size: 1.05rem;
     font-weight: 300;
@@ -370,52 +339,21 @@ function fmtDate(d: string) {
     letter-spacing: 0.01em;
   }
 
-  .row--past .ev-title {
-    text-decoration: line-through;
-    text-decoration-color: rgba(232,220,200,0.4);
-    text-decoration-thickness: 1px;
-  }
-
-  .past-label {
+  .expired-label {
     display: inline-block;
     margin-left: 0.5rem;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.58rem;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: rgba(232,220,200,0.35);
+    color: rgba(224,123,90,0.5);
     vertical-align: middle;
   }
 
-  .act-disabled {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    height: 38px;
-    color: rgba(232,220,200,0.15);
-    cursor: not-allowed;
-  }
+  .n-date         { font-size: 0.82rem; color: rgba(232,220,200,0.55); letter-spacing: 0.04em; white-space: nowrap; }
+  .n-expired-date { font-size: 0.82rem; color: rgba(224,123,90,0.5);  letter-spacing: 0.04em; white-space: nowrap; }
+  .n-none         { color: rgba(232,220,200,0.2); font-size: 0.85rem; }
 
-  .ev-date {
-    font-size: 0.82rem;
-    color: rgba(232,220,200,0.55);
-    letter-spacing: 0.04em;
-    white-space: nowrap;
-  }
-
-  .ev-location {
-    font-size: 0.82rem;
-    color: rgba(232,220,200,0.4);
-    letter-spacing: 0.02em;
-  }
-
-  .ev-no {
-    color: rgba(232,220,200,0.2);
-    font-size: 0.85rem;
-  }
-
-  /* Badges */
   .badge {
     display: inline-flex;
     align-items: center;
@@ -429,25 +367,10 @@ function fmtDate(d: string) {
     white-space: nowrap;
   }
 
-  .badge--teal {
-    background: rgba(74,102,112,0.18);
-    color: #7BC4B4;
-    border-color: rgba(74,102,112,0.32);
-  }
+  .badge--teal     { background: rgba(74,102,112,0.18);  color: #7BC4B4;  border-color: rgba(74,102,112,0.32); }
+  .badge--dim      { background: rgba(232,220,200,0.04); color: rgba(232,220,200,0.38); border-color: rgba(232,220,200,0.10); }
+  .badge--priority { background: rgba(216,161,74,0.12);  color: #D8A14A;  border-color: rgba(216,161,74,0.25); }
 
-  .badge--dim {
-    background: rgba(232,220,200,0.04);
-    color: rgba(232,220,200,0.38);
-    border-color: rgba(232,220,200,0.10);
-  }
-
-  .badge--gold {
-    background: rgba(216,161,74,0.10);
-    color: #D8A14A;
-    border-color: rgba(216,161,74,0.22);
-  }
-
-  /* Row actions */
   .row-actions {
     display: flex;
     align-items: center;
@@ -471,32 +394,13 @@ function fmtDate(d: string) {
     transition: background 0.18s, border-color 0.18s, color 0.18s;
   }
 
-  .act-edit {
-    color: rgba(216,161,74,0.55);
-    text-decoration: none;
-  }
+  .act-edit  { color: rgba(216,161,74,0.55); text-decoration: none; }
+  .act-edit:hover  { color: #D8A14A; background: rgba(216,161,74,0.10); border-color: rgba(216,161,74,0.22); }
 
-  .act-edit:hover {
-    color: #D8A14A;
-    background: rgba(216,161,74,0.10);
-    border-color: rgba(216,161,74,0.22);
-  }
+  .act-delete { color: rgba(224,123,90,0.45); }
+  .act-delete:hover { color: #E07B5A; background: rgba(224,123,90,0.10); border-color: rgba(224,123,90,0.22); }
 
-  .act-delete {
-    color: rgba(224,123,90,0.45);
-  }
-
-  .act-delete:hover {
-    color: #E07B5A;
-    background: rgba(224,123,90,0.10);
-    border-color: rgba(224,123,90,0.22);
-  }
-
-  /* Responsive */
-  @media (max-width: 900px) {
-    .hide-md { display: none; }
-  }
-
+  @media (max-width: 900px) { .hide-md { display: none; } }
   @media (max-width: 600px) {
     .hide-sm { display: none; }
     .page-title { font-size: 1.6rem; }

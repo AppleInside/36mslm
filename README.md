@@ -65,3 +65,13 @@ Per un deploy manuale:
 ```bash
 npx vercel --prod
 ```
+
+
+
+# Utenza Admin
+
+## Il portale Admin è accessibile da: /management
+
+Le credenziali di autenticazione sono:
+- carsa.26@gmail.com
+- 36MSLM:_admin!
