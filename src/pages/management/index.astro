@@ -30,7 +30,11 @@ const err = Astro.url.searchParams.get('err');
       <div class="shell" id="shell">
 
         <div class="brand">
-          <h1>36 m s.l.m.</h1>
+          <img
+            src="/media/storico/logo.jpg"
+            alt="36 m s.l.m. — Sopra il livello del mare"
+            class="logo-img"
+          />
           <p class="place">Polesine Parmense</p>
           <span class="divider"></span>
         </div>
@@ -155,15 +159,15 @@ const err = Astro.url.searchParams.get('err');
     margin-bottom: 2.75rem;
   }
 
-  h1 {
-    font-family: var(--ff-serif);
-    font-size: clamp(3.2rem, 10vw, 5rem);
-    font-weight: 300;
-    font-style: italic;
-    letter-spacing: -0.02em;
-    line-height: 1;
-    color: var(--cream);
-    margin-bottom: 0.5rem;
+  .logo-img {
+    display: block;
+    width: 200px;
+    margin: 0 auto 0.75rem;
+    border-radius: 5px;
+    box-shadow:
+      0 0 32px rgba(15,113,184,0.35),
+      0 0 80px rgba(15,113,184,0.15),
+      0 4px 24px rgba(0,0,0,0.5);
   }
 
   .place {
