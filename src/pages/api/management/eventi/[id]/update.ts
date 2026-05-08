@@ -48,8 +48,9 @@ export const POST: APIRoute = async ({ request, redirect, params }) => {
   }
 
   try {
+    let result;
     if (cover_url !== undefined) {
-      await sql`
+      result = await sql`
         UPDATE events
         SET title=${d.title}, slug=${d.slug}, date=${d.date}, time_start=${d.time_start},
             time_end=${d.time_end}, location=${d.location}, description=${d.description},
@@ -57,7 +58,7 @@ export const POST: APIRoute = async ({ request, redirect, params }) => {
         WHERE id=${eventId} AND lang='it'
       `;
     } else {
-      await sql`
+      result = await sql`
         UPDATE events
         SET title=${d.title}, slug=${d.slug}, date=${d.date}, time_start=${d.time_start},
             time_end=${d.time_end}, location=${d.location}, description=${d.description},
@@ -65,10 +66,14 @@ export const POST: APIRoute = async ({ request, redirect, params }) => {
         WHERE id=${eventId} AND lang='it'
       `;
     }
+    if (result.count === 0) {
+      console.error('[eventi/update] no rows updated for id:', eventId);
+      return redirect(`/management/eventi/${eventId}?err=notfound`, 303);
+    }
   } catch (err) {
     console.error('[eventi/update] db error:', err);
     return redirect('/management/eventi?err=db', 303);
   }
 
-  return redirect('/management/eventi?ok=1', 303);
+  return redirect(`/management/eventi/${eventId}?ok=saved`, 303);
 };

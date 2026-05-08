@@ -8,7 +8,11 @@ export const POST: APIRoute = async ({ redirect, params }) => {
   if (!id) return redirect('/management/segnalazioni?err=1', 303);
 
   try {
-    await sql`DELETE FROM reports WHERE id = ${id}`;
+    const result = await sql`DELETE FROM reports WHERE id = ${id}`;
+    if (result.count === 0) {
+      console.error('[segnalazioni/delete] no rows deleted for id:', id);
+      return redirect('/management/segnalazioni?err=1', 303);
+    }
   } catch {
     return redirect('/management/segnalazioni?err=1', 303);
   }

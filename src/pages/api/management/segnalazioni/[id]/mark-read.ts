@@ -8,7 +8,11 @@ export const POST: APIRoute = async ({ redirect, params }) => {
   if (!id) return redirect('/management/segnalazioni?err=1', 303);
 
   try {
-    await sql`UPDATE reports SET read = true WHERE id = ${id}`;
+    const result = await sql`UPDATE reports SET read = true WHERE id = ${id}`;
+    if (result.count === 0) {
+      console.error('[segnalazioni/mark-read] no rows updated for id:', id);
+      return redirect('/management/segnalazioni?err=1', 303);
+    }
   } catch {
     return redirect('/management/segnalazioni?err=1', 303);
   }
