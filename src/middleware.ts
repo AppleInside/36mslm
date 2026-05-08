@@ -25,16 +25,19 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
   }
 
   // Pages need the display name for the navbar
+  // On DB error, fall back to a default name rather than redirecting away
+  ctx.locals.userId = userId;
+  ctx.locals.userDisplayName = '';
   try {
     const rows = await sql<{ display_name: string }[]>`
       SELECT display_name FROM users WHERE id = ${userId} LIMIT 1
     `;
     if (!rows.length) return ctx.redirect('/management', 302);
-    ctx.locals.userId = userId;
     ctx.locals.userDisplayName = rows[0].display_name;
   } catch (err) {
-    console.error('[middleware] db error:', err);
-    return ctx.redirect('/management?err=db', 302);
+    console.error('[middleware] db error (non-fatal):', err);
+    // Continue anyway — the page will load with an empty display name
+    // rather than failing and redirecting the user away
   }
 
   return next();

@@ -14,7 +14,7 @@ function toProxyUrl(coverUrl: string | null): string | null {
 export const sql = postgres(url, {
   max: 1,
   idle_timeout: 20,
-  connect_timeout: 5,
+  connect_timeout: 15,
 });
 
 export type EventSignupRow = {
