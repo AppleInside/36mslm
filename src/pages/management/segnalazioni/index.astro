@@ -39,8 +39,8 @@ try {
 
 const unread = segnalazioni.filter(s => !s.read).length;
 
-const ok  = Astro.url.searchParams.get('ok');
-const err = Astro.url.searchParams.get('err');
+const ok    = Astro.url.searchParams.get('ok');
+const err   = Astro.url.searchParams.get('err');
 
 function fmtDate(d: Date) {
   return new Date(d).toLocaleDateString('it-IT', {
@@ -84,13 +84,22 @@ function fmtDate(d: Date) {
       </div>
     )}
 
-    {ok && (
+    {ok === '1' && (
       <div class="flash flash--ok" role="status">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
           <circle cx="7" cy="7" r="6.5" stroke="currentColor"/>
           <path d="M4.5 7L6.5 9L9.5 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         Segnalazione eliminata.
+      </div>
+    )}
+    {ok === 'read' && (
+      <div class="flash flash--ok" role="status">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <circle cx="7" cy="7" r="6.5" stroke="currentColor"/>
+          <path d="M4.5 7L6.5 9L9.5 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Segnalazione segnata come letta.
       </div>
     )}
     {err && (
