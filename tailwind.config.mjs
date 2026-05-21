@@ -8,7 +8,7 @@ export default {
         'paper-2':'#B8D8E8',
         ink:      '#1F2A2A',
         'ink-soft':'#3A4747',
-        gold:     '#D8A14A',
+        gold:     '#A87420',
         'gold-deep':'#B5802A',
         alga:     '#7B8F6F',
         acquadeep:'#4A6670',
