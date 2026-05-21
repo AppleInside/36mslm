@@ -18,7 +18,7 @@ const mon = months[d.getUTCMonth()];
   <div class="ev-pic">
     {event.cover_url
       ? <img src={event.cover_url} alt={event.title} class="ev-cover" loading="lazy" />
-      : <div class="ev-placeholder" aria-hidden="true"></div>
+      : <div class="ev-placeholder" data-title={event.title} aria-hidden="true"></div>
     }
     <div class="ev-stamp">
       <span class="ev-d">{day}</span>
@@ -65,8 +65,20 @@ const mon = months[d.getUTCMonth()];
 
   .ev-placeholder {
     width: 100%; height: 100%;
-    background: linear-gradient(135deg, theme('colors.acqua'), theme('colors.argento') 80%);
-    opacity: .6;
+    background: theme('colors.ink');
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .ev-placeholder::after {
+    content: attr(data-title);
+    font-family: theme('fontFamily.hand');
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: rgba(204,228,239,0.45);
+    text-align: center;
+    line-height: 1.2;
   }
   .ev-cover {
     width: 100%; height: 100%;
