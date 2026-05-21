@@ -26,6 +26,9 @@ function fmtNoticeDate(d: Date) {
   return d.toLocaleDateString(lang === 'it' ? 'it-IT' : 'en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
 }
 function eventHref(slug: string) {
+  if (!slug || slug.startsWith('data:') || slug.startsWith('blob:')) {
+    return localizedPath(lang, 'eventi');
+  }
   return localizedPath(lang, `eventi/${slug}`);
 }
 ---

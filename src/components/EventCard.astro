@@ -4,7 +4,10 @@ import type { DbEvent } from '../server/db';
 
 const { event } = Astro.props as { event: DbEvent };
 const lang = event.lang;
-const href = localizedPath(lang, `eventi/${event.slug}`);
+const rawSlug = event.slug ?? '';
+const href = (!rawSlug || rawSlug.startsWith('data:') || rawSlug.startsWith('blob:'))
+  ? localizedPath(lang, 'eventi')
+  : localizedPath(lang, `eventi/${rawSlug}`);
 
 const d = new Date(event.date);
 const day = d.getUTCDate();
