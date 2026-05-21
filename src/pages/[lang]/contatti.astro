@@ -39,7 +39,7 @@ const t = useTranslations(lang);
         </li>
         <li>
           <span class="info-label">{lang === 'it' ? 'Codice fiscale' : 'Tax code'}</span>
-          <span class="info-value">{SITE.codiceFiscale}</span>
+          <span class="info-value">{SITE.codiceFiscale || (lang === 'it' ? '— in attesa di registrazione —' : '— registration pending —')}</span>
         </li>
       </ul>
 

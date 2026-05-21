@@ -35,7 +35,7 @@ const t = useTranslations(lang);
     </ul>
   </div>
   <div class="colofon">
-    <span>© {new Date().getFullYear()} — APS «{SITE.name}» · CF {SITE.codiceFiscale}</span>
+    <span>© {new Date().getFullYear()} — APS «{SITE.name}» · {SITE.codiceFiscale ? `CF ${SITE.codiceFiscale}` : lang === 'it' ? '— in attesa di registrazione —' : '— registration pending —'}</span>
     <span><a href={`mailto:${SITE.email}`}>{SITE.email}</a></span>
   </div>
 </footer>
