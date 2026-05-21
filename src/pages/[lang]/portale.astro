@@ -1,0 +1,718 @@
+---
+export const prerender = true;
+import Base from '../../layouts/Base.astro';
+import { localizedPath } from '../../i18n/utils';
+import type { Lang } from '../../i18n/ui';
+
+export function getStaticPaths() {
+  return [{ params: { lang: 'it' } }, { params: { lang: 'en' } }];
+}
+const lang = Astro.params.lang as Lang;
+const it = lang === 'it';
+---
+
+<Base title={it ? 'Un portale unico — 36 m s.l.m.' : 'Our portal — 36 m s.l.m.'}>
+
+  <!-- Side progress dots (desktop only) -->
+  <nav class="wdots" aria-label={it ? 'Sezioni della pagina' : 'Page sections'}>
+    <button class="wdot" data-to="s-visione">
+      <span class="wdot-tip">{it ? 'Visione' : 'Vision'}</span>
+    </button>
+    <button class="wdot" data-to="s-cosa">
+      <span class="wdot-tip">{it ? 'Il portale' : 'The portal'}</span>
+    </button>
+    <button class="wdot" data-to="s-chi">
+      <span class="wdot-tip">{it ? 'A chi parla' : "Who it's for"}</span>
+    </button>
+    <button class="wdot" data-to="s-obiettivi">
+      <span class="wdot-tip">{it ? 'Gli obiettivi' : 'The goals'}</span>
+    </button>
+    <button class="wdot" data-to="s-vantaggi">
+      <span class="wdot-tip">{it ? 'Vantaggi' : 'Benefits'}</span>
+    </button>
+  </nav>
+
+  <!-- ──────────────────────────────────────────────────── -->
+  <!-- S1 — VISIONE                                         -->
+  <!-- ──────────────────────────────────────────────────── -->
+  <section class="ws ws--ink" id="s-visione">
+    <div class="ws-number" aria-hidden="true">01</div>
+    <div class="ws-inner">
+      <p class="ws-eyebrow">{it ? '— Apertura —' : '— Opening —'}</p>
+      <h1 class="ws-title">
+        {it ? <>Il riferimento <em>digitale</em><br />del paese</> : <>The village's<br /><em>digital</em> home</>}
+      </h1>
+      <p class="ws-lead">
+        {it
+          ? 'Vogliamo che 36 m s.l.m. diventi il posto online dove chiunque — un turista che passa, un nuovo arrivato, un vicino di casa — trovi cosa fare, cosa sapere e cosa succede a Polesine Parmense. In una parola: il riferimento digitale del paese.'
+          : "We want 36 m s.l.m. to become the online place where anyone — a passing tourist, a newcomer, a neighbour — can find what to do, what to know, and what's happening in Polesine Parmense. In a word: the digital home of the village."}
+      </p>
+    </div>
+    <div class="ws-quota" aria-hidden="true">36<small>{it ? 'metri' : 'metres'}</small></div>
+    <a class="ws-next" href="#s-cosa" aria-label={it ? 'Prossima sezione' : 'Next section'}>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 5v14M5 13l7 7 7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+  </section>
+
+  <!-- wave -->
+  <div class="wwave" aria-hidden="true">
+    <svg viewBox="0 0 1440 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,28 C240,56 480,0 720,28 C960,56 1200,0 1440,28 L1440,56 L0,56 Z" fill="#CCE4EF"/>
+    </svg>
+  </div>
+
+  <!-- ──────────────────────────────────────────────────── -->
+  <!-- S2 — COSA È IL PORTALE                               -->
+  <!-- ──────────────────────────────────────────────────── -->
+  <section class="ws ws--paper" id="s-cosa">
+    <div class="ws-number" aria-hidden="true">02</div>
+    <div class="ws-inner">
+      <p class="ws-eyebrow">{it ? '— Cosa è —' : '— What it is —'}</p>
+      <h2 class="ws-title">
+        {it ? <>Una piattaforma <em>editoriale</em> viva</> : <>A living <em>editorial</em> platform</>}
+      </h2>
+      <p class="ws-lead">
+        {it
+          ? "Non è una brochure dell'associazione. È una piattaforma editoriale viva: eventi, itinerari del fiume, ricettario di casa, dialetto e modi di dire, bacheca degli avvisi. Tutto quello che racconta il rapporto del nostro paese con il Po."
+          : "This isn't an association brochure. It's a living editorial platform: events, river itineraries, home recipes, dialect and sayings, notice board. Everything that tells the story of our village's relationship with the Po."}
+      </p>
+      <ul class="wtags" role="list">
+        <li><a class="wtag" href={localizedPath(lang, 'eventi/calendario')}>{it ? 'Eventi' : 'Events'} →</a></li>
+        <li><a class="wtag" href={localizedPath(lang, 'scopri/itinerari')}>{it ? 'Itinerari' : 'Itineraries'} →</a></li>
+        <li><a class="wtag" href={localizedPath(lang, 'scopri/ricettario')}>{it ? 'Ricettario' : 'Recipes'} →</a></li>
+        <li><a class="wtag" href={localizedPath(lang, 'scopri/storie')}>{it ? 'Dialetto' : 'Dialect'} →</a></li>
+        <li><a class="wtag" href={localizedPath(lang, 'eventi/bacheca')}>{it ? 'Bacheca' : 'Notices'} →</a></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- wave -->
+  <div class="wwave" aria-hidden="true" style="background:#CCE4EF">
+    <svg viewBox="0 0 1440 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,16 C360,56 720,0 1080,28 C1260,40 1380,8 1440,20 L1440,56 L0,56 Z" fill="#F2EDE0"/>
+    </svg>
+  </div>
+
+  <!-- ──────────────────────────────────────────────────── -->
+  <!-- S3 — A CHI PARLA                                     -->
+  <!-- ──────────────────────────────────────────────────── -->
+  <section class="ws ws--sand" id="s-chi">
+    <div class="ws-number" aria-hidden="true">03</div>
+    <div class="ws-inner ws-inner--wide">
+      <p class="ws-eyebrow">{it ? '— Il pubblico —' : '— The audience —'}</p>
+      <h2 class="ws-title">
+        {it ? <>A chi <em>parla</em></> : <>Who it's <em>for</em></>}
+      </h2>
+      <div class="waudience">
+        <div class="wcard">
+          <div class="wcard-mark" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <circle cx="14" cy="14" r="13" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M8 14h12M16 10l4 4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3>{it ? 'I turisti' : 'Tourists'}</h3>
+          <p>{it ? 'Che cercano cosa vedere, dove mangiare, come arrivare. Li accoglie con itinerari, indirizzi e calendario eventi.' : 'Looking for what to see, where to eat, how to get here. Welcomed with itineraries, addresses and events.'}</p>
+          <a class="wcard-link" href={localizedPath(lang, 'scopri')}>{it ? 'Scopri →' : 'Discover →'}</a>
+        </div>
+        <div class="wcard-sep" aria-hidden="true"></div>
+        <div class="wcard">
+          <div class="wcard-mark" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <circle cx="14" cy="14" r="13" stroke="currentColor" stroke-width="1.2"/>
+              <circle cx="14" cy="10" r="3" stroke="currentColor" stroke-width="1.4"/>
+              <path d="M7 22c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3>{it ? 'I residenti' : 'Residents'}</h3>
+          <p>{it ? 'Che vogliono sapere cosa succede questa settimana, come partecipare e rimanere aggiornati sugli avvisi.' : 'Who want to know what's on this week, how to get involved, and stay updated on notices.'}</p>
+          <a class="wcard-link" href={localizedPath(lang, 'partecipa')}>{it ? 'Partecipa →' : 'Get involved →'}</a>
+        </div>
+      </div>
+      <p class="waudience-note">
+        <em>{it ? 'Un sito solo, due percorsi di lettura.' : 'One site, two reading paths.'}</em>
+      </p>
+    </div>
+  </section>
+
+  <!-- wave -->
+  <div class="wwave" aria-hidden="true" style="background:#F2EDE0">
+    <svg viewBox="0 0 1440 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,28 C180,0 360,56 540,28 C720,0 900,56 1080,28 C1260,0 1380,40 1440,20 L1440,56 L0,56 Z" fill="#1F2A2A"/>
+    </svg>
+  </div>
+
+  <!-- ──────────────────────────────────────────────────── -->
+  <!-- S4 — I TRE OBIETTIVI                                 -->
+  <!-- ──────────────────────────────────────────────────── -->
+  <section class="ws ws--ink" id="s-obiettivi">
+    <div class="ws-number" aria-hidden="true">04</div>
+    <div class="ws-inner">
+      <p class="ws-eyebrow">{it ? '— Strategia —' : '— Strategy —'}</p>
+      <h2 class="ws-title">
+        {it ? <>I tre <em>obiettivi</em></> : <>Three <em>goals</em></>}
+      </h2>
+      <ol class="wgoals">
+        <li class="wgoal">
+          <span class="wgoal-num" aria-hidden="true">I</span>
+          <div>
+            <h3>{it ? 'Essere trovati.' : 'Be found.'}</h3>
+            <p>{it ? 'Quando qualcuno cerca su Google "cosa fare a Polesine" o "eventi in Bassa", deve arrivare a noi.' : 'When someone searches "things to do in Polesine" on Google, they should land here.'}</p>
+          </div>
+        </li>
+        <li class="wgoal">
+          <span class="wgoal-num" aria-hidden="true">II</span>
+          <div>
+            <h3>{it ? 'Raccontare il paese.' : 'Tell the village story.'}</h3>
+            <p>{it ? "Non solo il calendario eventi: l'identità, le storie, la golena, le ricette, il dialetto. Materiali che restano nel tempo." : "Not just the events calendar: identity, stories, the floodplain, recipes, dialect. Content that endures."}</p>
+          </div>
+        </li>
+        <li class="wgoal">
+          <span class="wgoal-num" aria-hidden="true">III</span>
+          <div>
+            <h3>{it ? 'Mobilitare la comunità.' : 'Mobilise the community.'}</h3>
+            <p>{it ? "La bacheca, le richieste di volontari, gli avvisi ufficiali: un canale presidiato dall'APS." : 'The notice board, volunteer requests, official announcements: a channel run by the APS.'}</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- wave -->
+  <div class="wwave" aria-hidden="true" style="background:#1F2A2A">
+    <svg viewBox="0 0 1440 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,20 C300,56 600,0 900,32 C1100,52 1300,12 1440,28 L1440,56 L0,56 Z" fill="#CCE4EF"/>
+    </svg>
+  </div>
+
+  <!-- ──────────────────────────────────────────────────── -->
+  <!-- S5 — VANTAGGI                                        -->
+  <!-- ──────────────────────────────────────────────────── -->
+  <section class="ws ws--paper" id="s-vantaggi">
+    <div class="ws-number" aria-hidden="true">05</div>
+    <div class="ws-inner">
+      <p class="ws-eyebrow">{it ? "— Per l'APS —" : '— For the APS —'}</p>
+      <h2 class="ws-title">
+        {it ? <>Vantaggi per <em>l'associazione</em></> : <>Value for <em>the association</em></>}
+      </h2>
+      <div class="wbenefits">
+        <div class="wbenefit">
+          <span class="wbenefit-mark" aria-hidden="true">01 →</span>
+          <p>{it ? 'Visibilità sui motori di ricerca, senza dipendere solo da Facebook.' : 'Visibility on search engines, without depending only on Facebook.'}</p>
+        </div>
+        <div class="wbenefit">
+          <span class="wbenefit-mark" aria-hidden="true">02 →</span>
+          <p>{it ? "Strumento concreto per raccogliere 5×1000 e nuovi soci — c'è una sezione dedicata." : 'Concrete tool to attract 5×1000 donations and new members — with a dedicated section.'}</p>
+        </div>
+        <div class="wbenefit">
+          <span class="wbenefit-mark" aria-hidden="true">03 →</span>
+          <p>{it ? 'Trasparenza: statuto, contatti e documenti sempre accessibili.' : 'Transparency: bylaws, contacts and documents always accessible.'}</p>
+        </div>
+        <div class="wbenefit">
+          <span class="wbenefit-mark" aria-hidden="true">04 →</span>
+          <p>{it ? "Patrimonio editoriale che cresce nel tempo e rimane di proprietà dell'associazione." : 'Editorial heritage that grows over time and remains the property of the association.'}</p>
+        </div>
+      </div>
+      <div class="wcta">
+        <a class="wcta-btn" href={localizedPath(lang, '')}>{it ? 'Esplora il portale' : 'Explore the portal'} <span class="wcta-arr">→</span></a>
+        <a class="wcta-sec" href={localizedPath(lang, 'chi-siamo')}>{it ? "Scopri l'associazione" : 'About the association'}</a>
+      </div>
+    </div>
+  </section>
+
+</Base>
+
+<style>
+  /* ─── Shared section structure ──────────────────────── */
+  .ws {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+  .ws--ink  { background: theme('colors.ink'); }
+  .ws--paper { background: theme('colors.paper'); }
+  .ws--sand  { background: theme('colors.sabbia'); }
+
+  /* ─── Big decorative section number ─────────────────── */
+  .ws-number {
+    position: absolute;
+    left: -0.06em;
+    top: 50%;
+    transform: translateY(-50%) translateX(-18px);
+    font-family: theme('fontFamily.serif');
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(16rem, 26vw, 30rem);
+    line-height: 0.85;
+    letter-spacing: -0.04em;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+    transition: opacity 0.9s 0.1s ease, transform 0.9s 0.1s ease;
+  }
+  .ws--ink  .ws-number { color: rgba(168,116,32,0.10); }
+  .ws--paper .ws-number, .ws--sand .ws-number { color: rgba(31,42,42,0.055); }
+  .ws.wvis .ws-number { opacity: 1; transform: translateY(-50%) translateX(0); }
+
+  /* ─── Slide inner content ────────────────────────────── */
+  .ws-inner {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 7rem 2.5rem 7rem clamp(2.5rem, 8vw, 7rem);
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity 0.6s 0.4s ease, transform 0.6s 0.4s ease;
+  }
+  .ws-inner--wide { max-width: 1080px; }
+  .ws.wvis .ws-inner { opacity: 1; transform: translateY(0); }
+
+  /* ─── Eyebrow / meta ─────────────────────────────────── */
+  .ws-eyebrow {
+    font-family: theme('fontFamily.mono');
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .26em;
+    margin: 0 0 1.25rem;
+  }
+  .ws--ink  .ws-eyebrow { color: theme('colors.gold'); }
+  .ws--paper .ws-eyebrow, .ws--sand .ws-eyebrow { color: theme('colors.acquadeep'); }
+
+  /* ─── Section title ──────────────────────────────────── */
+  .ws-title {
+    font-family: theme('fontFamily.hand');
+    font-weight: 700;
+    font-size: clamp(2.8rem, 6vw, 5.5rem);
+    line-height: 1.02;
+    letter-spacing: -0.01em;
+    margin: 0 0 1.75rem;
+  }
+  .ws--ink  .ws-title { color: rgba(232,244,248,0.95); }
+  .ws--paper .ws-title, .ws--sand .ws-title { color: theme('colors.ink'); }
+  .ws-title em { font-style: italic; }
+  .ws--ink  .ws-title em { color: theme('colors.gold'); }
+  .ws--paper .ws-title em, .ws--sand .ws-title em { color: theme('colors.acquadeep'); }
+
+  /* ─── Body lead text ─────────────────────────────────── */
+  .ws-lead {
+    font-family: theme('fontFamily.serif');
+    font-style: italic;
+    font-size: clamp(1.05rem, 2vw, 1.35rem);
+    line-height: 1.65;
+    max-width: 52ch;
+    margin: 0;
+  }
+  .ws--ink  .ws-lead { color: rgba(232,244,248,0.72); }
+  .ws--paper .ws-lead, .ws--sand .ws-lead { color: theme('colors.ink-soft'); }
+
+  /* ─── S1 decorative "36" quota ───────────────────────── */
+  .ws-quota {
+    position: absolute;
+    right: 3rem;
+    bottom: 3.5rem;
+    font-family: theme('fontFamily.serif');
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(7rem, 14vw, 13rem);
+    line-height: 0.85;
+    color: rgba(204,228,239,0.14);
+    pointer-events: none;
+    user-select: none;
+    letter-spacing: -0.04em;
+    z-index: 0;
+  }
+  .ws-quota small {
+    display: block;
+    font-family: theme('fontFamily.mono');
+    font-size: .9rem;
+    font-style: normal;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    opacity: .6;
+    margin-top: .3rem;
+  }
+
+  /* ─── S1 scroll hint arrow ───────────────────────────── */
+  .ws-next {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(232,244,248,0.28);
+    text-decoration: none;
+    z-index: 2;
+    animation: bounce-down 2.4s ease-in-out infinite;
+    transition: color .2s;
+  }
+  .ws-next:hover { color: theme('colors.gold'); }
+  @keyframes bounce-down {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    55%       { transform: translateX(-50%) translateY(6px); }
+  }
+
+  /* ─── Wave dividers ──────────────────────────────────── */
+  .wwave {
+    display: block;
+    line-height: 0;
+    margin-bottom: -1px;
+    background: theme('colors.ink');
+  }
+  .wwave svg { display: block; width: 100%; height: 56px; }
+
+  /* ─── S2 content tags ────────────────────────────────── */
+  .wtags {
+    list-style: none;
+    padding: 0;
+    margin: 2.25rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .65rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.5s 0.75s ease, transform 0.5s 0.75s ease;
+  }
+  .ws.wvis .wtags { opacity: 1; transform: translateY(0); }
+  .wtag {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .55rem 1.1rem;
+    border: 1.5px solid theme('colors.rule');
+    border-radius: 999px;
+    font-family: theme('fontFamily.mono');
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .16em;
+    color: theme('colors.acquadeep');
+    text-decoration: none;
+    background: rgba(255,255,255,0.55);
+    transition: background .2s, color .2s, border-color .2s, transform .2s;
+  }
+  .wtag:hover {
+    background: theme('colors.acquadeep');
+    color: #fff;
+    border-color: theme('colors.acquadeep');
+    transform: translateY(-2px);
+  }
+
+  /* ─── S3 audience cards ──────────────────────────────── */
+  .waudience {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 2rem;
+    margin: 2rem 0 0;
+    align-items: stretch;
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.55s 0.65s ease, transform 0.55s 0.65s ease;
+  }
+  .ws.wvis .waudience { opacity: 1; transform: translateY(0); }
+  .wcard-sep {
+    width: 1px;
+    background: theme('colors.rule');
+    margin: 1rem 0;
+    align-self: stretch;
+  }
+  .wcard {
+    padding: 1.75rem 1.25rem;
+    border: 1px solid theme('colors.rule');
+    border-radius: .6rem;
+    background: rgba(255,255,255,0.5);
+    display: flex;
+    flex-direction: column;
+    gap: .65rem;
+  }
+  .wcard-mark {
+    color: theme('colors.acquadeep');
+    width: 28px;
+  }
+  .wcard h3 {
+    font-family: theme('fontFamily.hand');
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    color: theme('colors.ink');
+    margin: 0;
+  }
+  .wcard p {
+    font-family: theme('fontFamily.serif');
+    font-style: italic;
+    font-size: 1rem;
+    line-height: 1.55;
+    color: theme('colors.ink-soft');
+    margin: 0;
+    flex: 1;
+  }
+  .wcard-link {
+    font-family: theme('fontFamily.mono');
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    color: theme('colors.brand-deep');
+    text-decoration: none;
+    margin-top: auto;
+    transition: color .2s;
+  }
+  .wcard-link:hover { color: theme('colors.brand'); }
+  .waudience-note {
+    margin: 2rem 0 0;
+    font-family: theme('fontFamily.serif');
+    font-style: italic;
+    font-size: 1.2rem;
+    color: theme('colors.acquadeep');
+    opacity: 0;
+    transition: opacity 0.5s 0.9s ease;
+  }
+  .ws.wvis .waudience-note { opacity: 1; }
+
+  /* ─── S4 goals list ──────────────────────────────────── */
+  .wgoals {
+    list-style: none;
+    padding: 0;
+    margin: 2rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .wgoal {
+    display: grid;
+    grid-template-columns: 4.5rem 1fr;
+    gap: 1.5rem;
+    align-items: start;
+    padding: 1.75rem 0;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    opacity: 0;
+    transform: translateX(-16px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .wgoal:last-child { border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .wgoal:nth-child(1) { transition-delay: 0.5s; }
+  .wgoal:nth-child(2) { transition-delay: 0.65s; }
+  .wgoal:nth-child(3) { transition-delay: 0.8s; }
+  .ws.wvis .wgoal { opacity: 1; transform: translateX(0); }
+  .wgoal-num {
+    font-family: theme('fontFamily.serif');
+    font-style: italic;
+    font-weight: 300;
+    font-size: 2.2rem;
+    line-height: 1;
+    color: theme('colors.gold');
+    padding-top: .15rem;
+    letter-spacing: .04em;
+  }
+  .wgoal h3 {
+    font-family: theme('fontFamily.hand');
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: rgba(232,244,248,0.95);
+    margin: 0 0 .4rem;
+  }
+  .wgoal p {
+    font-family: theme('fontFamily.serif');
+    font-style: italic;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: rgba(232,244,248,0.62);
+    margin: 0;
+  }
+
+  /* ─── S5 benefits grid ───────────────────────────────── */
+  .wbenefits {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin: 2rem 0 0;
+  }
+  .wbenefit {
+    padding: 1.5rem;
+    border: 1px solid theme('colors.rule');
+    border-radius: .5rem;
+    background: rgba(255,255,255,0.5);
+    display: flex;
+    flex-direction: column;
+    gap: .65rem;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.45s ease, transform 0.45s ease;
+  }
+  .wbenefit:nth-child(1) { transition-delay: 0.45s; }
+  .wbenefit:nth-child(2) { transition-delay: 0.58s; }
+  .wbenefit:nth-child(3) { transition-delay: 0.71s; }
+  .wbenefit:nth-child(4) { transition-delay: 0.84s; }
+  .ws.wvis .wbenefit { opacity: 1; transform: translateY(0); }
+  .wbenefit:hover { background: rgba(255,255,255,0.8); }
+  .wbenefit-mark {
+    font-family: theme('fontFamily.mono');
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    color: theme('colors.gold');
+  }
+  .wbenefit p {
+    font-family: theme('fontFamily.serif');
+    font-style: italic;
+    font-size: .98rem;
+    line-height: 1.6;
+    color: theme('colors.ink-soft');
+    margin: 0;
+  }
+
+  /* ─── S5 CTA ─────────────────────────────────────────── */
+  .wcta {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-top: 3rem;
+    flex-wrap: wrap;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.5s 1.05s ease, transform 0.5s 1.05s ease;
+  }
+  .ws.wvis .wcta { opacity: 1; transform: translateY(0); }
+  .wcta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    padding: .9rem 1.6rem;
+    background: theme('colors.ink');
+    color: theme('colors.paper');
+    border: 1.5px solid theme('colors.ink');
+    border-radius: 999px;
+    font-family: theme('fontFamily.mono');
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    text-decoration: none;
+    transition: background .25s, border-color .25s;
+  }
+  .wcta-btn:hover { background: theme('colors.acquadeep'); border-color: theme('colors.acquadeep'); }
+  .wcta-arr { transition: transform .25s; }
+  .wcta-btn:hover .wcta-arr { transform: translateX(4px); }
+  .wcta-sec {
+    font-family: theme('fontFamily.mono');
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .18em;
+    color: theme('colors.acquadeep');
+    text-decoration: none;
+    transition: color .2s;
+  }
+  .wcta-sec:hover { color: theme('colors.brand'); }
+
+  /* ─── Side dots navigation ───────────────────────────── */
+  .wdots {
+    display: none;
+  }
+  @media (min-width: 1100px) {
+    .wdots {
+      display: flex;
+      flex-direction: column;
+      gap: .9rem;
+      position: fixed;
+      right: 1.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 20;
+    }
+    .wdot {
+      position: relative;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,0.28);
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+      transition: background .25s, border-color .25s, transform .25s;
+    }
+    .wdot:hover, .wdot.wdot--on {
+      background: theme('colors.gold');
+      border-color: theme('colors.gold');
+      transform: scale(1.35);
+    }
+    .wdot-tip {
+      position: absolute;
+      right: calc(100% + .75rem);
+      top: 50%;
+      transform: translateY(-50%);
+      white-space: nowrap;
+      font-family: theme('fontFamily.mono');
+      font-size: .65rem;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      color: rgba(232,244,248,0.7);
+      background: rgba(15,22,28,0.78);
+      padding: .3rem .55rem;
+      border-radius: .25rem;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .wdot:hover .wdot-tip { opacity: 1; }
+  }
+
+  /* ─── Mobile responsive ──────────────────────────────── */
+  @media (max-width: 900px) {
+    .ws-inner { padding: 5rem 1.5rem 5rem 1.5rem; }
+    .ws-number { font-size: clamp(9rem, 20vw, 16rem); opacity: 0.04 !important; left: -0.04em; }
+    .ws.wvis .ws-number { opacity: 0.04 !important; transform: translateY(-50%) translateX(0); }
+    .waudience { grid-template-columns: 1fr; }
+    .wcard-sep { display: none; }
+    .wbenefits { grid-template-columns: 1fr; }
+    .ws-quota { font-size: 5rem; right: 1rem; bottom: 1.5rem; }
+    .wgoal { grid-template-columns: 3rem 1fr; gap: 1rem; }
+  }
+</style>
+
+<script>
+  (function () {
+    const slides = document.querySelectorAll<HTMLElement>('.ws');
+    const dots   = document.querySelectorAll<HTMLElement>('.wdot');
+
+    // Map section ids to dots
+    const ids = Array.from(slides).map(s => s.id);
+
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            (entry.target as HTMLElement).classList.add('wvis');
+            const idx = ids.indexOf((entry.target as HTMLElement).id);
+            dots.forEach((d, i) => d.classList.toggle('wdot--on', i === idx));
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    slides.forEach(s => obs.observe(s));
+
+    // Dot click → smooth scroll
+    dots.forEach((dot) => {
+      dot.addEventListener('click', () => {
+        const target = dot.dataset.to;
+        const el = target ? document.getElementById(target) : null;
+        el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    // Keyboard arrow nav between sections
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+      const active = Array.from(slides).findIndex(s => s.classList.contains('wvis'));
+      const next = e.key === 'ArrowDown'
+        ? Math.min(active + 1, slides.length - 1)
+        : Math.max(active - 1, 0);
+      if (next !== active) {
+        e.preventDefault();
+        slides[next].scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  })();
+</script>

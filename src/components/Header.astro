@@ -168,6 +168,11 @@ const navItems = [
         <a href={item.href} aria-haspopup="true" aria-expanded="false"><span class="label">{item.label}</span></a>
       </div>
     ))}
+    <div class="nav-item nav-item--portal" data-pane="">
+      <a href={localizedPath(lang, 'portale')} aria-haspopup="false">
+        <span class="label">{lang === 'it' ? 'Un portale unico' : 'Our portal'}</span>
+      </a>
+    </div>
     <span class="indicator" id="indicator" aria-hidden="true"></span>
   </nav>
 
@@ -251,6 +256,12 @@ const navItems = [
           </a>
         </li>
       ))}
+      <li class="drawer-item" style={`--i:${navItems.length}`}>
+        <a class="drawer-toggle" href={localizedPath(lang, 'portale')}>
+          <span class="drawer-label">{lang === 'it' ? 'Un portale unico' : 'Our portal'}</span>
+          <span class="drawer-arrow" aria-hidden="true">→</span>
+        </a>
+      </li>
     </ol>
   </nav>
 
@@ -839,6 +850,10 @@ const navItems = [
       });
     }
     function showPane(key: string | null) {
+      if (!key || !Array.from(panes).some(p => (p as HTMLElement).dataset.pane === key)) {
+        closePanel();
+        return;
+      }
       panes.forEach((p) => p.classList.toggle('show', (p as HTMLElement).dataset.pane === key));
       panel?.classList.add('open');
       setExpanded(key);
