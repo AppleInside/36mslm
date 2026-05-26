@@ -24,7 +24,7 @@ const t = useTranslations(lang);
 
     <!-- ── Sostieni ───────────────────────────── -->
     <div class="hub-card">
-      <a class="hub-img-link" href={localizedPath(lang, 'partecipa/5x1000')}>
+      <a class="hub-img-link" href={localizedPath(lang, 'partecipa/volontari')}>
         <div class="hub-img" style="--img: url('/media/legacy/wp-content_uploads_2021_09_partecipavano-allultima-serata-del-bar-della-Brucata.jpg')">
           <div class="hub-caption">
             <p class="hub-eyebrow">{lang === 'it' ? '— Partecipa —' : '— Get involved —'}</p>
@@ -33,12 +33,6 @@ const t = useTranslations(lang);
         </div>
       </a>
       <ul class="hub-links">
-        <li>
-          <a href={localizedPath(lang, 'partecipa/5x1000')}>
-            {lang === 'it' ? '5×1000 all\'associazione' : '5×1000 to the association'}
-            <span class="arr">→</span>
-          </a>
-        </li>
         <li>
           <a href={localizedPath(lang, 'partecipa/volontari')}>
             {lang === 'it' ? 'Volontari per gli eventi' : 'Volunteers for events'}

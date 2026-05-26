@@ -54,7 +54,8 @@ export const POST: APIRoute = async ({ request, redirect, params }) => {
         UPDATE events
         SET title=${d.title}, slug=${d.slug}, date=${d.date}, time_start=${d.time_start},
             time_end=${d.time_end}, location=${d.location}, description=${d.description},
-            cover_url=${cover_url}, signup_required=${d.signup_required}, status=${d.status}
+            cover_url=${cover_url}, signup_required=${d.signup_required}, status=${d.status},
+            publish_at=${d.publish_at ?? null}
         WHERE id=${eventId} AND lang='it'
       `;
     } else {
@@ -62,7 +63,8 @@ export const POST: APIRoute = async ({ request, redirect, params }) => {
         UPDATE events
         SET title=${d.title}, slug=${d.slug}, date=${d.date}, time_start=${d.time_start},
             time_end=${d.time_end}, location=${d.location}, description=${d.description},
-            signup_required=${d.signup_required}, status=${d.status}
+            signup_required=${d.signup_required}, status=${d.status},
+            publish_at=${d.publish_at ?? null}
         WHERE id=${eventId} AND lang='it'
       `;
     }

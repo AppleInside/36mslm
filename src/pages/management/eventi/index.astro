@@ -13,14 +13,17 @@ type EventRow = {
   location: string | null;
   signup_required: boolean;
   status: 'draft' | 'published';
+  publish_at: Date | null;
 };
 
 const events = await sql<EventRow[]>`
-  SELECT id, title, date::text, location, signup_required, status
+  SELECT id, title, date::text, location, signup_required, status, publish_at
   FROM events
   WHERE lang = 'it'
   ORDER BY date DESC
 `;
+
+const now = new Date();
 
 const ok  = Astro.url.searchParams.get('ok');
 const err = Astro.url.searchParams.get('err');
@@ -130,9 +133,11 @@ function fmtDate(d: string) {
                   }
                 </td>
                 <td>
-                  {ev.status === 'published'
-                    ? <span class="badge badge--teal">Pubblicato</span>
-                    : <span class="badge badge--dim">Bozza</span>
+                  {ev.status === 'published' && ev.publish_at && new Date(ev.publish_at) > now
+                    ? <span class="badge badge--amber">Programmato</span>
+                    : ev.status === 'published'
+                      ? <span class="badge badge--teal">Pubblicato</span>
+                      : <span class="badge badge--dim">Bozza</span>
                   }
                 </td>
                 <td>
@@ -521,6 +526,12 @@ function fmtDate(d: string) {
     background: rgba(216,161,74,0.10);
     color: #D8A14A;
     border-color: rgba(216,161,74,0.22);
+  }
+
+  .badge--amber {
+    background: rgba(251,146,60,0.10);
+    color: #FB923C;
+    border-color: rgba(251,146,60,0.28);
   }
 
   /* Row actions */

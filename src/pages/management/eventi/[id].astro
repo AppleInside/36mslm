@@ -14,10 +14,11 @@ type EventRow = {
   location: string | null; description: string | null;
   cover_url: string | null; signup_required: boolean;
   status: 'draft' | 'published';
+  publish_at: Date | null;
 };
 
 const rows = await sql<EventRow[]>`
-  SELECT id, title, slug, date, time_start, time_end, location, description, cover_url, signup_required, status
+  SELECT id, title, slug, date, time_start, time_end, location, description, cover_url, signup_required, status, publish_at
   FROM events WHERE id = ${Number(id)} AND lang = 'it' LIMIT 1
 `;
 const event = rows[0];
@@ -28,6 +29,9 @@ const dateStr = event.date instanceof Date
   : String(event.date).slice(0, 10);
 const timeStart = event.time_start?.slice(0, 5) ?? '';
 const timeEnd = event.time_end?.slice(0, 5) ?? '';
+const publishAtStr = event.publish_at
+  ? (event.publish_at instanceof Date ? event.publish_at.toISOString() : String(event.publish_at)).slice(0, 16)
+  : '';
 ---
 
 <Management title={`Modifica: ${event.title}`} userDisplayName={userDisplayName}>
@@ -153,7 +157,7 @@ const timeEnd = event.time_end?.slice(0, 5) ?? '';
         </div>
       </div>
 
-      <div class="ed-field-row">
+      <div class="ed-field-row ed-field-row--3">
         <div class="ed-field">
           <label class="ed-label" for="status">Stato</label>
           <select id="status" name="status" class="ed-input ed-input--select">
@@ -161,7 +165,17 @@ const timeEnd = event.time_end?.slice(0, 5) ?? '';
             <option value="published" selected={event.status === 'published'}>Pubblicato</option>
           </select>
         </div>
-        <div class="ed-field ed-field--center">
+        <div class="ed-field">
+          <label class="ed-label" for="publish_at">
+            Pubblica il
+            <span class="ed-label-note">Programmata</span>
+          </label>
+          <input id="publish_at" name="publish_at" type="datetime-local"
+            value={publishAtStr} class="ed-input" />
+          <p class="ed-hint">Lascia vuoto per pubblicare subito.</p>
+        </div>
+        <div class="ed-field">
+          <span class="ed-label" aria-hidden="true" style="visibility:hidden">&nbsp;</span>
           <label class="sb-toggle" for="signup_required">
             <input id="signup_required" name="signup_required" type="checkbox"
               value="on" checked={event.signup_required}

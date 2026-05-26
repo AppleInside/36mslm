@@ -44,8 +44,8 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 
   try {
     await sql`
-      INSERT INTO events (lang, slug, title, date, time_start, time_end, location, description, cover_url, signup_required, status)
-      VALUES ('it', ${d.slug}, ${d.title}, ${d.date}, ${d.time_start}, ${d.time_end}, ${d.location}, ${d.description}, ${cover_url}, ${d.signup_required}, ${d.status})
+      INSERT INTO events (lang, slug, title, date, time_start, time_end, location, description, cover_url, signup_required, status, publish_at)
+      VALUES ('it', ${d.slug}, ${d.title}, ${d.date}, ${d.time_start}, ${d.time_end}, ${d.location}, ${d.description}, ${cover_url}, ${d.signup_required}, ${d.status}, ${d.publish_at ?? null})
     `;
   } catch (err) {
     console.error('[eventi/create] db error:', err);

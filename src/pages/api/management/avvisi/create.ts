@@ -18,9 +18,9 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 
   try {
     await sql`
-      INSERT INTO notices (lang, slug, title, body, date, priority, cta, tags, expires_at, status)
+      INSERT INTO notices (lang, slug, title, body, date, priority, cta, tags, expires_at, status, publish_at)
       VALUES ('it', ${d.slug}, ${d.title}, ${d.body}, ${d.date}, ${d.priority},
-              ${d.cta}, ${tags}, ${d.expires_at}, ${d.status})
+              ${d.cta}, ${tags}, ${d.expires_at}, ${d.status}, ${d.publish_at ?? null})
     `;
   } catch (err) {
     console.error('[avvisi/create] db error:', err);

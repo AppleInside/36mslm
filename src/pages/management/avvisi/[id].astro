@@ -17,10 +17,11 @@ type NoticeRow = {
   tags: string[];
   expires_at: Date | null;
   status: 'draft' | 'published';
+  publish_at: Date | null;
 };
 
 const rows = await sql<NoticeRow[]>`
-  SELECT id, title, slug, body, date, priority, cta, tags, expires_at, status
+  SELECT id, title, slug, body, date, priority, cta, tags, expires_at, status, publish_at
   FROM notices WHERE id = ${Number(id)} AND lang = 'it' LIMIT 1
 `;
 const notice = rows[0];
@@ -32,9 +33,12 @@ function toDateStr(d: Date | null) {
   return v.slice(0, 10);
 }
 
-const dateStr     = toDateStr(notice.date);
-const expiresStr  = toDateStr(notice.expires_at);
-const tagsStr     = (notice.tags ?? []).join(', ');
+const dateStr      = toDateStr(notice.date);
+const expiresStr   = toDateStr(notice.expires_at);
+const tagsStr      = (notice.tags ?? []).join(', ');
+const publishAtStr = notice.publish_at
+  ? (notice.publish_at instanceof Date ? notice.publish_at.toISOString() : String(notice.publish_at)).slice(0, 16)
+  : '';
 ---
 
 <Management title={`Modifica: ${notice.title}`} userDisplayName={userDisplayName}>
@@ -95,17 +99,25 @@ const tagsStr     = (notice.tags ?? []).join(', ');
         <span class="hint">Separati da virgola.</span>
       </div>
 
-      <div class="row-2 row-align-end">
-        <label class="checkbox-label">
-          <input name="priority" type="checkbox" value="on" checked={notice.priority} class="checkbox" />
-          <span class="checkbox-text">Priorità alta</span>
-        </label>
+      <div class="row-3 row-align-end">
         <div class="field">
           <label for="status">Stato</label>
           <select id="status" name="status">
             <option value="draft"     selected={notice.status === 'draft'}>Bozza</option>
             <option value="published" selected={notice.status === 'published'}>Pubblicato</option>
           </select>
+        </div>
+        <div class="field">
+          <label for="publish_at">Pubblica il <span class="req">⏱</span></label>
+          <input id="publish_at" name="publish_at" type="datetime-local" value={publishAtStr} />
+          <span class="hint">Lascia vuoto per pubblicare subito.</span>
+        </div>
+        <div class="field">
+          <label style="visibility:hidden" aria-hidden="true">&nbsp;</label>
+          <label class="checkbox-label">
+            <input name="priority" type="checkbox" value="on" checked={notice.priority} class="checkbox" />
+            <span class="checkbox-text">Priorità alta</span>
+          </label>
         </div>
       </div>
 
@@ -152,8 +164,9 @@ const tagsStr     = (notice.tags ?? []).join(', ');
 
   .form-header {
     display: flex;
-    align-items: center;
-    gap: 1.25rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
     padding-bottom: 1.5rem;
     border-bottom: 1px solid rgba(232,220,200,0.06);
   }
@@ -249,7 +262,7 @@ const tagsStr     = (notice.tags ?? []).join(', ');
   .md-split {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
+    gap: 1.5rem;
   }
 
   .md-preview {

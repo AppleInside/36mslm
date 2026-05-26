@@ -1,0 +1,175 @@
+---
+export const prerender = false;
+import Management from '../../../layouts/Management.astro';
+import { sql } from '../../../server/db';
+
+const userDisplayName = Astro.locals.userDisplayName;
+const { id } = Astro.params;
+
+type SightingRow = {
+  id: number;
+  title: string;
+  slug: string;
+  category: string;
+  date: Date | null;
+  coords: [number, number] | null;
+  notes: string | null;
+  body: string | null;
+  status: 'draft' | 'published';
+};
+
+const rows = await sql<SightingRow[]>`
+  SELECT id, title, slug, category, date, coords, notes, body, status
+  FROM sightings WHERE id = ${Number(id)} AND lang = 'it' LIMIT 1
+`;
+const s = rows[0];
+if (!s) return Astro.redirect('/management/fauna?err=1', 302);
+
+function toDateStr(d: Date | null) {
+  if (!d) return '';
+  const v = d instanceof Date ? d.toISOString() : String(d);
+  return v.slice(0, 10);
+}
+
+const dateStr  = toDateStr(s.date);
+const coordArr = Array.isArray(s.coords) ? s.coords : [];
+const latStr   = coordArr[0] != null ? String(coordArr[0]) : '';
+const lngStr   = coordArr[1] != null ? String(coordArr[1]) : '';
+---
+
+<Management title={`Modifica: ${s.title}`} userDisplayName={userDisplayName}>
+  <div class="form-page">
+
+    <div class="form-header">
+      <a href="/management/fauna" class="back-link">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M9 2L4 7L9 12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Fauna e Flora
+      </a>
+      <h1 class="form-title">Modifica avvistamento</h1>
+    </div>
+
+    <form method="POST" action={`/api/management/fauna/${s.id}/update`} class="form-card">
+
+      <!-- Specie · Slug -->
+      <div class="row-3c">
+        <div class="field span-2">
+          <label for="title">Specie / Titolo <span class="req">*</span></label>
+          <input id="title" name="title" type="text" required value={s.title} autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="slug">Slug <span class="req">*</span></label>
+          <input id="slug" name="slug" type="text" required pattern="[a-z0-9-]+" value={s.slug} class="mono" autocomplete="off" />
+          <span class="hint">Modificare lo slug rompe i link esistenti.</span>
+        </div>
+      </div>
+
+      <!-- Categoria · Data · Stato -->
+      <div class="row-3c">
+        <div class="field">
+          <label for="category">Categoria <span class="req">*</span></label>
+          <select id="category" name="category">
+            <option value="uccello"   selected={s.category === 'uccello'}>Uccello</option>
+            <option value="mammifero" selected={s.category === 'mammifero'}>Mammifero</option>
+            <option value="pesce"     selected={s.category === 'pesce'}>Pesce</option>
+            <option value="rettile"   selected={s.category === 'rettile'}>Rettile</option>
+            <option value="anfibio"   selected={s.category === 'anfibio'}>Anfibio</option>
+            <option value="pianta"    selected={s.category === 'pianta'}>Pianta</option>
+            <option value="altro"     selected={s.category === 'altro'}>Altro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="date">Data avvistamento</label>
+          <input id="date" name="date" type="date" value={dateStr} />
+        </div>
+        <div class="field">
+          <label for="status">Stato</label>
+          <select id="status" name="status">
+            <option value="draft"     selected={s.status === 'draft'}>Bozza</option>
+            <option value="published" selected={s.status === 'published'}>Pubblicato</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Coordinate -->
+      <div class="row-2c">
+        <div class="field">
+          <label for="coords_lat">Latitudine</label>
+          <input id="coords_lat" name="coords_lat" type="text" class="mono" value={latStr} placeholder="44.9351" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="coords_lng">Longitudine</label>
+          <input id="coords_lng" name="coords_lng" type="text" class="mono" value={lngStr} placeholder="10.1245" autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="notes">Note brevi</label>
+        <textarea id="notes" name="notes" rows="3">{s.notes ?? ''}</textarea>
+      </div>
+
+      <div class="field">
+        <label for="body">Approfondimento (Markdown)</label>
+        <div class="md-split">
+          <textarea id="body" name="body" rows="10" class="mono">{s.body ?? ''}</textarea>
+          <div id="md-preview" class="md-preview">
+            <span class="preview-placeholder">Anteprima…</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-footer">
+        <a href="/management/fauna" class="btn-cancel">Annulla</a>
+        <button type="submit" class="btn-submit">Salva modifiche</button>
+      </div>
+
+    </form>
+  </div>
+</Management>
+
+<script>
+  import { marked } from 'marked';
+  const bodyEl  = document.getElementById('body') as HTMLTextAreaElement;
+  const preview = document.getElementById('md-preview');
+
+  function updatePreview() {
+    if (!preview) return;
+    const text = bodyEl?.value ?? '';
+    preview.innerHTML = text
+      ? String(marked.parse(text))
+      : '<span class="preview-placeholder">Anteprima…</span>';
+  }
+  bodyEl?.addEventListener('input', updatePreview);
+  updatePreview();
+</script>
+
+<style>
+  .form-page { max-width: 860px; display: flex; flex-direction: column; gap: 1.75rem; animation: page-in 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+  @keyframes page-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .form-header { display: flex; flex-direction: column; align-items: flex-start; gap: 0.4rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(232,220,200,0.06); }
+  .back-link { display: inline-flex; align-items: center; gap: 0.35rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(232,220,200,0.35); text-decoration: none; transition: color 0.2s; flex-shrink: 0; }
+  .back-link:hover { color: rgba(232,220,200,0.7); }
+  .form-title { font-family: 'Fraunces', Georgia, serif; font-size: 1.9rem; font-weight: 300; color: #E8DCC8; letter-spacing: -0.01em; }
+  .form-card { background: rgba(232,220,200,0.02); border: 1px solid rgba(232,220,200,0.07); border-radius: 8px; padding: 1.75rem; display: flex; flex-direction: column; gap: 1.5rem; }
+  .field { display: flex; flex-direction: column; gap: 0.4rem; }
+  .field label { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; font-weight: 400; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(232,220,200,0.4); }
+  .req { color: rgba(216,161,74,0.7); }
+  .field input, .field textarea, .field select { background: rgba(232,220,200,0.04); border: 1px solid rgba(232,220,200,0.10); border-radius: 4px; padding: 0.65rem 0.75rem; font-family: 'Fraunces', Georgia, serif; font-size: 0.95rem; font-weight: 300; color: #E8DCC8; outline: none; transition: border-color 0.2s, background 0.2s; width: 100%; }
+  .field input.mono, .field textarea.mono { font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; }
+  .field input::placeholder, .field textarea::placeholder { color: rgba(232,220,200,0.2); }
+  .field input:focus, .field textarea:focus, .field select:focus { border-color: rgba(216,161,74,0.45); background: rgba(232,220,200,0.06); }
+  .field select option { background: #0D2220; }
+  .hint { font-family: 'IBM Plex Mono', monospace; font-size: 0.62rem; color: rgba(232,220,200,0.25); letter-spacing: 0.03em; }
+  .md-split { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .md-preview { background: rgba(232,220,200,0.03); border: 1px solid rgba(232,220,200,0.08); border-radius: 4px; padding: 0.75rem; min-height: 200px; font-family: 'Fraunces', Georgia, serif; font-size: 0.9rem; font-weight: 300; color: rgba(232,220,200,0.7); line-height: 1.7; overflow-y: auto; }
+  .preview-placeholder { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; color: rgba(232,220,200,0.18); }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; }
+  .form-footer { display: flex; justify-content: flex-end; gap: 0.75rem; padding-top: 0.5rem; border-top: 1px solid rgba(232,220,200,0.06); }
+  .btn-cancel { padding: 0.6rem 1.1rem; background: none; border: 1px solid rgba(232,220,200,0.12); border-radius: 3px; color: rgba(232,220,200,0.45); font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none; transition: border-color 0.2s, color 0.2s; }
+  .btn-cancel:hover { border-color: rgba(232,220,200,0.3); color: rgba(232,220,200,0.7); }
+  .btn-submit { padding: 0.6rem 1.4rem; background: #D8A14A; border: none; border-radius: 3px; color: #1A0E00; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; transition: background 0.2s, transform 0.15s; }
+  .btn-submit:hover { background: #E8B05A; transform: translateY(-1px); }
+  @media (max-width: 700px) { .row-2, .row-3 { grid-template-columns: 1fr; } .md-split { grid-template-columns: 1fr; } .md-preview { min-height: 120px; } }
+</style>

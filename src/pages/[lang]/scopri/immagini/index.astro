@@ -50,11 +50,22 @@ const photos = files.map(f => ({
 
   <div class="gallery">
     {photos.map(p => (
-      <figure class="gf">
-        <img src={p.src} alt={p.caption} loading="lazy" />
+      <figure class="gf" data-src={p.src} data-caption={p.caption}>
+        <img src={p.src} alt={p.caption} loading="lazy" draggable="false" />
         <figcaption>{p.caption}</figcaption>
       </figure>
     ))}
+  </div>
+
+  <div id="lb" aria-modal="true" role="dialog" aria-label={lang === 'it' ? 'Immagine ingrandita' : 'Enlarged image'}>
+    <button id="lb-close" aria-label="Chiudi">✕</button>
+    <figure id="lb-fig">
+      <div class="lb-wrap">
+        <img id="lb-img" src="" alt="" draggable="false" />
+        <div class="lb-shield"></div>
+      </div>
+      <figcaption id="lb-cap"></figcaption>
+    </figure>
   </div>
 </Base>
 
@@ -114,4 +125,111 @@ const photos = files.map(f => ({
     opacity: 1;
     transform: translateY(0);
   }
+  /* transparent overlay intercepts right-click on the img */
+  .gf::after {
+    content: '';
+    position: absolute; inset: 0;
+    z-index: 2;
+  }
+
+  /* ── Lightbox ─────────────────────────────────────── */
+  #lb {
+    display: none;
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(8, 14, 20, 0.92);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    align-items: center; justify-content: center;
+    padding: 1.5rem;
+    cursor: zoom-out;
+  }
+  #lb.open { display: flex; }
+
+  #lb-fig {
+    margin: 0;
+    display: flex; flex-direction: column; align-items: center;
+    max-width: min(90vw, 1100px);
+    animation: lb-in .25s cubic-bezier(.2,.7,.2,1) both;
+    cursor: default;
+  }
+  @keyframes lb-in {
+    from { opacity: 0; transform: scale(.94); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  .lb-wrap {
+    position: relative;
+    line-height: 0;
+  }
+  #lb-img {
+    display: block;
+    max-height: 80vh; max-width: 100%;
+    object-fit: contain;
+    border-radius: 6px;
+    box-shadow: 0 24px 80px rgba(0,0,0,.6);
+  }
+  .lb-shield {
+    position: absolute; inset: 0;
+    z-index: 1;
+    cursor: default;
+  }
+
+  #lb-fig figcaption {
+    position: static;
+    background: none;
+    opacity: 1; transform: none;
+    margin-top: .75rem;
+    color: rgba(232,244,248,.65);
+    font-size: .75rem;
+    font-family: theme('fontFamily.mono');
+    letter-spacing: .1em;
+    text-align: center;
+    padding: 0;
+    max-width: 60ch;
+  }
+
+  #lb-close {
+    position: fixed; top: 1.25rem; right: 1.5rem;
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.22);
+    color: rgba(232,244,248,.85);
+    width: 40px; height: 40px; border-radius: 50%;
+    font-size: 1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .2s;
+    z-index: 1;
+  }
+  #lb-close:hover { background: rgba(255,255,255,.24); }
 </style>
+
+<script>
+  const lb    = document.getElementById('lb')!;
+  const lbImg = document.getElementById('lb-img') as HTMLImageElement;
+  const lbCap = document.getElementById('lb-cap')!;
+
+  document.querySelectorAll<HTMLElement>('.gf').forEach(fig => {
+    fig.addEventListener('click', () => {
+      const src     = fig.dataset.src ?? '';
+      const caption = fig.dataset.caption ?? '';
+      lbImg.src = src;
+      lbImg.alt = caption;
+      lbCap.textContent = caption;
+      lb.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    });
+  });
+
+  function close() {
+    lb.classList.remove('open');
+    document.body.style.overflow = '';
+    lbImg.src = '';
+  }
+
+  lb.addEventListener('click', e => { if (e.target === lb) close(); });
+  document.getElementById('lb-close')!.addEventListener('click', close);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+
+  // Block right-click "Save image as" on gallery and lightbox
+  document.querySelector('.gallery')!.addEventListener('contextmenu', e => e.preventDefault());
+  lb.addEventListener('contextmenu', e => e.preventDefault());
+</script>

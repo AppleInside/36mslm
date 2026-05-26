@@ -13,11 +13,11 @@ const t = useTranslations(lang);
 const now = new Date();
 
 const all = await getEvents(lang);
-const future = all.filter(e => new Date(e.date) >= now);
-const past = all.filter(e => new Date(e.date) < now).reverse();
+const future = all.filter(e => new Date(e.date) >= now).reverse();
+const past   = all.filter(e => new Date(e.date) <  now).reverse();
 const events = [
   ...future.map(e => ({ event: e, past: false })),
-  ...past.map(e  => ({ event: e, past: true  })),
+  ...past.map(e   => ({ event: e, past: true  })),
 ];
 ---
 

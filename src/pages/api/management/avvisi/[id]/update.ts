@@ -30,7 +30,8 @@ export const POST: APIRoute = async ({ request, redirect, params }) => {
         cta        = ${d.cta},
         tags       = ${tags},
         expires_at = ${d.expires_at},
-        status     = ${d.status}
+        status     = ${d.status},
+        publish_at = ${d.publish_at ?? null}
       WHERE id = ${id} AND lang = 'it'
     `;
   } catch (err) {

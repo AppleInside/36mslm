@@ -12,10 +12,11 @@ type NoticeRow = {
   expires_at: string | null;
   priority: boolean;
   status: 'draft' | 'published';
+  publish_at: Date | null;
 };
 
 const notices = await sql<NoticeRow[]>`
-  SELECT id, title, date::text, expires_at::text, priority, status
+  SELECT id, title, date::text, expires_at::text, priority, status, publish_at
   FROM notices
   WHERE lang = 'it'
   ORDER BY priority DESC, created_at DESC
@@ -24,7 +25,8 @@ const notices = await sql<NoticeRow[]>`
 const ok  = Astro.url.searchParams.get('ok');
 const err = Astro.url.searchParams.get('err');
 
-const todayStr = new Date().toISOString().slice(0, 10);
+const now      = new Date();
+const todayStr = now.toISOString().slice(0, 10);
 
 function isExpired(d: string | null) {
   return d ? d < todayStr : false;
@@ -127,9 +129,11 @@ function fmtDate(d: string | null) {
                   }
                 </td>
                 <td>
-                  {n.status === 'published'
-                    ? <span class="badge badge--teal">Pubblicato</span>
-                    : <span class="badge badge--dim">Bozza</span>
+                  {n.status === 'published' && n.publish_at && new Date(n.publish_at) > now
+                    ? <span class="badge badge--amber">Programmato</span>
+                    : n.status === 'published'
+                      ? <span class="badge badge--teal">Pubblicato</span>
+                      : <span class="badge badge--dim">Bozza</span>
                   }
                 </td>
                 <td>
@@ -370,6 +374,7 @@ function fmtDate(d: string | null) {
   .badge--teal     { background: rgba(74,102,112,0.18);  color: #7BC4B4;  border-color: rgba(74,102,112,0.32); }
   .badge--dim      { background: rgba(232,220,200,0.04); color: rgba(232,220,200,0.38); border-color: rgba(232,220,200,0.10); }
   .badge--priority { background: rgba(216,161,74,0.12);  color: #D8A14A;  border-color: rgba(216,161,74,0.25); }
+  .badge--amber    { background: rgba(251,146,60,0.10);  color: #FB923C;  border-color: rgba(251,146,60,0.28); }
 
   .row-actions {
     display: flex;

@@ -13,6 +13,7 @@ export const managementNoticeSchema = z.object({
   tags:       optionalStr,
   expires_at: optionalDate,
   status:     z.enum(['draft', 'published']),
+  publish_at: z.string().transform(v => v.trim() || null).nullable().optional().default(null),
 });
 
 export type ManagementNoticeInput = z.infer<typeof managementNoticeSchema>;

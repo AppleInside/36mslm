@@ -8,7 +8,7 @@ export const ui = {
     'nav.discover': 'Scopri',
     'nav.participate': 'Partecipa',
     'nav.about': 'Chi siamo',
-    'nav.contact': 'Contatti',
+    'nav.contact': 'Contattaci',
     'nav.discover.territory': 'Territorio',
     'nav.discover.recipes': 'Ricettario',
     'nav.discover.stories': 'Il dialetto e i modi di dire',

@@ -45,7 +45,6 @@ const navItems = [
         links: [
           { label: lang === 'it' ? 'Tutti gli <em>eventi</em>' : 'All <em>events</em>', href: localizedPath(lang, 'eventi/calendario') },
           { label: lang === 'it' ? 'Bacheca <em>e avvisi</em>' : 'Notice <em>board</em>', href: localizedPath(lang, 'eventi/bacheca') },
-          { label: lang === 'it' ? 'Segnala <em>un evento</em>' : 'Report <em>an event</em>', href: localizedPath(lang, 'eventi/segnala') },
         ],
       },
       {
@@ -109,7 +108,6 @@ const navItems = [
       {
         title: lang === 'it' ? 'Sostieni' : 'Support',
         links: [
-          { label: lang === 'it' ? '<em>5×1000</em> all\'associazione' : '<em>5×1000</em> to the association', href: localizedPath(lang, 'partecipa/5x1000') },
           { label: lang === 'it' ? '<em>Volontari</em> per gli eventi' : '<em>Volunteers</em> for events', href: localizedPath(lang, 'partecipa/volontari') },
         ],
       },
@@ -140,15 +138,16 @@ const navItems = [
       {
         title: lang === 'it' ? 'Recapiti' : 'Contacts',
         links: [
-          { label: 'info@polesineparmense36.it', href: 'mailto:info@polesineparmense36.it' },
+          { label: lang === 'it' ? '<em>Scrivici</em>' : '<em>Write to us</em>', href: 'mailto:info@polesineparmense36.it' },
           { label: lang === 'it' ? 'Sede <em>e indirizzo</em>' : 'Office <em>and address</em>', href: localizedPath(lang, 'contatti') },
+          { label: 'Instagram', href: 'https://instagram.com/' },
+          { label: 'Facebook', href: 'https://facebook.com/' },
         ],
       },
       {
-        title: lang === 'it' ? 'Sui social' : 'On social',
+        title: lang === 'it' ? 'Segnalazioni' : 'Reports',
         links: [
-          { label: 'Instagram', href: 'https://instagram.com/' },
-          { label: 'Facebook', href: 'https://facebook.com/' },
+          { label: lang === 'it' ? 'Segnala <em>un evento</em>' : 'Report <em>an event</em>', href: localizedPath(lang, 'eventi/segnala') },
         ],
       },
     ],

@@ -1,6 +1,7 @@
 ---
 import { SITE } from '../consts';
 import { sql } from '../server/db';
+import pkg from '../../package.json';
 
 interface Props {
   title: string;
@@ -36,8 +37,8 @@ try {
           </svg>
         </button>
         <a href="/management/eventi" class="topbar-brand">
-          <img src="/media/storico/logo.jpg" alt="36 m s.l.m." class="topbar-logo" />
-          <span class="brand-section">Gestione</span>
+          <img src="/logo.jpg" alt="36 m s.l.m." class="topbar-logo" />
+          <span class="brand-sub">APS<br/>Polesine Parmense</span>
         </a>
       </div>
       <div class="topbar-right">
@@ -92,36 +93,44 @@ try {
 
         <p class="nav-label" style="margin-top:1rem">Contenuti</p>
         <nav class="sidebar-nav">
-          <span class="nav-item nav-item--soon">
+          <a
+            href="/management/itinerari"
+            class={`nav-item${pathname.startsWith('/management/itinerari') ? ' active' : ''}`}
+          >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
-              <path d="M2 13V3.5L7.5 2L13 3.5V13" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/>
-              <rect x="5" y="8" width="2" height="5" rx="0.5" stroke="currentColor" stroke-width="1.1"/>
-              <rect x="8" y="5.5" width="2" height="2.5" rx="0.5" stroke="currentColor" stroke-width="1.1"/>
+              <path d="M2 12C2 12 4 8 7.5 6C11 4 13 3 13 3" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+              <circle cx="4.5" cy="10.5" r="1" stroke="currentColor" stroke-width="1.1"/>
+              <circle cx="10" cy="5.5" r="1" stroke="currentColor" stroke-width="1.1"/>
             </svg>
-            <span>Ricettario</span>
-            <span class="nav-soon-pill">presto</span>
-          </span>
+            <span>Itinerari</span>
+          </a>
 
-          <span class="nav-item nav-item--soon">
+          <a
+            href="/management/fauna"
+            class={`nav-item${pathname.startsWith('/management/fauna') ? ' active' : ''}`}
+          >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
-              <rect x="1.5" y="2.5" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1.25"/>
-              <circle cx="5" cy="6" r="1.2" stroke="currentColor" stroke-width="1.1"/>
-              <path d="M1.5 10L4.5 7.5L7 9.5L10 7L13.5 10" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M7.5 2C7.5 2 5 4 5 6.5C5 8.5 6.5 9.5 7.5 9.5C8.5 9.5 10 8.5 10 6.5C10 4 7.5 2 7.5 2Z" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M7.5 9.5V13" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+              <path d="M5.5 12H9.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
             </svg>
-            <span>Immagini e ricordi</span>
-            <span class="nav-soon-pill">presto</span>
-          </span>
+            <span>Fauna e Flora</span>
+          </a>
 
-          <span class="nav-item nav-item--soon">
+          <a
+            href="/management/horeca"
+            class={`nav-item${pathname.startsWith('/management/horeca') ? ' active' : ''}`}
+          >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
-              <path d="M2 4.5C2 4.5 4 3 7.5 3C11 3 13 4.5 13 4.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
-              <path d="M2 7.5C2 7.5 4 6 7.5 6C11 6 13 7.5 13 7.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
-              <path d="M2 10.5C2 10.5 4 9 7.5 9C11 9 13 10.5 13 10.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+              <rect x="2" y="6" width="11" height="7" rx="1" stroke="currentColor" stroke-width="1.25"/>
+              <path d="M5 6V4.5C5 3.12 6.12 2 7.5 2C8.88 2 10 3.12 10 4.5V6" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+              <path d="M5 9.5H10" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
             </svg>
-            <span>Proverbi</span>
-            <span class="nav-soon-pill">presto</span>
-          </span>
+            <span>Horeca</span>
+          </a>
         </nav>
+
+        <span class="sidebar-version">v{pkg.version}</span>
       </aside>
 
       <main class="content">
@@ -173,11 +182,10 @@ try {
     position: relative;
     z-index: 20;
     flex-shrink: 0;
-    height: 52px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 1.5rem;
+    padding: 0.9rem 1.25rem;
     background: var(--bg-topbar);
     border-bottom: 1px solid var(--cream-ghost);
   }
@@ -215,20 +223,23 @@ try {
   }
 
   .topbar-logo {
-    height: 30px;
+    height: 40px;
     width: auto;
     border-radius: 3px;
     display: block;
     box-shadow: 0 0 10px rgba(15,113,184,0.3);
   }
 
-  .brand-section {
+  .brand-sub {
     font-family: var(--ff-mono);
-    font-size: 0.72rem;
+    font-size: 0.6rem;
     font-weight: 300;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--cream-dim);
+    color: rgba(232,220,200,0.38);
+    border-left: 1px solid rgba(232,220,200,0.18);
+    padding-left: 0.75rem;
+    line-height: 1.4;
   }
 
   .topbar-right { display: flex; align-items: center; gap: 1.25rem; }
@@ -282,14 +293,14 @@ try {
   .sidebar-nav {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 2px;
   }
 
   .nav-item {
     display: flex;
     align-items: center;
     gap: 0.65rem;
-    padding: 0.6rem 0.65rem 0.6rem 0.7rem;
+    padding: 0.85rem 0.65rem 0.85rem 0.7rem;
     border-radius: 5px;
     font-size: 0.82rem;
     letter-spacing: 0.1em;
@@ -328,6 +339,18 @@ try {
     border-radius: 20px;
   }
 
+  /* ── Version ── */
+  .sidebar-version {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(232,220,200,0.08);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(232,220,200,0.65);
+    padding-left: 0.5rem;
+  }
+
   /* ── Unread badge ── */
   .nav-badge {
     margin-left: auto;
@@ -357,6 +380,12 @@ try {
       radial-gradient(ellipse 450px 350px at 0% 100%, rgba(123,143,111,0.07), transparent 50%);
   }
 
+  /* ── Desktop ── */
+  @media (min-width: 769px) {
+    .topbar { padding: 1.2rem 2rem; }
+    .topbar-logo { height: 50px; }
+  }
+
   /* ── Mobile ── */
   @media (max-width: 768px) {
     .hamburger { display: flex; }
@@ -364,7 +393,7 @@ try {
 
     .sidebar {
       position: fixed;
-      top: 52px; left: 0; bottom: 0;
+      top: 70px; left: 0; bottom: 0;
       z-index: 30;
       width: 240px;
       transform: translateX(-100%);

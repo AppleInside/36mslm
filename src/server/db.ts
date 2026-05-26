@@ -48,6 +48,7 @@ export async function getEvents(lang: string): Promise<DbEvent[]> {
     SELECT id, lang, slug, title, date, time_start, location, description, signup_required, cover_url
     FROM events
     WHERE lang = ${lang} AND status = 'published'
+      AND (publish_at IS NULL OR publish_at <= NOW())
     ORDER BY date ASC
   `;
   return rows.map(r => ({ ...r, cover_url: toProxyUrl(r.cover_url) }));
@@ -58,6 +59,7 @@ export async function getEvent(lang: string, slug: string): Promise<DbEvent | nu
     SELECT id, lang, slug, title, date, time_start, location, description, signup_required, cover_url
     FROM events
     WHERE lang = ${lang} AND slug = ${slug} AND status = 'published'
+      AND (publish_at IS NULL OR publish_at <= NOW())
     LIMIT 1
   `;
   const row = rows[0];
@@ -115,6 +117,7 @@ export async function getNotices(lang: string): Promise<DbNotice[]> {
       AND status = 'published'
       AND slug IS NOT NULL
       AND (expires_at IS NULL OR expires_at > now())
+      AND (publish_at IS NULL OR publish_at <= NOW())
     ORDER BY priority DESC, date DESC NULLS LAST, created_at DESC
   `;
 }
