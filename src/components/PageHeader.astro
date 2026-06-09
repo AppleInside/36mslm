@@ -28,7 +28,6 @@ const { eyebrow, bg, pageKey } = Astro.props;
       </button>
 
       <div class="ph-bar" id={`ph-bar-${pageKey}`} style="display:none">
-        <span class="ph-drag-hint">trascina · scorri per zoom</span>
         <div class="ph-zoom-wrap">
           <svg class="ph-zoom-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <input type="range" class="ph-zoom-slider" id={`ph-zoom-${pageKey}`} min="100" max="500" step="5" value="100" disabled />
