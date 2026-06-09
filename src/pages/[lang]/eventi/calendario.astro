@@ -15,9 +15,14 @@ const now = new Date();
 const all = await getEvents(lang);
 const future = all.filter(e => new Date(e.date) >= now).reverse();
 const past   = all.filter(e => new Date(e.date) <  now).reverse();
+
+const nextId = future.length > 0
+  ? future.reduce((min, e) => new Date(e.date) < new Date(min.date) ? e : min).id
+  : null;
+
 const events = [
-  ...future.map(e => ({ event: e, past: false })),
-  ...past.map(e   => ({ event: e, past: true  })),
+  ...future.map(e => ({ event: e, past: false, isNext: e.id === nextId })),
+  ...past.map(e   => ({ event: e, past: true,  isNext: false })),
 ];
 ---
 
