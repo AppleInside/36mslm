@@ -130,6 +130,23 @@ try {
           </a>
         </nav>
 
+        <p class="nav-label" style="margin-top:1rem">Strumenti</p>
+        <nav class="sidebar-nav">
+          <a
+            href="/management/sito"
+            class={`nav-item${pathname.startsWith('/management/sito') ? ' active' : ''}`}
+          >
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+              <circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.25"/>
+              <path d="M7.5 2C7.5 2 5.5 4.5 5.5 7.5C5.5 10.5 7.5 13 7.5 13" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+              <path d="M7.5 2C7.5 2 9.5 4.5 9.5 7.5C9.5 10.5 7.5 13 7.5 13" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+              <path d="M2 7.5H13" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+            </svg>
+            <span>Sito pubblico</span>
+          </a>
+        </nav>
+
+        <div style="flex:1"></div>
         <span class="sidebar-version">v{pkg.version}</span>
       </aside>
 
@@ -341,9 +358,7 @@ try {
 
   /* ── Version ── */
   .sidebar-version {
-    margin-top: auto;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(232,220,200,0.08);
+    padding-top: .75rem;
     font-size: 0.72rem;
     letter-spacing: 0.12em;
     text-transform: uppercase;
