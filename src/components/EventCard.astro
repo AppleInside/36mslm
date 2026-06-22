@@ -3,7 +3,7 @@ import { localizedPath } from '../i18n/utils';
 import type { DbEvent } from '../server/db';
 
 const { event } = Astro.props as { event: DbEvent };
-const lang = event.lang;
+const lang = event.lang as 'it' | 'en';
 const rawSlug = event.slug ?? '';
 const href = (!rawSlug || rawSlug.startsWith('data:') || rawSlug.startsWith('blob:'))
   ? localizedPath(lang, 'eventi')
@@ -15,17 +15,41 @@ const months = lang === 'it'
   ? ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic']
   : ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
 const mon = months[d.getUTCMonth()];
+
+const dEnd = event.date_end ? new Date(event.date_end) : null;
+const isRange = dEnd && dEnd.getTime() !== d.getTime();
+const endDay = dEnd ? dEnd.getUTCDate() : null;
+const endMon = dEnd ? months[dEnd.getUTCMonth()] : null;
+const sameMonth = dEnd ? dEnd.getUTCMonth() === d.getUTCMonth() && dEnd.getUTCFullYear() === d.getUTCFullYear() : false;
+
+const coverType = event.cover_type ?? 'cover';
 ---
 
 <a href={href} class="ev-card">
-  <div class="ev-pic">
+  <div class:list={['ev-pic', coverType === 'locandina' && 'ev-pic--locandina']}>
     {event.cover_url
       ? <img src={event.cover_url} alt={event.title} class="ev-cover" loading="lazy" />
       : <div class="ev-placeholder" data-title={event.title} aria-hidden="true"></div>
     }
     <div class="ev-stamp">
-      <span class="ev-d">{day}</span>
-      <span class="ev-m">{mon}</span>
+      {isRange ? (
+        sameMonth ? (
+          <>
+            <span class="ev-d">{day}<span class="ev-range">–{endDay}</span></span>
+            <span class="ev-m">{mon}</span>
+          </>
+        ) : (
+          <>
+            <span class="ev-d ev-d--small">{day} {mon}</span>
+            <span class="ev-m">– {endDay} {endMon}</span>
+          </>
+        )
+      ) : (
+        <>
+          <span class="ev-d">{day}</span>
+          <span class="ev-m">{mon}</span>
+        </>
+      )}
     </div>
   </div>
   <div class="ev-body">
@@ -88,6 +112,13 @@ const mon = months[d.getUTCMonth()];
     object-fit: cover;
     display: block;
   }
+  .ev-pic--locandina {
+    background: theme('colors.paper');
+  }
+  .ev-pic--locandina .ev-cover {
+    object-fit: contain;
+    padding: .5rem;
+  }
 
   .ev-stamp {
     position: absolute;
@@ -107,6 +138,15 @@ const mon = months[d.getUTCMonth()];
     font-weight: 300;
     font-style: italic;
     display: block;
+    line-height: 1;
+  }
+  .ev-d--small {
+    font-size: 1.15rem;
+    font-style: normal;
+  }
+  .ev-range {
+    font-size: 1.4rem;
+    opacity: .7;
   }
   .ev-m {
     font-family: theme('fontFamily.mono');

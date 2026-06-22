@@ -1,14 +1,40 @@
 ---
+import { sql } from '../server/db';
+
 interface Props {
   eyebrow?: string;
   bg?: string;
   pageKey?: string;
 }
 const { eyebrow, bg, pageKey } = Astro.props;
+
+// Load saved cover from DB server-side to avoid client-side flash
+let initStyle: string | undefined = bg ? `--ph-bg: url('${bg}')` : undefined;
+let initHasBg = !!bg;
+
+if (pageKey) {
+  try {
+    const rows = await sql<{ cover_url: string; cover_position: string }[]>`
+      SELECT cover_url, cover_position FROM page_covers WHERE page_key = ${pageKey} LIMIT 1
+    `;
+    const row = rows[0];
+    if (row?.cover_url) {
+      const pos = row.cover_position ?? '';
+      const sm = pos.match(/size:([^|]+)/);
+      const pm = pos.match(/\|pos:(.+)$/);
+      let s = `--ph-bg: url('${row.cover_url}')`;
+      if (sm) s += `; background-size: ${sm[1].trim()}`;
+      if (pm) s += `; background-position: ${pm[1].trim()}`;
+      else if (pos && !sm) s += `; background-position: ${pos}`;
+      initStyle = s;
+      initHasBg = true;
+    }
+  } catch {}
+}
 ---
 <section
-  class:list={['page-header', bg && 'has-bg']}
-  style={bg ? `--ph-bg: url('${bg}')` : undefined}
+  class:list={['page-header', initHasBg && 'has-bg']}
+  style={initStyle}
   data-page-key={pageKey || undefined}
 >
   {eyebrow && <p class="eyebrow">{eyebrow}</p>}
@@ -127,12 +153,6 @@ const { eyebrow, bg, pageKey } = Astro.props;
     fetch('/api/admin/me')
       .then(function(r) { return r.json(); })
       .then(function(d) { if (d && d.ok) editBtn.style.display = 'flex'; })
-      .catch(function() {});
-
-    // ── Load existing DB cover ─────────────────────────────────
-    fetch('/api/covers/' + pk)
-      .then(function(r) { return r.json(); })
-      .then(function(d) { if (d) applySavedCover(d.cover_url, d.cover_position); })
       .catch(function() {});
 
     // ── Enter edit mode ────────────────────────────────────────
@@ -288,9 +308,14 @@ const { eyebrow, bg, pageKey } = Astro.props;
       }
 
       fetch('/api/covers/' + pk, { method: 'POST', body: fd })
-        .then(function(r) { return r.json(); })
+        .then(function(r) {
+          return r.json().then(function(body) {
+            if (!r.ok) throw new Error(body && body.error ? body.error : 'Errore ' + r.status);
+            return body;
+          });
+        })
         .then(function(resp) {
-          if (resp && resp.ok) applySavedCover(resp.cover_url, resp.cover_position);
+          // Exit edit mode first — keep data-URL preview visible
           overlay.style.pointerEvents = '';
           overlay.style.cursor = '';
           section.classList.remove('ph-editing');
@@ -299,10 +324,24 @@ const { eyebrow, bg, pageKey } = Astro.props;
           if (zoomSlider) { zoomSlider.value = '100'; zoomSlider.disabled = true; }
           editFile = null; imgNatW = 0;
           confirmBtn.textContent = 'Conferma';
+          // Switch --ph-bg to Supabase URL only if the image actually loads
+          if (resp && resp.ok) {
+            var probe = new Image();
+            probe.onload = function() { applySavedCover(resp.cover_url, resp.cover_position); };
+            probe.src = resp.cover_url;
+          }
         })
-        .catch(function() {
-          confirmBtn.disabled    = false;
-          confirmBtn.textContent = 'Conferma';
+        .catch(function(err) {
+          confirmBtn.disabled = false;
+          var msg = err && err.message ? err.message : 'Errore salvataggio';
+          confirmBtn.textContent = msg;
+          confirmBtn.style.background = 'rgba(180,40,40,0.85)';
+          confirmBtn.style.color = '#fff';
+          setTimeout(function() {
+            confirmBtn.textContent = 'Conferma';
+            confirmBtn.style.background = '';
+            confirmBtn.style.color = '';
+          }, 3500);
         });
     });
   })();

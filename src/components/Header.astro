@@ -91,7 +91,7 @@ const navItems = [
   },
   {
     key: 'chisiamo',
-    href: localizedPath(lang, 'chi-siamo'),
+    href: localizedPath(lang, 'associazione'),
     label: lang === 'it' ? "L'associazione" : 'The association',
     lead: {
       eyebrow: lang === 'it' ? "L'associazione" : 'The association',
@@ -102,21 +102,15 @@ const navItems = [
         ? 'Sette realtà storiche di Polesine Parmense unite per valorizzare il patrimonio umano e naturale del territorio.'
         : 'Seven historic local organisations united to promote the human and natural heritage of Polesine Parmense.',
       img: '/media/legacy/wp-content_uploads_2021_09_Giovanni-Guareschi-al-bar-in-piazza.jpg',
-      href: localizedPath(lang, 'chi-siamo'),
+      href: localizedPath(lang, 'associazione'),
     },
     cols: [
       {
-        title: lang === 'it' ? 'Sostieni' : 'Support',
-        links: [
-          { label: lang === 'it' ? '<em>Volontari</em> per gli eventi' : '<em>Volunteers</em> for events', href: localizedPath(lang, 'partecipa/volontari') },
-        ],
-      },
-      {
         title: lang === 'it' ? 'Documenti' : 'Documents',
         links: [
-          { label: lang === 'it' ? "L'<em>associazione</em>" : 'The <em>association</em>', href: localizedPath(lang, 'chi-siamo/storia') },
-          { label: lang === 'it' ? 'Lo <em>statuto</em>' : 'The <em>bylaws</em>', href: localizedPath(lang, 'chi-siamo/statuto') },
-          { label: lang === 'it' ? '<em>Press kit</em>' : '<em>Press kit</em>', href: localizedPath(lang, 'chi-siamo/press-kit') },
+          { label: lang === 'it' ? "L'<em>associazione</em>" : 'The <em>association</em>', href: localizedPath(lang, 'associazione/storia') },
+          { label: lang === 'it' ? 'Lo <em>statuto</em>' : 'The <em>bylaws</em>', href: localizedPath(lang, 'associazione/statuto') },
+          { label: lang === 'it' ? '<em>Press kit</em>' : '<em>Press kit</em>', href: localizedPath(lang, 'associazione/press-kit') },
         ],
       },
     ],
@@ -228,6 +222,8 @@ const navItems = [
     ))}
   </div>
 </header>
+
+<div id="nav-overlay" aria-hidden="true"></div>
 
 <div class="drawer-overlay" id="drawerOverlay" aria-hidden="true"></div>
 
@@ -633,6 +629,18 @@ const navItems = [
       transition: transform .35s cubic-bezier(.2,.7,.2,1), opacity .25s ease;
     }
     .megapanel.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
+
+    #nav-overlay {
+      display: block;
+      position: fixed; inset: 0;
+      z-index: 40;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      background: rgba(0,0,0,0.12);
+      opacity: 0; pointer-events: none;
+      transition: opacity .3s ease;
+    }
+    #nav-overlay.open { opacity: 1; }
     .pane {
       display: none;
       grid-template-columns: 1.1fr 1fr 1fr;
@@ -838,6 +846,7 @@ const navItems = [
     const items = nav.querySelectorAll('.nav-item');
     const indicator = document.getElementById('indicator') as HTMLElement | null;
     const panel = document.getElementById('megapanel');
+    const navOverlay = document.getElementById('nav-overlay');
     const panes = panel?.querySelectorAll('.pane') ?? [];
     const topbar = document.querySelector('.topbar');
     let hoverTimer: number | null = null;
@@ -855,10 +864,12 @@ const navItems = [
       }
       panes.forEach((p) => p.classList.toggle('show', (p as HTMLElement).dataset.pane === key));
       panel?.classList.add('open');
+      navOverlay?.classList.add('open');
       setExpanded(key);
     }
     function closePanel() {
       panel?.classList.remove('open');
+      navOverlay?.classList.remove('open');
       panes.forEach((p) => p.classList.remove('show'));
       setExpanded(null);
     }

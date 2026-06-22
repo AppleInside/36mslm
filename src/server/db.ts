@@ -3,7 +3,7 @@ import postgres from 'postgres';
 const url = import.meta.env.DATABASE_URL;
 if (!url) throw new Error('DATABASE_URL not set');
 
-function toProxyUrl(coverUrl: string | null): string | null {
+export function toProxyUrl(coverUrl: string | null): string | null {
   if (!coverUrl) return null;
   // Extract the path after /storage/v1/object/[public/]<bucket>/
   const m = coverUrl.match(/\/storage\/v1\/object\/(?:public\/)?[^/]+\/(.+)$/);
@@ -36,16 +36,18 @@ export type DbEvent = {
   slug: string;
   title: string;
   date: Date;
+  date_end: Date | null;
   time_start: string | null;
   location: string | null;
   description: string | null;
   signup_required: boolean;
   cover_url: string | null;
+  cover_type: 'cover' | 'locandina';
 };
 
 export async function getEvents(lang: string): Promise<DbEvent[]> {
   const rows = await sql<DbEvent[]>`
-    SELECT id, lang, slug, title, date, time_start, location, description, signup_required, cover_url
+    SELECT id, lang, slug, title, date, date_end, time_start, location, description, signup_required, cover_url, cover_type
     FROM events
     WHERE lang = ${lang} AND status = 'published'
       AND (publish_at IS NULL OR publish_at <= NOW())
@@ -56,7 +58,7 @@ export async function getEvents(lang: string): Promise<DbEvent[]> {
 
 export async function getEvent(lang: string, slug: string): Promise<DbEvent | null> {
   const rows = await sql<DbEvent[]>`
-    SELECT id, lang, slug, title, date, time_start, location, description, signup_required, cover_url
+    SELECT id, lang, slug, title, date, date_end, time_start, location, description, signup_required, cover_url, cover_type
     FROM events
     WHERE lang = ${lang} AND slug = ${slug} AND status = 'published'
       AND (publish_at IS NULL OR publish_at <= NOW())

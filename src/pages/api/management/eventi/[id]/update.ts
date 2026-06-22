@@ -19,7 +19,7 @@ async function uploadToSupabase(file: File, path: string): Promise<string> {
     body: bytes,
   });
   if (!res.ok) throw new Error(`Upload failed: ${await res.text()}`);
-  return `${supabaseUrl}/storage/v1/object/public/${bucket}/${path}`;
+  return `/api/media/${path}`;
 }
 
 export const POST: APIRoute = async ({ request, redirect, params }) => {
@@ -52,17 +52,21 @@ export const POST: APIRoute = async ({ request, redirect, params }) => {
     if (cover_url !== undefined) {
       result = await sql`
         UPDATE events
-        SET title=${d.title}, slug=${d.slug}, date=${d.date}, time_start=${d.time_start},
-            time_end=${d.time_end}, location=${d.location}, description=${d.description},
-            cover_url=${cover_url}, signup_required=${d.signup_required}, status=${d.status},
+        SET title=${d.title}, slug=${d.slug}, date=${d.date}, date_end=${d.date_end ?? null},
+            time_start=${d.time_start}, time_end=${d.time_end},
+            location=${d.location}, description=${d.description},
+            cover_url=${cover_url}, cover_type=${d.cover_type},
+            signup_required=${d.signup_required}, status=${d.status},
             publish_at=${d.publish_at ?? null}
         WHERE id=${eventId} AND lang='it'
       `;
     } else {
       result = await sql`
         UPDATE events
-        SET title=${d.title}, slug=${d.slug}, date=${d.date}, time_start=${d.time_start},
-            time_end=${d.time_end}, location=${d.location}, description=${d.description},
+        SET title=${d.title}, slug=${d.slug}, date=${d.date}, date_end=${d.date_end ?? null},
+            time_start=${d.time_start}, time_end=${d.time_end},
+            location=${d.location}, description=${d.description},
+            cover_type=${d.cover_type},
             signup_required=${d.signup_required}, status=${d.status},
             publish_at=${d.publish_at ?? null}
         WHERE id=${eventId} AND lang='it'

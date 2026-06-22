@@ -1,14 +1,26 @@
 ---
+export const prerender = false;
 import Base from '../../../layouts/Base.astro';
 import PageHeader from '../../../components/PageHeader.astro';
 import { localizedPath } from '../../../i18n/utils';
 import type { Lang } from '../../../i18n/ui';
-
-export function getStaticPaths() {
-  return [{ params: { lang: 'it' } }, { params: { lang: 'en' } }];
-}
+import { sql } from '../../../server/db';
 
 const lang = Astro.params.lang as Lang;
+
+let territorioUrl = '/media/storico/Guareschi-sul-Po.jpg';
+let memoriaUrl = '/media/legacy/wp-content_uploads_2021_09_1953-Giovannino-Guareschi-Polesine-Due-Torri-1.jpg';
+
+try {
+  const covers = await sql<{ page_key: string; cover_url: string }[]>`
+    SELECT page_key, cover_url FROM page_covers
+    WHERE page_key IN ('scopri-territorio', 'scopri-memoria')
+  `;
+  for (const row of covers) {
+    if (row.page_key === 'scopri-territorio') territorioUrl = row.cover_url;
+    if (row.page_key === 'scopri-memoria') memoriaUrl = row.cover_url;
+  }
+} catch {}
 ---
 
 <Base title={lang === 'it' ? 'Scopri il Po' : 'Discover the Po'}>
@@ -24,14 +36,24 @@ const lang = Astro.params.lang as Lang;
 
     <!-- ── Il Territorio ─────────────────────────── -->
     <div class="hub-card">
-      <a class="hub-img-link" href={localizedPath(lang, 'scopri/itinerari')}>
-        <div class="hub-img" style="--img: url('/media/storico/Guareschi-sul-Po.jpg')">
-          <div class="hub-caption">
-            <p class="hub-eyebrow">{lang === 'it' ? '— Natura e paesaggio —' : '— Nature & landscape —'}</p>
-            <h2>{lang === 'it' ? 'Il Territorio' : 'The Territory'}</h2>
+      <div class="hub-img-wrap">
+        <a class="hub-img-link" href={localizedPath(lang, 'scopri/itinerari')}>
+          <div class="hub-img" id="hub-img-territorio" style={`--img: url('${territorioUrl}')`}>
+            <div class="hub-caption">
+              <p class="hub-eyebrow">{lang === 'it' ? '— Natura e paesaggio —' : '— Nature & landscape —'}</p>
+              <h2>{lang === 'it' ? 'Il Territorio' : 'The Territory'}</h2>
+            </div>
           </div>
-        </div>
-      </a>
+        </a>
+        <button class="hub-edit-btn" id="hub-editbtn-territorio" style="display:none" title="Modifica immagine" aria-label="Modifica immagine">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+        </button>
+        <input type="file" id="hub-file-territorio" accept="image/*" style="display:none">
+      </div>
       <ul class="hub-links">
         <li>
           <a href={localizedPath(lang, 'scopri/itinerari')}>
@@ -56,14 +78,24 @@ const lang = Astro.params.lang as Lang;
 
     <!-- ── Memoria ───────────────────────────────── -->
     <div class="hub-card">
-      <a class="hub-img-link" href={localizedPath(lang, 'scopri/ricettario')}>
-        <div class="hub-img" style="--img: url('/media/legacy/wp-content_uploads_2021_09_1953-Giovannino-Guareschi-Polesine-Due-Torri-1.jpg')">
-          <div class="hub-caption">
-            <p class="hub-eyebrow">{lang === 'it' ? '— Tradizione e cultura —' : '— Tradition & culture —'}</p>
-            <h2>{lang === 'it' ? 'Memoria' : 'Memory'}</h2>
+      <div class="hub-img-wrap">
+        <a class="hub-img-link" href={localizedPath(lang, 'scopri/ricettario')}>
+          <div class="hub-img" id="hub-img-memoria" style={`--img: url('${memoriaUrl}')`}>
+            <div class="hub-caption">
+              <p class="hub-eyebrow">{lang === 'it' ? '— Tradizione e cultura —' : '— Tradition & culture —'}</p>
+              <h2>{lang === 'it' ? 'Memoria' : 'Memory'}</h2>
+            </div>
           </div>
-        </div>
-      </a>
+        </a>
+        <button class="hub-edit-btn" id="hub-editbtn-memoria" style="display:none" title="Modifica immagine" aria-label="Modifica immagine">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+        </button>
+        <input type="file" id="hub-file-memoria" accept="image/*" style="display:none">
+      </div>
       <ul class="hub-links">
         <li>
           <a href={localizedPath(lang, 'scopri/ricettario')}>
@@ -88,6 +120,71 @@ const lang = Astro.params.lang as Lang;
 
   </div>
 </Base>
+
+<script is:inline>
+(function () {
+  var cards = [
+    { imgId: 'hub-img-territorio', btnId: 'hub-editbtn-territorio', fileId: 'hub-file-territorio', key: 'scopri-territorio' },
+    { imgId: 'hub-img-memoria',    btnId: 'hub-editbtn-memoria',    fileId: 'hub-file-memoria',    key: 'scopri-memoria'    },
+  ];
+
+  function setupCard(c, isAdmin) {
+    var imgEl   = document.getElementById(c.imgId);
+    var btn     = document.getElementById(c.btnId);
+    var fileInp = document.getElementById(c.fileId);
+    if (!imgEl || !btn || !fileInp) return;
+
+    if (isAdmin) btn.style.display = 'flex';
+
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      fileInp.click();
+    });
+
+    fileInp.addEventListener('change', function () {
+      var f = fileInp.files && fileInp.files[0];
+      if (!f) return;
+
+      var reader = new FileReader();
+      reader.onload = function (ev) {
+        imgEl.style.setProperty('--img', "url('" + ev.target.result + "')");
+      };
+      reader.readAsDataURL(f);
+
+      var fd = new FormData();
+      fd.append('cover', f);
+      fd.append('position', 'center 30%');
+
+      btn.style.opacity = '.35';
+      btn.disabled = true;
+
+      fetch('/api/covers/' + c.key, { method: 'POST', body: fd })
+        .then(function (r) { return r.json(); })
+        .then(function (resp) {
+          if (resp && resp.ok && resp.cover_url) {
+            var probe = new Image();
+            probe.onload = function () {
+              imgEl.style.setProperty('--img', "url('" + resp.cover_url + "')");
+            };
+            probe.src = resp.cover_url;
+          }
+          btn.style.opacity = '';
+          btn.disabled = false;
+        })
+        .catch(function () {
+          btn.style.opacity = '';
+          btn.disabled = false;
+        });
+    });
+  }
+
+  fetch('/api/admin/me')
+    .then(function (r) { return r.json(); })
+    .then(function (d) { cards.forEach(function (c) { setupCard(c, d && d.ok); }); })
+    .catch(function ()  { cards.forEach(function (c) { setupCard(c, false); }); });
+})();
+</script>
 
 <style>
   .hub {
@@ -119,6 +216,11 @@ const lang = Astro.params.lang as Lang;
   }
 
   /* ── Image area ───────────────────────────────── */
+  .hub-img-wrap {
+    position: relative;
+    display: block;
+  }
+
   .hub-img-link {
     display: block;
     text-decoration: none;
@@ -146,6 +248,28 @@ const lang = Astro.params.lang as Lang;
   @media (min-width: 700px) {
     .hub-img { height: 260px; }
   }
+
+  /* ── Edit button ──────────────────────────────── */
+  .hub-edit-btn {
+    position: absolute;
+    bottom: .75rem;
+    right: .75rem;
+    z-index: 4;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    border: none;
+    background: rgba(15,22,28,.55);
+    backdrop-filter: blur(6px);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background .15s, transform .12s, opacity .15s;
+    box-shadow: 0 1px 8px rgba(0,0,0,.2), 0 0 0 1px rgba(255,255,255,.1);
+  }
+  .hub-edit-btn:hover { background: rgba(15,22,28,.82); transform: scale(1.08); }
 
   /* ── Caption inside image ─────────────────────── */
   .hub-caption {

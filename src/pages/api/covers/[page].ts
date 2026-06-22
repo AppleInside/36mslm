@@ -22,7 +22,7 @@ export const GET: APIRoute = async ({ params }) => {
   });
 };
 
-async function uploadToSupabase(file: File, path: string): Promise<string> {
+async function uploadToSupabase(file: File, path: string, contentType: string): Promise<string> {
   const supabaseUrl = import.meta.env.SUPABASE_URL;
   const serviceKey = import.meta.env.SUPABASE_SERVICE_KEY;
   const bucket = import.meta.env.SUPABASE_BUCKET;
@@ -31,13 +31,13 @@ async function uploadToSupabase(file: File, path: string): Promise<string> {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${serviceKey}`,
-      'Content-Type': file.type,
+      'Content-Type': contentType,
       'x-upsert': 'true',
     },
     body: bytes,
   });
   if (!res.ok) throw new Error(`Upload failed: ${await res.text()}`);
-  return `${supabaseUrl}/storage/v1/object/public/${bucket}/${path}`;
+  return `/api/media/${path}`;
 }
 
 export const POST: APIRoute = async ({ params, request, cookies }) => {
@@ -59,7 +59,15 @@ export const POST: APIRoute = async ({ params, request, cookies }) => {
   const hasFile = file && file.size > 0;
 
   if (hasFile) {
-    if (!file!.type.startsWith('image/')) {
+    const ext = file!.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+    const mime = file!.type || (
+      ext === 'png'  ? 'image/png'  :
+      ext === 'gif'  ? 'image/gif'  :
+      ext === 'webp' ? 'image/webp' :
+      ext === 'avif' ? 'image/avif' :
+      'image/jpeg'
+    );
+    if (!mime.startsWith('image/')) {
       return new Response(JSON.stringify({ error: 'Formato non valido' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
@@ -71,8 +79,7 @@ export const POST: APIRoute = async ({ params, request, cookies }) => {
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    const ext = file!.name.split('.').pop()?.toLowerCase() ?? 'jpg';
-    const coverUrl = await uploadToSupabase(file!, `covers/${pageKey}.${ext}`);
+    const coverUrl = await uploadToSupabase(file!, `covers/${pageKey}.${ext}`, mime);
     await sql`
       INSERT INTO page_covers (page_key, cover_url, cover_position, updated_at)
       VALUES (${pageKey}, ${coverUrl}, ${position}, NOW())

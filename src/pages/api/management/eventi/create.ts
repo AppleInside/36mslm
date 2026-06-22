@@ -19,7 +19,7 @@ async function uploadToSupabase(file: File, path: string): Promise<string> {
     body: bytes,
   });
   if (!res.ok) throw new Error(`Upload failed: ${await res.text()}`);
-  return `${supabaseUrl}/storage/v1/object/public/${bucket}/${path}`;
+  return `/api/media/${path}`;
 }
 
 export const POST: APIRoute = async ({ request, redirect }) => {
@@ -44,8 +44,8 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 
   try {
     await sql`
-      INSERT INTO events (lang, slug, title, date, time_start, time_end, location, description, cover_url, signup_required, status, publish_at)
-      VALUES ('it', ${d.slug}, ${d.title}, ${d.date}, ${d.time_start}, ${d.time_end}, ${d.location}, ${d.description}, ${cover_url}, ${d.signup_required}, ${d.status}, ${d.publish_at ?? null})
+      INSERT INTO events (lang, slug, title, date, date_end, time_start, time_end, location, description, cover_url, cover_type, signup_required, status, publish_at)
+      VALUES ('it', ${d.slug}, ${d.title}, ${d.date}, ${d.date_end ?? null}, ${d.time_start}, ${d.time_end}, ${d.location}, ${d.description}, ${cover_url}, ${d.cover_type}, ${d.signup_required}, ${d.status}, ${d.publish_at ?? null})
     `;
   } catch (err) {
     console.error('[eventi/create] db error:', err);

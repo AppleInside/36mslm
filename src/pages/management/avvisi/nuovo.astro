@@ -1,7 +1,6 @@
 ---
 export const prerender = false;
 import Management from '../../../layouts/Management.astro';
-import { slugify } from '../../../lib/slug';
 
 const userDisplayName = Astro.locals.userDisplayName;
 ---
@@ -270,6 +269,9 @@ const userDisplayName = Astro.locals.userDisplayName;
   }
   .ed-field-row--3 { grid-template-columns: 1fr 1fr 1fr; }
 
+  @media (max-width: 900px) {
+    .ed-field-row--3 { grid-template-columns: 1fr 1fr; }
+  }
   @media (max-width: 600px) {
     .ed-field-row,
     .ed-field-row--3 { grid-template-columns: 1fr; gap: 1.5rem; }

@@ -84,15 +84,31 @@ const userDisplayName = Astro.locals.userDisplayName;
               <input id="cover" name="cover" type="file" accept="image/*" class="sb-file-hidden" />
               <p class="ed-hint">PNG · JPG · WebP · max 5 MB</p>
             </div>
+            <div class="cover-type-seg">
+              <label class="cover-type-opt cover-type-opt--on">
+                <input type="radio" name="cover_type" value="cover" checked class="sr-only" />
+                Copertina
+              </label>
+              <label class="cover-type-opt">
+                <input type="radio" name="cover_type" value="locandina" class="sr-only" />
+                Locandina
+              </label>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="ed-field-row ed-field-row--3">
+      <div class="ed-field-row">
         <div class="ed-field">
-          <label class="ed-label" for="date">Data <span class="ed-required">*</span></label>
+          <label class="ed-label" for="date">Data inizio <span class="ed-required">*</span></label>
           <input id="date" name="date" type="date" required class="ed-input" />
         </div>
+        <div class="ed-field">
+          <label class="ed-label" for="date_end">Data fine</label>
+          <input id="date_end" name="date_end" type="date" class="ed-input" />
+        </div>
+      </div>
+      <div class="ed-field-row">
         <div class="ed-field">
           <label class="ed-label" for="time_start">Ora inizio</label>
           <input id="time_start" name="time_start" type="time" class="ed-input" />
@@ -193,7 +209,26 @@ const userDisplayName = Astro.locals.userDisplayName;
       img.alt = 'Copertina'; img.className = 'cover-preview-img';
       old.replaceWith(img);
     }
+    applyCoverType(currentCoverType());
   });
+
+  const coverTypeRadios = document.querySelectorAll<HTMLInputElement>('input[name="cover_type"]');
+  const coverTypeOpts = document.querySelectorAll('.cover-type-opt');
+  function currentCoverType() {
+    return (document.querySelector<HTMLInputElement>('input[name="cover_type"]:checked'))?.value ?? 'cover';
+  }
+  function applyCoverType(val: string) {
+    const preview = document.getElementById('cover-preview') as HTMLImageElement | null;
+    if (preview && preview.tagName === 'IMG') {
+      preview.style.objectFit = val === 'locandina' ? 'contain' : 'cover';
+      preview.style.padding   = val === 'locandina' ? '0.5rem' : '0';
+    }
+    coverTypeOpts.forEach(opt => {
+      const inp = opt.querySelector('input') as HTMLInputElement;
+      opt.classList.toggle('cover-type-opt--on', inp?.value === val);
+    });
+  }
+  coverTypeRadios.forEach(r => r.addEventListener('change', () => applyCoverType(r.value)));
 </script>
 
 <style>
@@ -543,6 +578,35 @@ const userDisplayName = Astro.locals.userDisplayName;
   }
 
   .sb-file-hidden { display: none; }
+
+  .sr-only { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; }
+
+  .cover-type-seg {
+    display: flex;
+    border: 1px solid var(--cream-10);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .cover-type-opt {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem 0.5rem;
+    font-family: var(--ff-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(232,220,200,0.3);
+    cursor: pointer;
+    background: var(--cream-03);
+    transition: background 0.15s, color 0.15s;
+    user-select: none;
+  }
+  .cover-type-opt + .cover-type-opt { border-left: 1px solid var(--cream-10); }
+  .cover-type-opt:hover { color: rgba(232,220,200,0.6); background: var(--cream-06); }
+  .cover-type-opt--on { background: var(--gold-bg); color: var(--gold); }
 
   /* Textarea + preview */
   .ed-split {

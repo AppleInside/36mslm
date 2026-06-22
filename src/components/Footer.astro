@@ -14,7 +14,6 @@ const t = useTranslations(lang);
     <ul>
       <li><a href={localizedPath(lang, 'eventi')}>{t('common.allEvents')}</a></li>
       <li><a href={localizedPath(lang, 'eventi/bacheca')}>{lang === 'it' ? 'Bacheca' : 'Notice board'}</a></li>
-      <li><a href={localizedPath(lang, 'partecipa/volontari')}>{t('nav.participate.volunteers')}</a></li>
     </ul>
   </div>
   <div>
@@ -28,10 +27,10 @@ const t = useTranslations(lang);
   <div>
     <h4>{t('nav.about')}</h4>
     <ul>
-      <li><a href={localizedPath(lang, 'chi-siamo')}>{t('nav.about')}</a></li>
-      <li><a href={localizedPath(lang, 'chi-siamo/statuto')}>{lang === 'it' ? 'Statuto' : 'Bylaws'}</a></li>
-      <li><a href={localizedPath(lang, 'chi-siamo/trasparenza')}>{lang === 'it' ? 'Trasparenza' : 'Transparency'}</a></li>
-      <li><a href={localizedPath(lang, 'chi-siamo/press-kit')}>Press kit</a></li>
+      <li><a href={localizedPath(lang, 'associazione')}>{t('nav.about')}</a></li>
+      <li><a href={localizedPath(lang, 'associazione/statuto')}>{lang === 'it' ? 'Statuto' : 'Bylaws'}</a></li>
+      <li><a href={localizedPath(lang, 'associazione/trasparenza')}>{lang === 'it' ? 'Trasparenza' : 'Transparency'}</a></li>
+      <li><a href={localizedPath(lang, 'associazione/press-kit')}>Press kit</a></li>
     </ul>
   </div>
   <div class="colofon">

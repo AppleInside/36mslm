@@ -6,6 +6,7 @@ import { formatTime } from '../../../lib/dates';
 import type { Lang } from '../../../i18n/ui';
 import EventSignupForm from '../../../components/EventSignupForm.astro';
 import { getEvent } from '../../../server/db';
+import { marked } from 'marked';
 
 const lang = Astro.params.lang as Lang;
 const slug = Astro.params.slug as string;
@@ -22,6 +23,7 @@ if (event.time_start) {
 }
 
 const timeStr = timeObj ? formatTime(timeObj, lang) : null;
+const descHtml = event.description ? String(marked.parse(event.description)) : null;
 
 const day  = dateObj.getUTCDate();
 const year = dateObj.getUTCFullYear();
@@ -34,53 +36,49 @@ const monthStr = (lang === 'it' ? monthsIt : monthsEn)[dateObj.getUTCMonth()];
   <div class="ev-split">
 
     <!-- ── Left: sticky image ── -->
-    <div class="ev-img-col">
+    <div class:list={['ev-img-col', event.cover_type === 'locandina' && 'ev-img-col--locandina']}>
       {event.cover_url
-        ? <img src={event.cover_url} alt={event.title} class="ev-img" />
+        ? <img src={event.cover_url} alt={event.title}
+            class:list={['ev-img', event.cover_type === 'locandina' && 'ev-img--locandina']} />
         : <div class="ev-img-empty">
             <span class="ev-img-num">36</span>
           </div>
       }
-      <!-- back link overlaid on image -->
-      <a class="ev-back" href={`/${lang}/eventi`}>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        {lang === 'it' ? 'Tutti gli eventi' : 'All events'}
-      </a>
     </div>
 
     <!-- ── Right: scrollable content ── -->
     <div class="ev-content">
 
-      <!-- Date stamp -->
+      <!-- Back link -->
+      <a class="ev-back" href={`/${lang}/eventi/calendario`}>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        {lang === 'it' ? 'Tutti gli eventi' : 'All events'}
+      </a>
+
+      <!-- Date stamp + meta -->
       <div class="ev-datestamp">
         <span class="ds-day">{day}</span>
         <div class="ds-aside">
           <span class="ds-month">{monthStr}</span>
           <span class="ds-year">{year}</span>
         </div>
-      </div>
-
-      <!-- Location + time -->
-      <div class="ev-where">
-        {event.location && (
-          <span class="ev-loc">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-              <path d="M6 1a3.5 3.5 0 0 1 3.5 3.5C9.5 7.5 6 11 6 11S2.5 7.5 2.5 4.5A3.5 3.5 0 0 1 6 1z" stroke="currentColor" stroke-width="1.1"/>
-              <circle cx="6" cy="4.5" r="1.1" fill="currentColor"/>
-            </svg>
-            {event.location}
-          </span>
-        )}
-        {timeStr && (
-          <span class="ev-time">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-              <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.1"/>
-              <path d="M6 3.5V6l1.75 1.75" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
-            </svg>
-            {timeStr}
-          </span>
+        {(event.location || timeStr) && (
+          <div class="ds-meta">
+            {event.location && (
+              <span class="ds-loc">
+                <span class="ds-label">Dove</span>
+                <span class="ds-value">{event.location}</span>
+              </span>
+            )}
+            {timeStr && (
+              <span class="ds-time">
+                <span class="ds-label">A che ora</span>
+                <span class="ds-value">{timeStr}</span>
+              </span>
+            )}
+          </div>
         )}
       </div>
 
@@ -88,12 +86,8 @@ const monthStr = (lang === 'it' ? monthsIt : monthsEn)[dateObj.getUTCMonth()];
       <h1 class="ev-title">{event.title}</h1>
 
       <!-- Description -->
-      {event.description && (
-        <div class="ev-body">
-          {event.description.split('\n').map(line => line.trim()).filter(Boolean).map(line => (
-            <p>{line}</p>
-          ))}
-        </div>
+      {descHtml && (
+        <div class="ev-body" set:html={descHtml} />
       )}
 
       <!-- Signup -->
@@ -130,6 +124,12 @@ const monthStr = (lang === 'it' ? monthsIt : monthsEn)[dateObj.getUTCMonth()];
     display: block;
     filter: saturate(.88);
   }
+  .ev-img-col--locandina { background: theme('colors.paper'); }
+  .ev-img--locandina {
+    object-fit: contain;
+    filter: none;
+    padding: 3rem;
+  }
   .ev-img-empty {
     width: 100%; height: 100%;
     display: flex; align-items: center; justify-content: center;
@@ -144,40 +144,31 @@ const monthStr = (lang === 'it' ? monthsIt : monthsEn)[dateObj.getUTCMonth()];
     user-select: none;
   }
 
-  /* back link */
+  /* back link – in-flow, top of right column */
   .ev-back {
-    position: absolute;
-    top: 1.5rem; left: 1.5rem;
     display: inline-flex; align-items: center; gap: .4rem;
     font-family: theme('fontFamily.mono');
     font-size: .65rem;
     text-transform: uppercase;
     letter-spacing: .18em;
-    color: rgba(244,235,217,.85);
+    color: theme('colors.ink-soft');
     text-decoration: none;
-    background: rgba(31,42,42,.45);
-    backdrop-filter: blur(6px);
-    padding: .45rem .8rem;
-    border-radius: 999px;
-    border: 1px solid rgba(244,235,217,.2);
-    transition: background .2s ease, color .2s ease;
+    margin-bottom: 2rem;
+    transition: color .2s ease;
   }
-  .ev-back:hover {
-    background: rgba(31,42,42,.7);
-    color: #fff;
-  }
+  .ev-back:hover { color: theme('colors.ink'); }
 
   /* ── Right column ── */
   .ev-content {
-    padding: 4rem 4.5rem 6rem;
+    padding: 2.5rem 4.5rem 6rem;
     max-width: 60ch;
   }
 
   /* ── Date stamp ── */
   .ev-datestamp {
     display: flex;
-    align-items: baseline;
-    gap: 1rem;
+    align-items: center;
+    gap: 1.5rem;
     margin-bottom: 2rem;
     padding-bottom: 2rem;
     border-bottom: 1px dashed theme('colors.rule');
@@ -189,9 +180,11 @@ const monthStr = (lang === 'it' ? monthsIt : monthsEn)[dateObj.getUTCMonth()];
     line-height: .85;
     color: theme('colors.gold');
     letter-spacing: -0.02em;
+    flex-shrink: 0;
   }
   .ds-aside {
     display: flex; flex-direction: column; gap: .1rem;
+    flex-shrink: 0;
   }
   .ds-month {
     font-family: theme('fontFamily.mono');
@@ -207,23 +200,38 @@ const monthStr = (lang === 'it' ? monthsIt : monthsEn)[dateObj.getUTCMonth()];
     letter-spacing: .2em;
     color: theme('colors.ink-soft');
   }
-
-  /* ── Where / time ── */
-  .ev-where {
+  .ds-meta {
+    flex: 1;
     display: flex;
-    flex-wrap: wrap;
-    gap: 1.25rem;
-    margin-bottom: 1.75rem;
+    flex-direction: column;
+    gap: .55rem;
+    padding-left: 1.5rem;
+    border-left: 1px solid theme('colors.rule');
+    min-width: 0;
   }
-  .ev-loc, .ev-time {
-    display: inline-flex; align-items: center; gap: .4rem;
+  .ds-loc, .ds-time {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+  }
+  .ds-label {
     font-family: theme('fontFamily.mono');
-    font-size: .72rem;
+    font-size: .58rem;
+    letter-spacing: .25em;
     text-transform: uppercase;
-    letter-spacing: .16em;
-    color: theme('colors.acquadeep');
+    color: theme('colors.ink-soft');
   }
-  .ev-time { color: theme('colors.ink-soft'); }
+  .ds-value {
+    font-family: theme('fontFamily.mono');
+    font-size: .92rem;
+    letter-spacing: .03em;
+    color: theme('colors.ink');
+    line-height: 1.45;
+  }
+  .ds-time .ds-value {
+    font-size: 1.15rem;
+    letter-spacing: .06em;
+  }
 
   /* ── Title ── */
   .ev-title {
@@ -238,7 +246,26 @@ const monthStr = (lang === 'it' ? monthsIt : monthsEn)[dateObj.getUTCMonth()];
     line-height: 1.75;
     color: theme('colors.ink-soft');
   }
-  .ev-body p { margin: 0 0 1.25em; }
+  .ev-body :global(p)  { margin: 0 0 1.1em; }
+  .ev-body :global(h1),
+  .ev-body :global(h2),
+  .ev-body :global(h3) {
+    font-family: theme('fontFamily.hand');
+    font-weight: 700;
+    color: theme('colors.ink');
+    margin: 1.6em 0 .5em;
+    line-height: 1.2;
+  }
+  .ev-body :global(h1) { font-size: 1.7rem; }
+  .ev-body :global(h2) { font-size: 1.35rem; }
+  .ev-body :global(h3) { font-size: 1.1rem; }
+  .ev-body :global(strong) { color: theme('colors.ink'); font-weight: 600; }
+  .ev-body :global(em) { font-style: italic; }
+  .ev-body :global(ul),
+  .ev-body :global(ol) { padding-left: 1.4em; margin: 0 0 1.1em; }
+  .ev-body :global(li) { margin-bottom: .35em; }
+  .ev-body :global(a)  { color: theme('colors.acquadeep'); text-underline-offset: 3px; }
+  .ev-body :global(hr) { border: none; border-top: 1px dashed theme('colors.rule'); margin: 1.75em 0; }
 
   /* ── Signup ── */
   .ev-signup {
@@ -255,6 +282,7 @@ const monthStr = (lang === 'it' ? monthsIt : monthsEn)[dateObj.getUTCMonth()];
       height: 55vw; min-height: 260px; max-height: 420px;
     }
     .ev-content { padding: 2.5rem 1.5rem 4rem; max-width: none; }
-    .ev-back { top: 1rem; left: 1rem; }
+    .ev-content { padding: 2rem 1.5rem 4rem; max-width: none; }
+    .ds-meta { font-size: .78rem; }
   }
 </style>

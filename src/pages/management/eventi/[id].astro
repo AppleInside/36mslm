@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
 import Management from '../../../layouts/Management.astro';
-import { sql } from '../../../server/db';
+import { sql, toProxyUrl } from '../../../server/db';
 
 const userDisplayName = Astro.locals.userDisplayName;
 const { id } = Astro.params;
@@ -9,24 +9,29 @@ const ok  = Astro.url.searchParams.get('ok');
 const err = Astro.url.searchParams.get('err');
 
 type EventRow = {
-  id: number; title: string; slug: string; date: Date;
+  id: number; title: string; slug: string;
+  date: Date; date_end: Date | null;
   time_start: string | null; time_end: string | null;
   location: string | null; description: string | null;
-  cover_url: string | null; signup_required: boolean;
+  cover_url: string | null; cover_type: 'cover' | 'locandina';
+  signup_required: boolean;
   status: 'draft' | 'published';
   publish_at: Date | null;
 };
 
 const rows = await sql<EventRow[]>`
-  SELECT id, title, slug, date, time_start, time_end, location, description, cover_url, signup_required, status, publish_at
+  SELECT id, title, slug, date, date_end, time_start, time_end, location, description, cover_url, cover_type, signup_required, status, publish_at
   FROM events WHERE id = ${Number(id)} AND lang = 'it' LIMIT 1
 `;
-const event = rows[0];
+const event = rows[0] ? { ...rows[0], cover_url: toProxyUrl(rows[0].cover_url) } : null;
 if (!event) return Astro.redirect('/management/eventi?err=1', 302);
 
 const dateStr = event.date instanceof Date
   ? event.date.toISOString().slice(0, 10)
   : String(event.date).slice(0, 10);
+const dateEndStr = event.date_end
+  ? (event.date_end instanceof Date ? event.date_end.toISOString() : String(event.date_end)).slice(0, 10)
+  : '';
 const timeStart = event.time_start?.slice(0, 5) ?? '';
 const timeEnd = event.time_end?.slice(0, 5) ?? '';
 const publishAtStr = event.publish_at
@@ -135,16 +140,35 @@ const publishAtStr = event.publish_at
               <input id="cover" name="cover" type="file" accept="image/*" class="sb-file-hidden" />
               <p class="ed-hint">PNG · JPG · WebP · max 5 MB</p>
             </div>
+            <div class="cover-type-seg">
+              <label class:list={['cover-type-opt', event.cover_type !== 'locandina' && 'cover-type-opt--on']}>
+                <input type="radio" name="cover_type" value="cover"
+                  checked={event.cover_type !== 'locandina'} class="sr-only" />
+                Copertina
+              </label>
+              <label class:list={['cover-type-opt', event.cover_type === 'locandina' && 'cover-type-opt--on']}>
+                <input type="radio" name="cover_type" value="locandina"
+                  checked={event.cover_type === 'locandina'} class="sr-only" />
+                Locandina
+              </label>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="ed-field-row ed-field-row--3">
+      <div class="ed-field-row">
         <div class="ed-field">
-          <label class="ed-label" for="date">Data</label>
+          <label class="ed-label" for="date">Data inizio</label>
           <input id="date" name="date" type="date" required
             value={dateStr} class="ed-input" />
         </div>
+        <div class="ed-field">
+          <label class="ed-label" for="date_end">Data fine</label>
+          <input id="date_end" name="date_end" type="date"
+            value={dateEndStr} class="ed-input" />
+        </div>
+      </div>
+      <div class="ed-field-row">
         <div class="ed-field">
           <label class="ed-label" for="time_start">Ora inizio</label>
           <input id="time_start" name="time_start" type="time"
@@ -249,6 +273,24 @@ const publishAtStr = event.publish_at
       }
     }
   });
+
+  const coverTypeRadios = document.querySelectorAll<HTMLInputElement>('input[name="cover_type"]');
+  const coverTypeOpts = document.querySelectorAll('.cover-type-opt');
+  function applyCoverType(val: string) {
+    const preview = document.getElementById('cover-preview') as HTMLImageElement | null;
+    if (preview && preview.tagName === 'IMG') {
+      const isLoc = val === 'locandina';
+      preview.style.objectFit  = isLoc ? 'contain' : 'cover';
+      preview.style.padding    = isLoc ? '0.5rem' : '0';
+      preview.style.background = isLoc ? '#F5F0E8' : 'transparent';
+    }
+    coverTypeOpts.forEach(opt => {
+      const inp = opt.querySelector('input') as HTMLInputElement;
+      opt.classList.toggle('cover-type-opt--on', inp?.value === val);
+    });
+  }
+  coverTypeRadios.forEach(r => r.addEventListener('change', () => applyCoverType(r.value)));
+  applyCoverType((document.querySelector<HTMLInputElement>('input[name="cover_type"]:checked'))?.value ?? 'cover');
 </script>
 
 <style>
@@ -608,6 +650,36 @@ const publishAtStr = event.publish_at
   }
 
   .sb-file-hidden { display: none; }
+
+  .sr-only { position: absolute; width: 0; height: 0; opacity: 0; pointer-events: none; }
+
+  .cover-type-seg {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--cream-10);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .cover-type-opt {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem 0.5rem;
+    font-family: var(--ff-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(232,220,200,0.3);
+    cursor: pointer;
+    background: var(--cream-03);
+    transition: background 0.15s, color 0.15s;
+    user-select: none;
+  }
+  .cover-type-opt + .cover-type-opt { border-left: 1px solid var(--cream-10); }
+  .cover-type-opt:hover { color: rgba(232,220,200,0.6); background: var(--cream-06); }
+  .cover-type-opt--on { background: var(--gold-bg); color: var(--gold); }
 
   /* Textarea + preview */
   .ed-split {

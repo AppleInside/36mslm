@@ -8,98 +8,63 @@ import { sql } from '../../../server/db';
 
 const lang = Astro.params.lang as Lang;
 
-let calendarioUrl = '/media/storico/cercavano-il-fresco-destate-sulla-Via-Alzaia-FILEminimizer.jpg';
-let fuoriUrl = '/media/storico/Guareschi-sul-Po.jpg';
+let docsUrl = '/media/legacy/wp-content_uploads_2021_09_Giovanni-Guareschi-al-bar-in-piazza.jpg';
 
 try {
-  const covers = await sql<{ page_key: string; cover_url: string }[]>`
-    SELECT page_key, cover_url FROM page_covers
-    WHERE page_key IN ('eventi-calendario', 'eventi-fuori')
+  const covers = await sql<{ cover_url: string }[]>`
+    SELECT cover_url FROM page_covers WHERE page_key = 'associazione-docs' LIMIT 1
   `;
-  for (const row of covers) {
-    if (row.page_key === 'eventi-calendario') calendarioUrl = row.cover_url;
-    if (row.page_key === 'eventi-fuori') fuoriUrl = row.cover_url;
-  }
+  if (covers[0]?.cover_url) docsUrl = covers[0].cover_url;
 } catch {}
 ---
 
-<Base title={lang === 'it' ? 'Eventi' : 'Events'}>
+<Base title={lang === 'it' ? "L'associazione" : 'The association'}>
   <PageHeader
-    pageKey="eventi"
-    eyebrow={lang === 'it' ? '— Calendario ed eventi —' : '— Calendar & events —'}
-    bg="/media/storico/cercavano-il-fresco-destate-sulla-Via-Alzaia-FILEminimizer.jpg"
+    pageKey="chi-siamo"
+    eyebrow={lang === 'it' ? '— Informazioni —' : '— Information —'}
+    bg="/media/storico/1953-Giovannino-Guareschi-Polesine-Due-Torri-1.jpg"
   >
-    {lang === 'it' ? <>Gli <em>eventi</em></> : <>Our <em>events</em></>}
+    {lang === 'it' ? <>L'<em>associazione</em></> : <>The <em>association</em></>}
   </PageHeader>
 
   <div class="hub">
 
-    <!-- ── Calendario ─────────────────────────── -->
+    <!-- ── Documenti ──────────────────────────── -->
     <div class="hub-card">
       <div class="hub-img-wrap">
-        <a class="hub-img-link" href={localizedPath(lang, 'eventi/calendario')}>
-          <div class="hub-img" id="hub-img-calendario" style={`--img: url('${calendarioUrl}')`}>
+        <a class="hub-img-link" href={localizedPath(lang, 'chi-siamo/storia')}>
+          <div class="hub-img" id="hub-img-docs" style={`--img: url('${docsUrl}')`}>
             <div class="hub-caption">
-              <p class="hub-eyebrow">{lang === 'it' ? '— In programma —' : '— Upcoming —'}</p>
-              <h2>{lang === 'it' ? 'Calendario' : 'Calendar'}</h2>
+              <p class="hub-eyebrow">{lang === 'it' ? '— Documenti —' : '— Documents —'}</p>
+              <h2>{lang === 'it' ? 'L\'associazione' : 'The association'}</h2>
             </div>
           </div>
         </a>
-        <button class="hub-edit-btn" id="hub-editbtn-calendario" style="display:none" title="Modifica immagine" aria-label="Modifica immagine">
+        <button class="hub-edit-btn" id="hub-editbtn-docs" style="display:none" title="Modifica immagine" aria-label="Modifica immagine">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2"/>
             <circle cx="8.5" cy="8.5" r="1.5"/>
             <polyline points="21 15 16 10 5 21"/>
           </svg>
         </button>
-        <input type="file" id="hub-file-calendario" accept="image/*" style="display:none">
+        <input type="file" id="hub-file-docs" accept="image/*" style="display:none">
       </div>
       <ul class="hub-links">
         <li>
-          <a href={localizedPath(lang, 'eventi/calendario')}>
-            {lang === 'it' ? 'Tutti gli eventi' : 'All events'}
+          <a href={localizedPath(lang, 'chi-siamo/storia')}>
+            {lang === 'it' ? 'Chi siamo' : 'Who we are'}
             <span class="arr">→</span>
           </a>
         </li>
         <li>
-          <a href={localizedPath(lang, 'eventi/bacheca')}>
-            {lang === 'it' ? 'Bacheca e avvisi' : 'Notice board'}
+          <a href={localizedPath(lang, 'chi-siamo/statuto')}>
+            {lang === 'it' ? 'Statuto' : 'Bylaws'}
             <span class="arr">→</span>
           </a>
         </li>
         <li>
-          <a href={localizedPath(lang, 'eventi/segnala')}>
-            {lang === 'it' ? 'Segnala un evento' : 'Report an event'}
-            <span class="arr">→</span>
-          </a>
-        </li>
-      </ul>
-    </div>
-
-    <!-- ── Per chi viene da fuori ─────────────── -->
-    <div class="hub-card">
-      <div class="hub-img-wrap">
-        <a class="hub-img-link" href={localizedPath(lang, 'contatti')}>
-          <div class="hub-img" id="hub-img-fuori" style={`--img: url('${fuoriUrl}')`}>
-            <div class="hub-caption">
-              <p class="hub-eyebrow">{lang === 'it' ? '— Logistica —' : '— Getting here —'}</p>
-              <h2>{lang === 'it' ? 'Per chi viene da fuori' : 'Visiting from afar'}</h2>
-            </div>
-          </div>
-        </a>
-        <button class="hub-edit-btn" id="hub-editbtn-fuori" style="display:none" title="Modifica immagine" aria-label="Modifica immagine">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2"/>
-            <circle cx="8.5" cy="8.5" r="1.5"/>
-            <polyline points="21 15 16 10 5 21"/>
-          </svg>
-        </button>
-        <input type="file" id="hub-file-fuori" accept="image/*" style="display:none">
-      </div>
-      <ul class="hub-links">
-        <li>
-          <a href={localizedPath(lang, 'contatti')}>
-            {lang === 'it' ? 'Come arrivare' : 'How to get here'}
+          <a href={localizedPath(lang, 'chi-siamo/press-kit')}>
+            {lang === 'it' ? 'Press kit' : 'Press kit'}
             <span class="arr">→</span>
           </a>
         </li>
@@ -112,8 +77,7 @@ try {
 <script is:inline>
 (function () {
   var cards = [
-    { imgId: 'hub-img-calendario', btnId: 'hub-editbtn-calendario', fileId: 'hub-file-calendario', key: 'eventi-calendario' },
-    { imgId: 'hub-img-fuori',      btnId: 'hub-editbtn-fuori',      fileId: 'hub-file-fuori',      key: 'eventi-fuori'      },
+    { imgId: 'hub-img-docs', btnId: 'hub-editbtn-docs', fileId: 'hub-file-docs', key: 'associazione-docs' },
   ];
 
   function setupCard(c, isAdmin) {
