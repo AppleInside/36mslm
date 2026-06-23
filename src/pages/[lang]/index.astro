@@ -59,56 +59,44 @@ function eventHref(slug: string) {
 }
 ---
 <Base title={t('nav.events')}>
-  <section class="section section-paper">
-    <div class="portal-grid">
+  <section class="section section-paper section-portal">
+    <!-- Left: content -->
+    <div class="portal-left">
+      <p class="eyebrow">— {lang === 'it' ? 'Il portale' : 'The portal'} —</p>
+      <h2 class="portal-h2">{lang === 'it' ? <>Il <em>riferimento</em> digitale del paese</> : <>The village&apos;s <em>digital</em> home</>}</h2>
+      <div class="portal-rule"></div>
+      <p class="portal-lead">
+        {lang === 'it'
+          ? 'Non è una brochure. È una piattaforma editoriale viva: eventi, itinerari del fiume, ricettario di casa, dialetto e modi di dire, bacheca degli avvisi.'
+          : "Not a brochure. A living editorial platform: events, river itineraries, home recipes, dialect and sayings, notice board."}
+      </p>
+      <ul class="portal-tags" role="list">
+        <li><a class="portal-tag" href={localizedPath(lang, 'eventi/calendario')}>{lang === 'it' ? 'Eventi' : 'Events'} →</a></li>
+        <li><a class="portal-tag" href={localizedPath(lang, 'scopri/itinerari')}>{lang === 'it' ? 'Itinerari' : 'Itineraries'} →</a></li>
+        <li><a class="portal-tag" href={localizedPath(lang, 'scopri/ricettario')}>{lang === 'it' ? 'Ricettario' : 'Recipes'} →</a></li>
+        <li><a class="portal-tag" href={localizedPath(lang, 'scopri/storie')}>{lang === 'it' ? 'Dialetto' : 'Dialect'} →</a></li>
+        <li><a class="portal-tag" href={localizedPath(lang, 'eventi/bacheca')}>{lang === 'it' ? 'Bacheca' : 'Notices'} →</a></li>
+      </ul>
+      <a class="portal-cta" href={localizedPath(lang, 'portale')}>
+        {lang === 'it' ? 'Scopri il portale' : 'Explore the portal'} <span class="portal-cta-arr">→</span>
+      </a>
+    </div>
 
-      <!-- Left: content -->
-      <div class="portal-left">
-        <p class="eyebrow">— {lang === 'it' ? 'Il portale' : 'The portal'} —</p>
-        <h2 class="portal-h2">{lang === 'it' ? <>Il <em>riferimento</em> digitale del paese</> : <>The village&apos;s <em>digital</em> home</>}</h2>
-        <div class="portal-rule"></div>
-        <p class="portal-lead">
-          {lang === 'it'
-            ? 'Non è una brochure. È una piattaforma editoriale viva: eventi, itinerari del fiume, ricettario di casa, dialetto e modi di dire, bacheca degli avvisi.'
-            : "Not a brochure. A living editorial platform: events, river itineraries, home recipes, dialect and sayings, notice board."}
-        </p>
-        <ul class="portal-tags" role="list">
-          <li><a class="portal-tag" href={localizedPath(lang, 'eventi/calendario')}>{lang === 'it' ? 'Eventi' : 'Events'} →</a></li>
-          <li><a class="portal-tag" href={localizedPath(lang, 'scopri/itinerari')}>{lang === 'it' ? 'Itinerari' : 'Itineraries'} →</a></li>
-          <li><a class="portal-tag" href={localizedPath(lang, 'scopri/ricettario')}>{lang === 'it' ? 'Ricettario' : 'Recipes'} →</a></li>
-          <li><a class="portal-tag" href={localizedPath(lang, 'scopri/storie')}>{lang === 'it' ? 'Dialetto' : 'Dialect'} →</a></li>
-          <li><a class="portal-tag" href={localizedPath(lang, 'eventi/bacheca')}>{lang === 'it' ? 'Bacheca' : 'Notices'} →</a></li>
-        </ul>
-        <a class="portal-cta" href={localizedPath(lang, 'portale')}>
-          {lang === 'it' ? 'Scopri il portale' : 'Explore the portal'} <span class="portal-cta-arr">→</span>
+    <!-- Right: expanding panels in contained box -->
+    <div class="portal-panels" id="portal-panels">
+      {carouselSlides.map((slide, i) => (
+        <a class={`panel${i === 0 ? ' is-active' : ''}`} href={slide.href} data-idx={i}>
+          <img src={slide.cover} alt={slide.label} loading={i === 0 ? 'eager' : 'lazy'} />
+          <div class="panel-scrim"></div>
+          <span class="panel-label">{slide.label}</span>
+          <span class="panel-arr">→</span>
         </a>
-      </div>
-
-      <!-- Right: carousel -->
-      <div class="portal-carousel" id="portal-carousel">
-        <div class="carousel-slides">
-          {carouselSlides.map((slide, i) => (
-            <a class={`carousel-slide${i === 0 ? ' active' : ''}`} href={slide.href}>
-              <img src={slide.cover} alt={slide.label} loading={i === 0 ? 'eager' : 'lazy'} />
-              <div class="slide-overlay"></div>
-              <div class="slide-content">
-                <span class="slide-label">{slide.label}</span>
-                <span class="slide-arr">→</span>
-              </div>
-            </a>
-          ))}
-        </div>
-        <div class="carousel-dots">
-          {carouselSlides.map((slide, i) => (
-            <button class={`cdot${i === 0 ? ' active' : ''}`} data-idx={i} aria-label={slide.label}></button>
-          ))}
-        </div>
-      </div>
-
+      ))}
     </div>
   </section>
 
-  <div class="wave" style="background: #CCE4EF;" aria-hidden="true">
+  <!-- Wave outside the section: overlaps only the bottom padding, never the panels -->
+  <div class="wave portal-wave-bottom" aria-hidden="true">
     <svg viewBox="0 0 1440 48" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M0,24 C240,0 480,48 720,24 C960,0 1200,48 1440,24 L1440,48 L0,48 Z" fill="#F2EDE0"/>
     </svg>
@@ -128,7 +116,7 @@ function eventHref(slug: string) {
         {upcoming.map((e, i) => {
           const s = stamp(e.date);
           return (
-            <a class={`event ${i === 0 ? 'big' : ''}`} href={eventHref(e.slug)}>
+            <a class={`event ${i === 0 ? 'big' : ''}${e.cover_type === 'locandina' ? ' locandina' : ''}`} href={eventHref(e.slug)}>
               <div class="pic">
                 {e.cover_url && <img src={e.cover_url} alt={e.title} loading="lazy" />}
                 <div class="event-stamp"><span class="d">{s.d}</span><span class="m">{s.m}</span></div>
@@ -305,6 +293,20 @@ function eventHref(slug: string) {
   .section-sand { background: theme('colors.sabbia'); }
   .section-acqua { background: theme('colors.acqua'); }
   .section-paper { background: theme('colors.paper'); }
+  .section-portal {
+    padding: 5rem 4rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+  }
+  .portal-wave-bottom {
+    background: #CCE4EF;
+    line-height: 0;
+    margin-top: -4rem;
+    position: relative;
+    z-index: 1;
+  }
 
   .portal-lead {
     font-style: italic; font-size: 1.25rem; max-width: 52ch;
@@ -367,48 +369,66 @@ function eventHref(slug: string) {
   }
   .section-head .all:hover { color: theme('colors.brand'); }
 
-  .events { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 2.5rem; }
-  .event { text-decoration: none; color: inherit; display: flex; flex-direction: column; transition: transform .3s ease; }
-  .event:hover { transform: translateY(-4px); }
+  .events {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .event {
+    background: theme('colors.paper');
+    border-radius: .75rem;
+    overflow: hidden;
+    text-decoration: none; color: inherit;
+    display: flex; flex-direction: column;
+    box-shadow: 0 2px 10px rgba(31,42,42,0.07);
+    transition: transform .25s ease, box-shadow .25s ease;
+  }
+  .event:hover { transform: translateY(-4px); box-shadow: 0 8px 28px rgba(31,42,42,0.13); }
   .event .pic {
-    aspect-ratio: 4 / 3;
+    height: 220px;
     overflow: hidden; position: relative;
     background: theme('colors.ink');
-    border: 1px solid theme('colors.rule');
-    margin-bottom: 1.25rem;
-    -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 75' preserveAspectRatio='none'><path d='M1 2 Q 25 0 50 2 T 99 2 L 99 73 Q 75 75 50 73 T 1 73 Z' fill='black'/></svg>");
-    mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 75' preserveAspectRatio='none'><path d='M1 2 Q 25 0 50 2 T 99 2 L 99 73 Q 75 75 50 73 T 1 73 Z' fill='black'/></svg>");
+    flex-shrink: 0;
+    -webkit-mask-image: none; mask-image: none;
+    border: none; margin: 0; border-radius: 0;
   }
-  .event.big .pic { aspect-ratio: 4 / 3.5; }
-  .event .pic img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.92); transition: transform .8s cubic-bezier(.2,.7,.2,1); }
+  .event.locandina .pic { background: #fff; height: 280px; }
+  .event .pic img {
+    width: 100%; height: 100%;
+    object-fit: cover; filter: saturate(.9);
+    transition: transform .5s cubic-bezier(.2,.7,.2,1);
+  }
   .event:hover .pic img { transform: scale(1.04); }
+  .event.locandina .pic img { object-fit: contain; filter: none; }
+  .event.locandina:hover .pic img { transform: none; }
   .event-stamp {
-    position: absolute; top: 1rem; left: 1rem;
-    background: theme('colors.paper');
-    color: theme('colors.ink');
+    position: absolute; top: .75rem; left: .75rem;
+    background: theme('colors.paper'); color: theme('colors.ink');
     font-family: theme('fontFamily.serif');
-    padding: .5rem .75rem; line-height: 1; text-align: center;
-    box-shadow: 0 1px 0 rgba(0,0,0,.05), 0 8px 16px rgba(0,0,0,.08);
+    padding: .4rem .6rem; line-height: 1; text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,.12);
     transform: rotate(-2deg);
   }
-  .event-stamp .d { font-size: 1.8rem; font-weight: 300; display: block; font-style: italic; }
+  .event-stamp .d { font-size: 1.5rem; font-weight: 300; display: block; font-style: italic; }
   .event-stamp .m {
     font-family: theme('fontFamily.mono');
-    font-size: .68rem; text-transform: uppercase;
-    letter-spacing: .18em; margin-top: .15rem;
+    font-size: .62rem; text-transform: uppercase;
+    letter-spacing: .15em; margin-top: .1rem;
   }
   .event h3 {
     font-family: theme('fontFamily.serif');
-    font-weight: 400; font-size: 1.55rem; line-height: 1.15;
-    margin: .25rem 0 .5rem 0;
+    font-weight: 400; font-size: 1.2rem; line-height: 1.2;
+    padding: .85rem 1rem .3rem; margin: 0;
   }
-  .event.big h3 { font-size: 2.1rem; }
+  .event.big h3 { font-size: 1.35rem; }
   .event .where {
     font-family: theme('fontFamily.mono');
-    font-size: .75rem; text-transform: uppercase;
-    letter-spacing: .18em; color: theme('colors.ink-soft');
+    font-size: .68rem; text-transform: uppercase;
+    letter-spacing: .15em; color: theme('colors.ink-soft');
+    padding: 0 1rem .85rem;
   }
-  .event .signup { margin-top: .75rem; color: theme('colors.gold-deep'); font-style: italic; }
+  .event .signup { padding: 0 1rem .85rem; color: theme('colors.gold-deep'); font-style: italic; font-size: .85rem; }
 
   .notices { list-style: none; padding: 0; margin: 0; }
   .notice { border-top: 1px solid theme('colors.rule'); }
@@ -534,14 +554,10 @@ function eventHref(slug: string) {
     font-size: .9rem; color: theme('colors.gold-deep');
   }
 
-  /* ── Portal preview grid ── */
-  .portal-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 5rem;
-    align-items: center;
+  /* ── Portal preview ── */
+  .portal-left {
+    display: flex; flex-direction: column; justify-content: center;
   }
-  .portal-left { display: flex; flex-direction: column; }
   .portal-h2 {
     font-family: theme('fontFamily.serif');
     font-weight: 300;
@@ -568,74 +584,86 @@ function eventHref(slug: string) {
   .portal-cta-arr { transition: transform .25s; }
   .portal-cta:hover .portal-cta-arr { transform: translateX(4px); }
 
-  /* ── Carousel ── */
-  .portal-carousel {
-    position: relative;
-    height: 460px;
-    border-radius: .75rem;
+  /* ── Expanding panels ── */
+  .portal-panels {
+    display: flex;
+    height: 480px;
+    border-radius: 1.25rem;
     overflow: hidden;
-    background: theme('colors.ink');
+    box-shadow: 0 12px 48px rgba(31,42,42,0.15);
+  }
+  .panel {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
     cursor: pointer;
+    text-decoration: none;
+    transition: flex 0.65s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  .carousel-slides { position: relative; width: 100%; height: 100%; }
-  .carousel-slide {
-    position: absolute; inset: 0;
-    display: block; text-decoration: none;
-    opacity: 0;
-    transition: opacity .8s ease;
+  .panel.is-active { flex: 4.5; }
+  .panel + .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0; left: 0;
+    width: 1px;
+    background: rgba(255,255,255,0.12);
+    z-index: 2;
   }
-  .carousel-slide.active { opacity: 1; }
-  .carousel-slide img,
-  .slide-color {
+  .panel img {
     position: absolute; inset: 0;
     width: 100%; height: 100%;
     object-fit: cover;
-    filter: saturate(.85) contrast(1.05);
+    filter: brightness(0.5) saturate(0.6);
+    transition: filter 0.5s;
   }
-  .slide-overlay {
+  .panel.is-active img { filter: brightness(0.72) saturate(1); }
+  .panel-scrim {
     position: absolute; inset: 0;
-    background: linear-gradient(160deg, rgba(31,42,42,0.08) 0%, rgba(31,42,42,0.72) 100%);
+    background: linear-gradient(to top, rgba(31,42,42,0.75) 0%, transparent 55%);
+    opacity: 0;
+    transition: opacity 0.45s;
   }
-  .slide-content {
+  .panel.is-active .panel-scrim { opacity: 1; }
+  .panel-label {
     position: absolute;
-    bottom: 2rem; left: 2rem; right: 2rem;
-    display: flex; justify-content: space-between; align-items: flex-end;
-  }
-  .slide-label {
+    bottom: 1.75rem; left: 1.25rem;
+    color: #fff;
     font-family: theme('fontFamily.hand');
     font-weight: 700;
-    font-size: 3.2rem;
-    color: #fff;
+    font-size: 2.2rem;
     line-height: 1;
-    text-shadow: 0 2px 16px rgba(0,0,0,.35);
+    white-space: nowrap;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.4s 0.18s, transform 0.4s 0.18s;
+    z-index: 3;
   }
-  .slide-arr {
+  .panel.is-active .panel-label { opacity: 1; transform: translateY(0); }
+  .panel-arr {
+    position: absolute;
+    bottom: 1.75rem; right: 1.25rem;
+    color: rgba(255,255,255,0.7);
     font-family: theme('fontFamily.mono');
-    font-size: 1rem; color: rgba(255,255,255,.7);
-    transition: transform .3s;
+    font-size: 1rem;
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 0.4s 0.22s, transform 0.3s;
+    z-index: 3;
   }
-  .carousel-slide:hover .slide-arr { transform: translateX(5px); }
-  .carousel-dots {
-    position: absolute; top: 1.25rem; right: 1.25rem;
-    display: flex; gap: .5rem; z-index: 5;
-  }
-  .cdot {
-    width: 8px; height: 8px; border-radius: 50%;
-    border: 1.5px solid rgba(255,255,255,0.55);
-    background: transparent; cursor: pointer; padding: 0;
-    transition: background .25s, border-color .25s, transform .25s;
-  }
-  .cdot.active {
-    background: #fff; border-color: #fff; transform: scale(1.25);
-  }
+  .panel.is-active .panel-arr { opacity: 1; transform: translateX(0); }
+  .panel.is-active:hover .panel-arr { transform: translateX(5px); }
 
   @media (max-width: 1000px) {
     .hero { grid-template-columns: 1fr; }
     .hero .text { padding: 3rem 1.5rem; }
     .hero .image { aspect-ratio: 4/3; min-height: 300px; }
     .hero .quota { font-size: 6rem; right: 1rem; bottom: 1rem; }
-    .portal-grid { grid-template-columns: 1fr; gap: 2.5rem; }
-    .portal-carousel { height: 320px; }
+    .section-portal { grid-template-columns: 1fr; padding: 3rem 1.5rem; gap: 2rem; }
+    .portal-panels { height: 220px; border-radius: 0.75rem; }
+.panel, .panel.is-active { flex: 1; }
+    .panel-label { font-size: 1.1rem; bottom: 0.75rem; left: 0.5rem; }
+    .panel-arr { display: none; }
     .events, .threecol, .cta { grid-template-columns: 1fr; }
     .threecol .col { border-right: none; border-bottom: 1px dashed theme('colors.rule'); }
     .section, .pull, .cta { padding: 3.5rem 1.5rem; }
@@ -646,37 +674,37 @@ function eventHref(slug: string) {
 
 <script>
   (function () {
-    const carousel = document.getElementById('portal-carousel');
-    if (!carousel) return;
-    const slides = Array.from(carousel.querySelectorAll<HTMLElement>('.carousel-slide'));
-    const dots   = Array.from(carousel.querySelectorAll<HTMLElement>('.cdot'));
-    if (!slides.length) return;
+    const container = document.getElementById('portal-panels');
+    if (!container) return;
+    const panels = Array.from(container.querySelectorAll<HTMLElement>('.panel'));
+    if (!panels.length) return;
     let current = 0;
     let timer: ReturnType<typeof setInterval>;
 
-    function go(n: number) {
-      slides[current].classList.remove('active');
-      dots[current].classList.remove('active');
-      current = ((n % slides.length) + slides.length) % slides.length;
-      slides[current].classList.add('active');
-      dots[current].classList.add('active');
+    function goTo(n: number) {
+      panels[current].classList.remove('is-active');
+      current = ((n % panels.length) + panels.length) % panels.length;
+      panels[current].classList.add('is-active');
     }
 
     function start() {
-      timer = setInterval(() => go(current + 1), 4000);
+      timer = setInterval(() => goTo(current + 1), 3500);
     }
 
-    dots.forEach((dot, i) => {
-      dot.addEventListener('click', (e) => {
-        e.preventDefault();
+    panels.forEach((p, i) => {
+      p.addEventListener('mouseenter', () => {
         clearInterval(timer);
-        go(i);
-        start();
+        goTo(i);
+      });
+      p.addEventListener('click', (e) => {
+        if (i !== current) { e.preventDefault(); goTo(i); }
       });
     });
 
-    carousel.addEventListener('mouseenter', () => clearInterval(timer));
-    carousel.addEventListener('mouseleave', start);
+    container.addEventListener('mouseleave', () => {
+      clearInterval(timer);
+      start();
+    });
 
     start();
   })();
