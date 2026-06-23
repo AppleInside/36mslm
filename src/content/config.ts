@@ -84,6 +84,7 @@ const places = defineCollection({
     coords: z.tuple([z.number(), z.number()]).optional(),
     phone: z.string().optional(),
     website: z.string().optional(),
+    tripadvisor: z.string().optional(),
   }),
 });
 

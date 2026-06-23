@@ -1,24 +1,42 @@
 ---
+export const prerender = false;
 import Base from '../../../../../layouts/Base.astro';
-import { getCollection } from 'astro:content';
+import { sql } from '../../../../../server/db';
+import { marked } from 'marked';
 import type { Lang } from '../../../../../i18n/ui';
 
-export async function getStaticPaths() {
-  const all = await getCollection('places');
-  return all.map((entry) => {
-    const [lang, ...rest] = entry.slug.split('/');
-    return { params: { lang, slug: rest.join('/') }, props: { entry } };
-  });
-}
+const lang = Astro.params.lang as Lang;
+const slug = Astro.params.slug as string;
 
-const { entry } = Astro.props;
-const _lang = Astro.params.lang as Lang;
-const { Content } = await entry.render();
+type PlaceRow = {
+  id: number;
+  slug: string;
+  title: string;
+  kind: string;
+  address: string;
+  coords: [number, number] | null;
+  phone: string | null;
+  website: string | null;
+  tripadvisor: string | null;
+  michelin: string | null;
+  body: string | null;
+};
 
-const [lat, lng] = entry.data.coords ?? [];
+const rows = await sql<PlaceRow[]>`
+  SELECT id, slug, title, kind, address, coords, phone, website, tripadvisor, michelin, body
+  FROM places
+  WHERE lang = ${lang} AND slug = ${slug} AND status = 'published'
+  LIMIT 1
+`;
+
+if (!rows[0]) return Astro.redirect(`/${lang}/scopri/territorio/dove`);
+
+const place = rows[0];
+const bodyHtml = place.body ? String(marked.parse(place.body)) : '';
+
+const [lat, lng] = place.coords ?? [];
 const hasCoords = lat != null && lng != null;
-const mapsQuery = encodeURIComponent(entry.data.address ?? entry.data.title);
-// Universal map link: Apple Maps on iOS/macOS, Google Maps elsewhere
+const mapsQuery = encodeURIComponent(place.address ?? place.title);
 const mapLink = hasCoords
   ? `https://maps.apple.com/?ll=${lat},${lng}&q=${mapsQuery}`
   : `https://maps.apple.com/?q=${mapsQuery}`;
@@ -29,22 +47,22 @@ const embedSrc = hasCoords
   ? `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.01},${lat - 0.007},${lng + 0.01},${lat + 0.007}&layer=mapnik&marker=${lat},${lng}`
   : null;
 ---
-<Base title={entry.data.title}>
+<Base title={place.title}>
   <article class="place-detail">
     <header class="place-header">
-      <p class="place-kind">{entry.data.kind}</p>
-      <h1 class="place-title">{entry.data.title}</h1>
+      <p class="place-kind">{place.kind}</p>
+      <h1 class="place-title">{place.title}</h1>
     </header>
 
     <div class="place-body">
-      <div class="prose"><Content /></div>
+      <div class="prose" set:html={bodyHtml} />
 
       <aside class="place-info">
-        {entry.data.address && (
+        {place.address && (
           <div class="info-block">
             <span class="info-label">Indirizzo</span>
             <a href={mapLink} class="info-address" target="_blank" rel="noopener">
-              {entry.data.address}
+              {place.address}
               <svg class="map-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
                 <circle cx="12" cy="10" r="3"/>
@@ -58,18 +76,27 @@ const embedSrc = hasCoords
           </div>
         )}
 
-        {entry.data.phone && (
+        {place.phone && (
           <div class="info-block">
             <span class="info-label">Telefono</span>
-            <a href={`tel:${entry.data.phone}`} class="info-value">{entry.data.phone}</a>
+            <a href={`tel:${place.phone}`} class="info-value">{place.phone}</a>
           </div>
         )}
 
-        {entry.data.website && (
+        {place.website && (
           <div class="info-block">
             <span class="info-label">Sito web</span>
-            <a href={entry.data.website} class="info-value" target="_blank" rel="noopener">
-              {entry.data.website.replace(/^https?:\/\/(www\.)?/, '')}
+            <a href={place.website} class="info-value" target="_blank" rel="noopener">
+              {place.website.replace(/^https?:\/\/(www\.)?/, '')}
+            </a>
+          </div>
+        )}
+
+        {place.tripadvisor && (
+          <div class="info-block">
+            <span class="info-label">TripAdvisor</span>
+            <a href={place.tripadvisor} class="info-value" target="_blank" rel="noopener">
+              TripAdvisor ↗
             </a>
           </div>
         )}
@@ -82,7 +109,7 @@ const embedSrc = hasCoords
               width="100%"
               height="220"
               loading="lazy"
-              title={`Mappa di ${entry.data.title}`}
+              title={`Mappa di ${place.title}`}
               style="border:0;border-radius:10px;"
             ></iframe>
           </div>
@@ -191,7 +218,6 @@ const embedSrc = hasCoords
     z-index: 10;
   }
   @media (pointer: coarse) {
-    /* On touch devices overlay captures the tap and opens Maps app */
     .map-tap-overlay { display: block; }
   }
 </style>

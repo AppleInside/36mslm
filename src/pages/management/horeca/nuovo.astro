@@ -44,7 +44,7 @@ const userDisplayName = Astro.locals.userDisplayName;
         </div>
       </div>
 
-      <!-- Tipo · Sito web · Tag · Stato -->
+      <!-- Tipo · Sito web · TripAdvisor · Stato -->
       <div class="row-4c">
         <div class="field">
           <label for="kind">Tipo <span class="req">*</span></label>
@@ -56,9 +56,13 @@ const userDisplayName = Astro.locals.userDisplayName;
             <option value="altro">Altro</option>
           </select>
         </div>
-        <div class="field span-2">
+        <div class="field">
           <label for="website">Sito web</label>
           <input id="website" name="website" type="text" placeholder="https://…" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="tripadvisor">TripAdvisor</label>
+          <input id="tripadvisor" name="tripadvisor" type="text" placeholder="https://tripadvisor.com/…" autocomplete="off" />
         </div>
         <div class="field">
           <label for="status">Stato</label>
@@ -66,6 +70,51 @@ const userDisplayName = Astro.locals.userDisplayName;
             <option value="draft">Bozza</option>
             <option value="published">Pubblicato</option>
           </select>
+        </div>
+      </div>
+
+      <!-- Michelin -->
+      <div class="field">
+        <label>Guida Michelin</label>
+        <div class="michelin-picker">
+          <label class="mpick-option">
+            <input type="radio" name="michelin" value="" checked />
+            <span class="mpick-content">
+              <span class="mpick-none">—</span>
+            </span>
+            <span class="mpick-label">Nessuna</span>
+          </label>
+          <label class="mpick-option">
+            <input type="radio" name="michelin" value="listed" />
+            <span class="mpick-content">
+              <img src="/icons/michelin-guide.png" class="mpick-img" alt="" />
+            </span>
+            <span class="mpick-label">In Guida</span>
+          </label>
+          <label class="mpick-option">
+            <input type="radio" name="michelin" value="1" />
+            <span class="mpick-content">
+              <img src="/icons/michelin-star.png" class="mpick-img" alt="" />
+            </span>
+            <span class="mpick-label">1 stella</span>
+          </label>
+          <label class="mpick-option">
+            <input type="radio" name="michelin" value="2" />
+            <span class="mpick-content">
+              <img src="/icons/michelin-star.png" class="mpick-img" alt="" />
+              <img src="/icons/michelin-star.png" class="mpick-img mpick-img-sm" alt="" />
+            </span>
+            <span class="mpick-label">2 stelle</span>
+          </label>
+          <label class="mpick-option">
+            <input type="radio" name="michelin" value="3" />
+            <span class="mpick-content">
+              <img src="/icons/michelin-star.png" class="mpick-img mpick-img-sm" alt="" />
+              <img src="/icons/michelin-star.png" class="mpick-img mpick-img-sm" alt="" />
+              <img src="/icons/michelin-star.png" class="mpick-img mpick-img-sm" alt="" />
+            </span>
+            <span class="mpick-label">3 stelle</span>
+          </label>
         </div>
       </div>
 
@@ -174,6 +223,40 @@ const userDisplayName = Astro.locals.userDisplayName;
   .btn-cancel:hover { border-color: rgba(232,220,200,0.3); color: rgba(232,220,200,0.7); }
   .btn-submit { padding: 0.6rem 1.4rem; background: #D8A14A; border: none; border-radius: 3px; color: #1A0E00; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; transition: background 0.2s, transform 0.15s; }
   .btn-submit:hover { background: #E8B05A; transform: translateY(-1px); }
+
+  /* ── Michelin picker ── */
+  .michelin-picker { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .mpick-option {
+    display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+    padding: 0.7rem 1rem 0.6rem;
+    background: rgba(232,220,200,0.03);
+    border: 1px solid rgba(232,220,200,0.10);
+    border-radius: 6px; cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    min-width: 80px;
+  }
+  .mpick-option:has(input:checked) {
+    border-color: rgba(226,35,26,0.55);
+    background: rgba(226,35,26,0.07);
+  }
+  .mpick-option input[type="radio"] { display: none; }
+  .mpick-content {
+    display: flex; align-items: center; gap: 2px;
+    height: 26px;
+  }
+  .mpick-img { width: 22px; height: 22px; object-fit: contain; display: block; }
+  .mpick-img-sm { width: 16px; height: 16px; }
+  .mpick-none {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1rem; color: rgba(232,220,200,0.2);
+    line-height: 1;
+  }
+  .mpick-label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 0.57rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(232,220,200,0.35);
+  }
+  .mpick-option:has(input:checked) .mpick-label { color: rgba(226,35,26,0.85); }
 
   @media (max-width: 800px) {
     .row-3c, .row-4c { grid-template-columns: 1fr 1fr; }

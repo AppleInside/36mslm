@@ -1,5 +1,6 @@
 ---
 import { getLangFromUrl, useTranslations, localizedPath } from '../i18n/utils';
+import { sql, toProxyUrl } from '../server/db';
 const lang = getLangFromUrl(Astro.url);
 const t = useTranslations(lang);
 const itPath = Astro.url.pathname.replace(/^\/(it|en)/, '/it') || '/it/';
@@ -7,37 +8,74 @@ const enPath = Astro.url.pathname.replace(/^\/(it|en)/, '/en') || '/en/';
 
 const home = localizedPath(lang, '');
 
-const scopriSlides = [
-  {
-    eyebrow: lang === 'it' ? '— Territorio —' : '— Territory —',
-    title:   lang === 'it' ? 'Itinerari del fiume' : 'River itineraries',
-    blurb:   lang === 'it' ? 'Sentieri, anse e argini lungo il grande Po.' : 'Paths, bends and embankments along the great Po.',
-    img:     '/media/storico/Guareschi-sul-Po.jpg',
-    href:    localizedPath(lang, 'scopri/itinerari'),
-  },
-  {
-    eyebrow: lang === 'it' ? '— Dove fermarsi —' : '— Where to stop —',
-    title:   lang === 'it' ? 'Luoghi e tappe' : 'Places & stops',
-    blurb:   lang === 'it' ? 'Ristoranti, agriturismi e posti dove dormire.' : 'Restaurants, farm stays and places to sleep.',
-    img:     '/media/storico/partecipavano-allultima-serata-del-bar-della-Brucata.jpg',
-    href:    localizedPath(lang, 'scopri/territorio/dove'),
-  },
+// Prossimo evento reale dal calendario
+const IT_MONTHS = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+const EN_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+let nextEvent: { slug: string; title: string; date: Date; cover_url: string | null; description: string | null } | null = null;
+try {
+  const rows = await sql<{ slug: string; title: string; date: Date; cover_url: string | null; description: string | null }[]>`
+    SELECT slug, title, date, cover_url, description
+    FROM events
+    WHERE lang = 'it' AND date >= CURRENT_DATE
+    ORDER BY date ASC
+    LIMIT 1
+  `;
+  if (rows[0]) nextEvent = rows[0];
+} catch {}
+
+function fmtDate(d: Date) {
+  const months = lang === 'en' ? EN_MONTHS : IT_MONTHS;
+  return `${d.getDate()} ${months[d.getMonth()]}`;
+}
+function stripMd(s: string) {
+  return s.replace(/[#*_~`>\[\]!]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+const scopriDefs = [
+  { key: 'scopri-itinerari', eyebrow: lang === 'it' ? '— Territorio —'   : '— Territory —',  title: lang === 'it' ? 'Itinerari del fiume'        : 'River itineraries',        href: localizedPath(lang, 'scopri/itinerari'),      fallback: '/media/storico/Guareschi-sul-Po.jpg' },
+  { key: 'scopri-fauna',     eyebrow: lang === 'it' ? '— Natura —'       : '— Nature —',     title: lang === 'it' ? 'Fauna e flora'               : 'Fauna & flora',            href: localizedPath(lang, 'scopri/fauna'),          fallback: '/media/storico/Guareschi-sul-Po.jpg' },
+  { key: 'scopri-dove',      eyebrow: lang === 'it' ? '— Dove fermarsi —': '— Where to go —',title: lang === 'it' ? 'Dove mangiare o dormire'     : 'Where to eat or sleep',    href: localizedPath(lang, 'scopri/territorio/dove'),fallback: '/media/storico/partecipavano-allultima-serata-del-bar-della-Brucata.jpg' },
+  { key: 'scopri-ricettario',eyebrow: lang === 'it' ? '— Memoria —'      : '— Memory —',     title: lang === 'it' ? 'Ricettario di casa'          : 'Home recipes',             href: localizedPath(lang, 'scopri/ricettario'),    fallback: '/media/storico/partecipavano-allultima-serata-del-bar-della-Brucata.jpg' },
+  { key: 'scopri-storie',    eyebrow: lang === 'it' ? '— Tradizione —'   : '— Tradition —',  title: lang === 'it' ? 'Dialetto e modi di dire'     : 'Dialect & sayings',        href: localizedPath(lang, 'scopri/storie'),        fallback: '/media/legacy/wp-content_uploads_2021_09_1953-Giovannino-Guareschi-Polesine-Due-Torri-1.jpg' },
+  { key: 'scopri-immagini',  eyebrow: lang === 'it' ? '— Archivio —'     : '— Archive —',    title: lang === 'it' ? 'Immagini e ricordi'          : 'Images & memories',        href: localizedPath(lang, 'scopri/immagini'),      fallback: '/media/legacy/wp-content_uploads_2021_09_1953-Giovannino-Guareschi-Polesine-Due-Torri-1.jpg' },
 ];
+
+let scopriCoverMap: Record<string, string> = {};
+try {
+  const rows = await sql<{ page_key: string; cover_url: string }[]>`
+    SELECT page_key, cover_url FROM page_covers
+    WHERE page_key IN ('scopri-itinerari','scopri-fauna','scopri-dove','scopri-ricettario','scopri-storie','scopri-immagini')
+  `;
+  for (const r of rows) scopriCoverMap[r.page_key] = r.cover_url;
+} catch {}
+
+const scopriSlides = scopriDefs.map(d => ({
+  eyebrow: d.eyebrow,
+  title:   d.title,
+  img:     scopriCoverMap[d.key] ?? d.fallback,
+  href:    d.href,
+}));
 const navItems = [
   {
     key: 'eventi',
     href: localizedPath(lang, 'eventi'),
     label: t('nav.events'),
     lead: {
-      eyebrow: lang === 'it' ? 'Prossimo evento · 10 maggio' : 'Next event · May 10',
-      headline: lang === 'it'
-        ? 'Camminata in <em>golena</em> al risveglio del Po'
-        : 'Walk in the <em>floodplain</em> at the river\'s awakening',
-      blurb: lang === 'it'
-        ? "Sei chilometri tra pioppi e meandri, partenza all'argine alle 06:30."
-        : 'Six kilometres among poplars and meanders, leaving from the embankment at 06:30.',
-      img: '/media/legacy/wp-content_uploads_2021_09_cercavano-il-fresco-destate-sulla-Via-Alzaia-FILEminimizer.jpg',
-      href: localizedPath(lang, 'eventi/2026-05-10-camminata-golena'),
+      eyebrow: nextEvent
+        ? (lang === 'it' ? `Prossimo evento · ${fmtDate(nextEvent.date)}` : `Next event · ${fmtDate(nextEvent.date)}`)
+        : (lang === 'it' ? 'Prossimo evento' : 'Next event'),
+      headline: nextEvent
+        ? nextEvent.title
+        : (lang === 'it' ? 'Nessun evento in programma' : 'No events scheduled'),
+      blurb: nextEvent?.description
+        ? stripMd(nextEvent.description).slice(0, 110)
+        : (lang === 'it' ? 'Scopri tutti gli eventi in calendario.' : 'Browse all events in the calendar.'),
+      img: (nextEvent?.cover_url ? toProxyUrl(nextEvent.cover_url) : null)
+        ?? '/media/storico/cercavano-il-fresco-destate-sulla-Via-Alzaia-FILEminimizer.jpg',
+      href: nextEvent
+        ? localizedPath(lang, `eventi/${nextEvent.slug}`)
+        : localizedPath(lang, 'eventi/calendario'),
     },
     cols: [
       {
@@ -93,27 +131,9 @@ const navItems = [
     key: 'chisiamo',
     href: localizedPath(lang, 'associazione'),
     label: lang === 'it' ? "L'associazione" : 'The association',
-    lead: {
-      eyebrow: lang === 'it' ? "L'associazione" : 'The association',
-      headline: lang === 'it'
-        ? 'Un\'associazione <em>di associazioni</em> che vive a 36 metri sul mare'
-        : 'An <em>association of associations</em> living 36 metres above sea level',
-      blurb: lang === 'it'
-        ? 'Sette realtà storiche di Polesine Parmense unite per valorizzare il patrimonio umano e naturale del territorio.'
-        : 'Seven historic local organisations united to promote the human and natural heritage of Polesine Parmense.',
-      img: '/media/legacy/wp-content_uploads_2021_09_Giovanni-Guareschi-al-bar-in-piazza.jpg',
-      href: localizedPath(lang, 'associazione'),
-    },
-    cols: [
-      {
-        title: lang === 'it' ? 'Documenti' : 'Documents',
-        links: [
-          { label: lang === 'it' ? "L'<em>associazione</em>" : 'The <em>association</em>', href: localizedPath(lang, 'associazione/storia') },
-          { label: lang === 'it' ? 'Lo <em>statuto</em>' : 'The <em>bylaws</em>', href: localizedPath(lang, 'associazione/statuto') },
-          { label: lang === 'it' ? '<em>Press kit</em>' : '<em>Press kit</em>', href: localizedPath(lang, 'associazione/press-kit') },
-        ],
-      },
-    ],
+    disabled: true,
+    lead: { eyebrow: '', headline: '', blurb: '', img: '', href: '' },
+    cols: [],
   },
   {
     key: 'contatti',
@@ -157,8 +177,8 @@ const navItems = [
 
   <nav class="nav" id="nav" aria-label={lang === 'it' ? 'Navigazione principale' : 'Main navigation'}>
     {navItems.map((item) => (
-      <div class="nav-item" data-pane={item.key}>
-        <a href={item.href} aria-haspopup="true" aria-expanded="false"><span class="label">{item.label}</span></a>
+      <div class:list={['nav-item', item.disabled && 'nav-item--disabled']} data-pane={item.disabled ? '' : item.key}>
+        <a href={item.disabled ? undefined : item.href} aria-haspopup={item.disabled ? 'false' : 'true'} aria-expanded="false" tabindex={item.disabled ? -1 : undefined}><span class="label">{item.label}</span></a>
       </div>
     ))}
     <div class="nav-item nav-item--portal" data-pane="">
@@ -192,7 +212,6 @@ const navItems = [
                 <div class="cs-content">
                   <p class="cs-eyebrow">{slide.eyebrow}</p>
                   <h4>{slide.title}</h4>
-                  <p class="cs-blurb">{slide.blurb}</p>
                 </div>
               </a>
             ))}
@@ -552,6 +571,8 @@ const navItems = [
       outline: 2px solid theme('colors.gold');
       outline-offset: 4px;
     }
+    .nav-item--disabled { pointer-events: none; }
+    .nav-item--disabled > a { opacity: .28; cursor: default; }
     @keyframes acqua-appare {
       from { opacity: 0; }
       to   { opacity: 1; }
@@ -875,7 +896,7 @@ const navItems = [
     }
     function moveIndicator(item: Element) {
       if (!indicator) return;
-      const navRect = nav.getBoundingClientRect();
+      const navRect = (nav as HTMLElement).getBoundingClientRect();
       const r = item.getBoundingClientRect();
       indicator.style.left = (r.left - navRect.left + r.width * 0.18) + 'px';
       indicator.style.width = (r.width * 0.64) + 'px';
@@ -914,15 +935,14 @@ const navItems = [
     });
 
     const path = window.location.pathname;
-    let activeEl: Element | null = null;
     items.forEach((item) => {
       const a = item.querySelector('a') as HTMLAnchorElement | null;
       if (!a) return;
       const href = a.getAttribute('href') || '';
-      if (href !== '/' && path.startsWith(href)) { item.classList.add('active'); activeEl = item; }
+      if (href !== '/' && path.startsWith(href)) item.classList.add('active');
     });
     window.addEventListener('resize', () => {
-      const a = nav.querySelector('.nav-item.active');
+      const a = nav?.querySelector('.nav-item.active');
       if (a) moveIndicator(a);
     });
 

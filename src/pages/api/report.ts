@@ -23,8 +23,12 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     ? raw.back
     : `/${lang}/partecipa/segnalazioni`;
 
+  const wantsJson = request.headers.get('accept')?.includes('application/json');
+  const jsonOk  = () => new Response(JSON.stringify({ ok: true }),  { status: 200, headers: { 'content-type': 'application/json' } });
+  const jsonErr = () => new Response(JSON.stringify({ ok: false }), { status: 400, headers: { 'content-type': 'application/json' } });
+
   const parsed = schema.safeParse(raw);
-  if (!parsed.success) return redirect(`${back}?err=1`, 303);
+  if (!parsed.success) return wantsJson ? jsonErr() : redirect(`${back}?err=1`, 303);
 
   const source = (typeof raw.source === 'string' && raw.source.length <= 50) ? raw.source : null;
 
@@ -35,8 +39,8 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       VALUES (${d.lang}, ${d.name}, ${d.email}, ${d.subject}, ${d.body}, ${source})
     `;
   } catch {
-    return redirect(`${back}?err=1`, 303);
+    return wantsJson ? jsonErr() : redirect(`${back}?err=1`, 303);
   }
 
-  return redirect(`${back}?ok=1`, 303);
+  return wantsJson ? jsonOk() : redirect(`${back}?ok=1`, 303);
 };

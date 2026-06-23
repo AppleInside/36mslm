@@ -26,9 +26,11 @@ export const POST: APIRoute = async ({ request, params, redirect }) => {
         title   = ${d.title},
         kind    = ${d.kind},
         address = ${d.address},
-        phone   = ${d.phone ?? null},
-        website = ${d.website ?? null},
-        tags    = ${JSON.stringify(tags)},
+        phone       = ${d.phone ?? null},
+        website     = ${d.website ?? null},
+        tripadvisor = ${d.tripadvisor ?? null},
+        michelin    = ${d.michelin ?? null},
+        tags        = ${JSON.stringify(tags)},
         body    = ${d.body ?? null},
         status  = ${d.status}
       WHERE id = ${Number(id)} AND lang = 'it'

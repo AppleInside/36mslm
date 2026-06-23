@@ -12,9 +12,14 @@ const pathname = Astro.url.pathname;
 
 let unreadSegnalazioni = 0;
 try {
-  const rows = await sql<{ n: string }[]>`SELECT COUNT(*)::text AS n FROM reports WHERE read = false`;
+  const rows = await sql<{ n: string }[]>`
+    SELECT (
+      (SELECT COUNT(*) FROM reports        WHERE read = false) +
+      (SELECT COUNT(*) FROM notice_responses WHERE read = false)
+    )::text AS n
+  `;
   unreadSegnalazioni = parseInt(rows[0]?.n ?? '0');
-} catch { /* table might not exist yet */ }
+} catch { /* tables might not exist yet */ }
 ---
 <!DOCTYPE html>
 <html lang="it">

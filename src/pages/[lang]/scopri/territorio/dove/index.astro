@@ -1,19 +1,37 @@
 ---
+export const prerender = false;
 import Base from '../../../../../layouts/Base.astro';
 import PageHeader from '../../../../../components/PageHeader.astro';
 import PlaceCard from '../../../../../components/PlaceCard.astro';
-import { getCollection } from 'astro:content';
-import { byLang, sortByDateDesc } from '../../../../../lib/content';
+import { sql } from '../../../../../server/db';
+import { marked } from 'marked';
 import type { Lang } from '../../../../../i18n/ui';
 
-export function getStaticPaths() {
-  return [{ params: { lang: 'it' } }, { params: { lang: 'en' } }];
-}
-
 const lang = Astro.params.lang as Lang;
-const all = await getCollection('places');
-const places = sortByDateDesc(byLang(all, lang));
 const title = lang === 'it' ? 'Dove mangiare e dormire' : 'Where to eat & stay';
+
+type PlaceRow = {
+  id: number;
+  slug: string;
+  title: string;
+  kind: string;
+  address: string;
+  coords: [number, number] | null;
+  phone: string | null;
+  website: string | null;
+  tripadvisor: string | null;
+  cover_url: string | null;
+  michelin: string | null;
+  body: string | null;
+  tags: string[];
+};
+
+const places = await sql<PlaceRow[]>`
+  SELECT id, slug, title, kind, address, coords, phone, website, tripadvisor, cover_url, michelin, body, tags
+  FROM places
+  WHERE lang = ${lang} AND status = 'published'
+  ORDER BY title ASC
+`;
 
 type Kind = 'ristorante' | 'agriturismo' | 'b&b' | 'azienda' | 'altro';
 const kindLabels: Record<Kind, [string, string]> = {
@@ -25,33 +43,27 @@ const kindLabels: Record<Kind, [string, string]> = {
 };
 
 const counts = places.reduce<Record<string, number>>((acc, p) => {
-  const k = p.data.kind as string;
-  acc[k] = (acc[k] ?? 0) + 1;
+  acc[p.kind] = (acc[p.kind] ?? 0) + 1;
   return acc;
 }, {});
 
 const activeKinds = (Object.keys(kindLabels) as Kind[]).filter(k => counts[k] > 0);
 
-// Render MDX body of each place for the modal
-const renderedPlaces = await Promise.all(
-  places.map(async e => {
-    const { Content } = await e.render();
-    return { slug: e.slug.replace(/^(it|en)\//, ''), Content };
-  })
-);
-
-// JSON data for the modal (server → client)
+// Prepare modal JSON server-side (body pre-rendered to HTML)
 const placesJson = Object.fromEntries(
-  places.map(e => {
-    const slug = e.slug.replace(/^(it|en)\//, '');
-    return [slug, {
-      title:   e.data.title,
-      kind:    e.data.kind,
-      address: e.data.address,
-      coords:  e.data.coords ?? null,
-      phone:   e.data.phone   ?? null,
-      website: e.data.website ?? null,
-      tags:    e.data.tags    ?? [],
+  places.map(p => {
+    const bodyHtml = p.body ? String(marked.parse(p.body)) : '';
+    return [p.slug, {
+      title:       p.title,
+      kind:        p.kind,
+      address:     p.address,
+      coords:      p.coords,
+      phone:       p.phone,
+      website:     p.website,
+      tripadvisor: p.tripadvisor,
+      michelin:    p.michelin,
+      tags:        p.tags ?? [],
+      bodyHtml,
     }];
   })
 );
@@ -77,25 +89,15 @@ const placesJson = Object.fromEntries(
   </div>
 
   <div class="places-grid">
-    {places.map(e => {
-      const slug = e.slug.replace(/^(it|en)\//, '');
-      return (
-        <div class="place-wrap" data-kind={e.data.kind} data-slug={slug}>
-          <PlaceCard entry={e} />
-        </div>
-      );
-    })}
+    {places.map(p => (
+      <div class="place-wrap" data-kind={p.kind} data-slug={p.slug}>
+        <PlaceCard place={p} />
+      </div>
+    ))}
   </div>
 </Base>
 
-<!-- Hidden MDX bodies for modal (not rendered to the page) -->
-<div style="display:none" aria-hidden="true">
-  {renderedPlaces.map(({ slug, Content }) => (
-    <div data-place-body={slug}><Content /></div>
-  ))}
-</div>
-
-<!-- Place modal (outside Base to avoid stacking context issues) -->
+<!-- Place modal -->
 <div class="pm-overlay" id="placeModal" aria-modal="true" role="dialog" aria-label={lang === 'it' ? 'Luogo' : 'Place'}>
   <div class="pm-box">
     <div class="pm-band" id="pmBand">
@@ -295,7 +297,7 @@ const placesJson = Object.fromEntries(
   }
 </style>
 
-<script define:vars={{ placesJson }}>
+<script is:inline define:vars={{ placesJson }}>
   const data = placesJson;
 
   const kindLabels = {
@@ -327,12 +329,10 @@ const placesJson = Object.fromEntries(
     const p = data[slug];
     if (!p) return;
 
-    // Band color
     const color = kindColors[p.kind] || kindColors.altro;
     band.style.background = color;
     kindLbl.textContent   = kindLabels[p.kind] || p.kind;
 
-    // Address link
     let addressHTML = '';
     if (p.coords) {
       const [lat, lng] = p.coords;
@@ -342,7 +342,6 @@ const placesJson = Object.fromEntries(
       addressHTML = `<span class="pm-address" style="color:var(--color-ink-soft,#444)">${esc(p.address)}</span>`;
     }
 
-    // Contacts row
     const contactParts = [];
     if (p.phone) contactParts.push(`<a href="tel:${esc(p.phone)}">${esc(p.phone)}</a>`);
     if (p.website) {
@@ -351,22 +350,19 @@ const placesJson = Object.fromEntries(
         contactParts.push(`<a href="${esc(p.website)}" target="_blank" rel="noopener">${esc(host)}</a>`);
       } catch {}
     }
+    if (p.tripadvisor) {
+      contactParts.push(`<a href="${esc(p.tripadvisor)}" target="_blank" rel="noopener">TripAdvisor</a>`);
+    }
     const contactsHTML = contactParts.length
       ? `<p class="pm-contacts">${contactParts.join('<span class="pm-sep"> · </span>')}</p>`
       : '';
 
-    // MDX body
-    const bodyEl = document.querySelector(`[data-place-body="${CSS.escape(slug)}"]`);
-    const descHTML = bodyEl
-      ? `<div class="pm-desc">${bodyEl.innerHTML}</div>`
-      : '';
+    const descHTML = p.bodyHtml ? `<div class="pm-desc">${p.bodyHtml}</div>` : '';
 
-    // Tags
     const tagsHTML = p.tags && p.tags.length
       ? `<div class="pm-tags">${p.tags.map(t => `<span class="pm-tag">${esc(t)}</span>`).join('')}</div>`
       : '';
 
-    // Map buttons
     let mapHTML = '';
     if (p.coords) {
       const [lat, lng] = p.coords;
@@ -399,7 +395,6 @@ const placesJson = Object.fromEntries(
     document.body.style.overflow = '';
   }
 
-  // Intercept place card clicks
   document.querySelectorAll('.place-card').forEach(card => {
     card.addEventListener('click', e => {
       e.preventDefault();
@@ -419,12 +414,10 @@ const placesJson = Object.fromEntries(
     });
   });
 
-  // Close
   closeBtn.addEventListener('click', closeModal);
   overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-  // Filters
   document.querySelectorAll('.fil').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.fil').forEach(b => b.classList.remove('active'));

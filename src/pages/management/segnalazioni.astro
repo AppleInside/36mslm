@@ -1,0 +1,653 @@
+---
+export const prerender = false;
+import Management from '../../layouts/Management.astro';
+import { sql } from '../../server/db';
+
+const userDisplayName = Astro.locals.userDisplayName;
+
+try {
+  await sql`UPDATE notice_responses SET read = true WHERE read = false`;
+} catch { /* run migration 008 */ }
+
+type Row = {
+  type: 'proposta' | 'partecipazione';
+  id: string;
+  contact_name: string;
+  contact_detail: string;
+  subject: string;
+  body: string | null;
+  read: boolean;
+  created_at: string;
+};
+
+const allRows = await sql<Row[]>`
+  SELECT
+    'proposta'::text          AS type,
+    r.id::text                AS id,
+    r.name                    AS contact_name,
+    r.email                   AS contact_detail,
+    r.subject,
+    r.body,
+    r.read,
+    r.created_at
+  FROM reports r
+  UNION ALL
+  SELECT
+    'partecipazione'::text                          AS type,
+    nr.id::text                                     AS id,
+    nr.nome || ' ' || nr.cognome                   AS contact_name,
+    nr.telefono                                     AS contact_detail,
+    COALESCE(n.title, nr.notice_slug)              AS subject,
+    NULL                                            AS body,
+    nr.read,
+    nr.created_at
+  FROM notice_responses nr
+  LEFT JOIN notices n ON n.slug = nr.notice_slug AND n.lang = 'it'
+  ORDER BY created_at DESC
+`;
+
+const filter = (Astro.url.searchParams.get('filter') ?? 'all') as 'all' | 'proposta' | 'partecipazione';
+const rows   = filter === 'all' ? allRows : allRows.filter(r => r.type === filter);
+
+const ok  = Astro.url.searchParams.get('ok')  === '1';
+const err = Astro.url.searchParams.get('err') === '1';
+
+const nProposte       = allRows.filter(r => r.type === 'proposta').length;
+const nPartecipazioni = allRows.filter(r => r.type === 'partecipazione').length;
+
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleString('it-IT', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+}
+---
+
+<Management title="Segnalazioni" userDisplayName={userDisplayName}>
+  <div class="seg-page">
+
+    <div class="seg-header">
+      <h1 class="seg-title">Segnalazioni</h1>
+
+      <!-- Filter tabs -->
+      <nav class="filter-tabs">
+        <a href="?filter=all"           class:list={['ftab', { active: filter === 'all' }]}>
+          Tutte <span class="ftab-n">{allRows.length}</span>
+        </a>
+        <a href="?filter=proposta"      class:list={['ftab', 'ftab--proposta',       { active: filter === 'proposta' }]}>
+          Proposte <span class="ftab-n">{nProposte}</span>
+        </a>
+        <a href="?filter=partecipazione" class:list={['ftab', 'ftab--partecipazione', { active: filter === 'partecipazione' }]}>
+          Partecipazioni <span class="ftab-n">{nPartecipazioni}</span>
+        </a>
+      </nav>
+
+    </div>
+
+    {ok  && <div class="flash flash--ok">Eliminazione completata.</div>}
+    {err && <div class="flash flash--err">Errore durante l'eliminazione. Riprova.</div>}
+
+    {rows.length === 0 ? (
+      <div class="seg-empty">Nessuna segnalazione{filter !== 'all' ? ' in questa categoria' : ''} ancora.</div>
+    ) : (
+      <div class="seg-table-wrap">
+        <table class="seg-table">
+          <thead>
+            <tr>
+              <th class="th-check">
+                <label class="cb-wrap" aria-label="Seleziona tutto">
+                  <input type="checkbox" id="select-all" class="cb" />
+                  <span class="cb-box"></span>
+                </label>
+              </th>
+              <th>Tipo</th>
+              <th>Data</th>
+              <th>Contatto</th>
+              <th>Oggetto</th>
+              <th>Dettaglio</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(r => (
+              <tr class={`row-${r.type}${r.read ? '' : ' row-unread'}`} data-row>
+                <td class="td-check">
+                  <label class="cb-wrap" aria-label="Seleziona">
+                    <input
+                      type="checkbox"
+                      class="cb row-cb"
+                      data-id={r.id}
+                      data-type={r.type}
+                    />
+                    <span class="cb-box"></span>
+                  </label>
+                </td>
+                <td>
+                  <span class={`type-badge type-badge--${r.type}`}>
+                    {r.type === 'proposta' ? 'Proposta' : 'Partecipazione'}
+                  </span>
+                </td>
+                <td class="cell-date">{fmtDate(r.created_at)}</td>
+                <td class="cell-contact">
+                  <span class="contact-name">{r.contact_name}</span>
+                  <span class="contact-detail">{r.contact_detail}</span>
+                </td>
+                <td class="cell-subject">{r.subject}</td>
+                <td class="cell-body">
+                  {r.body
+                    ? <span class="body-preview">{r.body.slice(0, 120)}{r.body.length > 120 ? '…' : ''}</span>
+                    : <span class="body-none">—</span>
+                  }
+                </td>
+                <td class="cell-action">
+                  <form
+                    method="POST"
+                    action={`/api/management/segnalazioni/${r.id}/delete?type=${r.type}`}
+                    class="del-form"
+                  >
+                    <button type="button" class="del-btn" aria-label="Elimina" data-del>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                        <path d="M10 11v6M14 11v6"/>
+                        <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                      </svg>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </div>
+</Management>
+
+<!-- Floating action bar (always visible when rows exist) -->
+{rows.length > 0 && (
+  <div id="sel-bar" class="sel-bar" aria-live="polite">
+    <div class="sel-bar-inner">
+
+      <!-- Bulk-selection section (hidden until rows are checked) -->
+      <span id="sel-section" class="sel-section" hidden>
+        <span class="sel-info">
+          <span id="sel-count">0</span> selezionat*
+        </span>
+        <div class="sel-divider"></div>
+        <button id="sel-clear" class="sel-btn sel-btn--ghost">Deseleziona</button>
+        <button id="sel-delete" class="sel-btn sel-btn--danger">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+            <path d="M10 11v6M14 11v6"/>
+            <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+          </svg>
+          Elimina selezionate
+        </button>
+      </span>
+
+      <!-- Permanent: delete all -->
+      <span id="all-section" class="all-section">
+        <button id="del-all-btn" class="sel-btn sel-btn--ghost-dim">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+            <path d="M10 11v6M14 11v6"/>
+            <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+          </svg>
+          Elimina tutte
+        </button>
+      </span>
+
+    </div>
+  </div>
+)}
+
+<!-- Delete confirm modal -->
+<div id="del-modal" class="dm" aria-modal="true" role="dialog" hidden>
+  <div class="dm-backdrop" id="dm-backdrop"></div>
+  <div class="dm-box">
+    <div class="dm-icon-wrap">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <circle cx="16" cy="16" r="14.5" stroke="rgba(181,69,27,.5)" stroke-width="1.2"/>
+        <path d="M10 10l12 12M22 10L10 22" stroke="#c0604a" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h2 id="dm-title" class="dm-title">Eliminare questa voce?</h2>
+    <p class="dm-body">L'operazione è irreversibile.</p>
+    <div class="dm-actions">
+      <button id="dm-cancel"  class="dm-btn dm-btn--cancel">Annulla</button>
+      <button id="dm-confirm" class="dm-btn dm-btn--confirm">Elimina</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .seg-page {
+    max-width: 1100px;
+    display: flex; flex-direction: column; gap: 1.5rem;
+    animation: page-in 0.4s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  @keyframes page-in { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+  /* ── Header ── */
+  .seg-header {
+    display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid rgba(232,220,200,0.06);
+  }
+  .seg-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.9rem; font-weight: 300;
+    color: #E8DCC8; letter-spacing: -0.01em; margin: 0;
+  }
+
+  /* ── Filter tabs ── */
+  .filter-tabs {
+    display: flex; gap: .35rem; align-items: center;
+    margin-left: .25rem;
+  }
+  .ftab {
+    display: inline-flex; align-items: center; gap: .4rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .65rem; letter-spacing: .1em; text-transform: uppercase;
+    padding: .3rem .85rem; border-radius: 999px;
+    border: 1px solid rgba(232,220,200,0.1);
+    color: rgba(232,220,200,0.4);
+    text-decoration: none;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .ftab:hover { color: rgba(232,220,200,0.75); background: rgba(232,220,200,0.05); }
+  .ftab.active {
+    background: rgba(232,220,200,0.09);
+    color: rgba(232,220,200,0.8);
+    border-color: rgba(232,220,200,0.18);
+  }
+  .ftab--proposta.active       { background: rgba(216,161,74,.12); color: #D8A14A; border-color: rgba(216,161,74,.25); }
+  .ftab--partecipazione.active { background: rgba(61,122,106,.12); color: #5aaa90; border-color: rgba(61,122,106,.25); }
+  .ftab-n {
+    font-size: .6rem;
+    background: rgba(232,220,200,0.1);
+    padding: .05rem .4rem; border-radius: 999px;
+  }
+  .ftab--proposta.active .ftab-n       { background: rgba(216,161,74,.2); }
+  .ftab--partecipazione.active .ftab-n { background: rgba(61,122,106,.2); }
+
+
+  /* ── Flash ── */
+  .flash {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .77rem; padding: .65rem 1rem; border-radius: 6px;
+  }
+  .flash--ok  { background: rgba(61,122,106,.12); color: #5aaa90; border: 1px solid rgba(61,122,106,.2); }
+  .flash--err { background: rgba(181,69,27,.10);  color: #e07a55; border: 1px solid rgba(181,69,27,.2); }
+
+  .seg-empty {
+    padding: 3rem 1rem; text-align: center;
+    font-family: 'IBM Plex Mono', monospace; font-size: .8rem;
+    color: rgba(232,220,200,0.25); letter-spacing: .1em;
+  }
+
+  /* ── Table ── */
+  .seg-table-wrap {
+    overflow-x: auto;
+    border: 1px solid rgba(232,220,200,0.07);
+    border-radius: 8px;
+  }
+  .seg-table {
+    width: 100%; border-collapse: collapse;
+    font-family: 'IBM Plex Mono', monospace; font-size: .77rem;
+  }
+  .seg-table thead tr { border-bottom: 1px solid rgba(232,220,200,0.09); }
+  .seg-table th {
+    padding: .75rem 1rem; text-align: left;
+    font-size: .58rem; letter-spacing: .2em; text-transform: uppercase;
+    color: rgba(232,220,200,0.3); font-weight: 400; white-space: nowrap;
+  }
+  .th-check, .td-check { width: 2.2rem; padding-left: 1rem !important; padding-right: .25rem !important; }
+
+  /* Custom checkbox */
+  .cb-wrap { display: inline-flex; align-items: center; cursor: pointer; }
+  .cb-wrap .cb { position: absolute; opacity: 0; width: 0; height: 0; }
+  .cb-box {
+    width: 15px; height: 15px; border-radius: 4px;
+    border: 1px solid rgba(232,220,200,0.18);
+    background: rgba(232,220,200,0.04);
+    display: flex; align-items: center; justify-content: center;
+    transition: background .12s, border-color .12s;
+    flex-shrink: 0;
+  }
+  .cb:checked + .cb-box {
+    background: #3d7a6a;
+    border-color: #3d7a6a;
+  }
+  .cb:checked + .cb-box::after {
+    content: '';
+    display: block;
+    width: 8px; height: 5px;
+    border-left: 1.5px solid #fff;
+    border-bottom: 1.5px solid #fff;
+    transform: rotate(-45deg) translate(0px, -1px);
+  }
+  .cb:indeterminate + .cb-box {
+    background: rgba(61,122,106,.35);
+    border-color: #3d7a6a;
+  }
+  .cb:indeterminate + .cb-box::after {
+    content: '';
+    display: block;
+    width: 8px; height: 1.5px;
+    background: #fff;
+  }
+
+  /* Rows */
+  .seg-table tbody tr {
+    border-bottom: 1px solid rgba(232,220,200,0.05);
+    transition: background .12s;
+  }
+  .seg-table tbody tr:last-child { border-bottom: none; }
+  .seg-table tbody tr:hover { background: rgba(232,220,200,0.025); }
+  .seg-table tbody tr.is-selected { background: rgba(61,122,106,0.06); }
+
+  .row-unread     { border-left: 2px solid rgba(232,220,200,0.2); }
+  .row-proposta   { border-left: 2px solid rgba(216,161,74,.35); }
+  .row-partecipazione { border-left: 2px solid rgba(61,122,106,.35); }
+
+  .seg-table td { padding: .85rem 1rem; color: rgba(232,220,200,0.75); vertical-align: top; }
+
+  .type-badge {
+    display: inline-block;
+    font-size: .58rem; letter-spacing: .14em; text-transform: uppercase;
+    padding: .2rem .6rem; border-radius: 999px; white-space: nowrap;
+  }
+  .type-badge--proposta       { background: rgba(216,161,74,.13); color: #D8A14A; border: 1px solid rgba(216,161,74,.22); }
+  .type-badge--partecipazione { background: rgba(61,122,106,.13); color: #5aaa90; border: 1px solid rgba(61,122,106,.22); }
+
+  .cell-date { white-space: nowrap; color: rgba(232,220,200,0.38); font-size: .72rem; }
+  .cell-contact { min-width: 140px; }
+  .contact-name   { display: block; color: rgba(232,220,200,0.8); }
+  .contact-detail { display: block; font-size: .68rem; color: rgba(232,220,200,0.38); margin-top: .15rem; }
+  .cell-subject { max-width: 200px; color: rgba(232,220,200,0.65); }
+  .cell-body { max-width: 260px; }
+  .body-preview { color: rgba(232,220,200,0.4); font-size: .72rem; line-height: 1.5; }
+  .body-none { color: rgba(232,220,200,0.2); }
+
+  .cell-action { width: 2.5rem; text-align: center; padding-left: .5rem; padding-right: .75rem; }
+  .del-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 1.9rem; height: 1.9rem; border-radius: 6px;
+    border: 1px solid rgba(232,220,200,0.08);
+    background: transparent; color: rgba(232,220,200,0.25);
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .del-btn:hover { background: rgba(181,69,27,.12); border-color: rgba(181,69,27,.25); color: #e07a55; }
+
+  /* ── Floating action bar ── */
+  .sel-bar {
+    position: fixed; bottom: 1.75rem; left: 50%; transform: translateX(-50%);
+    z-index: 200;
+    animation: bar-up .25s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes bar-up {
+    from { opacity:0; transform: translateX(-50%) translateY(10px); }
+    to   { opacity:1; transform: translateX(-50%) translateY(0); }
+  }
+  .sel-bar-inner {
+    display: flex; align-items: center; gap: .4rem;
+    background: #1a2330;
+    border: 1px solid rgba(232,220,200,0.11);
+    border-radius: 999px;
+    padding: .4rem .4rem .4rem .4rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.04);
+  }
+
+  /* bulk-selection section */
+  .sel-section {
+    display: contents;
+  }
+  .sel-section[hidden] { display: none; }
+  .sel-info {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .7rem; letter-spacing: .06em;
+    color: rgba(232,220,200,0.5); white-space: nowrap;
+    padding: 0 .6rem 0 .8rem;
+  }
+  .sel-info #sel-count { color: #E8DCC8; font-weight: 500; }
+
+  .sel-divider {
+    width: 1px; height: 1.2rem;
+    background: rgba(232,220,200,0.1);
+    flex-shrink: 0;
+  }
+
+  /* separator between sections */
+  .all-section {
+    display: contents;
+  }
+
+  /* Buttons */
+  .sel-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .63rem; letter-spacing: .1em; text-transform: uppercase;
+    padding: .48rem 1rem; border-radius: 999px; border: none;
+    cursor: pointer; display: inline-flex; align-items: center; gap: .4rem;
+    transition: background .15s, color .15s;
+    white-space: nowrap;
+  }
+  .sel-btn--ghost {
+    background: rgba(232,220,200,0.07);
+    color: rgba(232,220,200,0.45);
+  }
+  .sel-btn--ghost:hover { background: rgba(232,220,200,0.13); color: rgba(232,220,200,0.8); }
+  .sel-btn--danger { background: rgba(181,69,27,.85); color: #fff; }
+  .sel-btn--danger:hover { background: rgba(181,69,27,1); }
+  /* subtle delete-all when nothing selected */
+  .sel-btn--ghost-dim {
+    background: transparent;
+    color: rgba(192,96,74,.45);
+    border: none;
+  }
+  .sel-btn--ghost-dim:hover { background: rgba(181,69,27,.1); color: #e07a55; }
+
+  /* ── Delete confirm modal ── */
+  .dm {
+    position: fixed; inset: 0; z-index: 300;
+    display: flex; align-items: center; justify-content: center;
+    padding: 1.5rem;
+  }
+  .dm[hidden] { display: none; }
+  .dm.is-closing { opacity: 0; pointer-events: none; transition: opacity .3s ease; }
+
+  .dm-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(8,12,18,.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: dm-bdfade .2s ease both;
+  }
+  @keyframes dm-bdfade { from { opacity:0; } to { opacity:1; } }
+
+  .dm-box {
+    position: relative; z-index: 1;
+    background: #12181f;
+    border: 1px solid rgba(232,220,200,0.09);
+    border-radius: 14px;
+    padding: 2.25rem 2.5rem 2rem;
+    max-width: 340px; width: 100%;
+    text-align: center;
+    box-shadow: 0 32px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.03);
+    animation: dm-boxup .25s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes dm-boxup {
+    from { opacity:0; transform: translateY(14px) scale(.97); }
+    to   { opacity:1; transform: translateY(0)    scale(1); }
+  }
+
+  .dm-icon-wrap {
+    margin: 0 auto 1.25rem;
+    width: 56px; height: 56px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: rgba(181,69,27,.08);
+    border: 1px solid rgba(181,69,27,.15);
+  }
+  .dm-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 1.2rem; font-weight: 400;
+    color: #E8DCC8; margin: 0 0 .45rem; letter-spacing: -.01em;
+  }
+  .dm-body {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .72rem; letter-spacing: .04em;
+    color: rgba(232,220,200,0.35); margin: 0 0 1.75rem;
+  }
+  .dm-actions { display: flex; gap: .75rem; justify-content: center; }
+  .dm-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .72rem; letter-spacing: .1em; text-transform: uppercase;
+    padding: .6rem 1.5rem; border-radius: 999px;
+    cursor: pointer; border: none;
+    transition: opacity .15s, background .15s;
+  }
+  .dm-btn--cancel {
+    background: rgba(232,220,200,0.07); color: rgba(232,220,200,0.55);
+    border: 1px solid rgba(232,220,200,0.1);
+  }
+  .dm-btn--cancel:hover { background: rgba(232,220,200,0.12); color: rgba(232,220,200,0.8); }
+  .dm-btn--confirm { background: rgba(181,69,27,.85); color: #fff; }
+  .dm-btn--confirm:hover { background: rgba(181,69,27,1); }
+</style>
+
+<script>
+  /* ── Elements ── */
+  const modal      = document.getElementById('del-modal')   as HTMLElement;
+  const modalTitle = document.getElementById('dm-title')    as HTMLElement;
+  const backdrop   = document.getElementById('dm-backdrop') as HTMLElement;
+  const cancelBtn  = document.getElementById('dm-cancel')   as HTMLButtonElement;
+  const confirmBtn = document.getElementById('dm-confirm')  as HTMLButtonElement;
+  const selSection = document.getElementById('sel-section') as HTMLElement | null;
+  const selCountEl = document.getElementById('sel-count')   as HTMLElement | null;
+  const selClear   = document.getElementById('sel-clear')   as HTMLButtonElement | null;
+  const selDelete  = document.getElementById('sel-delete')  as HTMLButtonElement | null;
+  const delAllBtn  = document.getElementById('del-all-btn') as HTMLButtonElement | null;
+  const selectAll  = document.getElementById('select-all')  as HTMLInputElement | null;
+  const rowCbs     = Array.from(document.querySelectorAll<HTMLInputElement>('.row-cb'));
+
+  /* ── State ── */
+  type Item = { id: string; type: string };
+  let pendingForm: HTMLFormElement | null = null;
+  let pendingItems: Item[] | null = null;
+
+  /* ── Selection helpers ── */
+  function allItems(): Item[] {
+    return rowCbs.map(c => ({ id: c.dataset.id!, type: c.dataset.type! }));
+  }
+  function selectedItems(): Item[] {
+    return rowCbs.filter(c => c.checked).map(c => ({ id: c.dataset.id!, type: c.dataset.type! }));
+  }
+
+  function updateSelBar() {
+    const n = rowCbs.filter(c => c.checked).length;
+
+    if (selCountEl) selCountEl.textContent = String(n);
+
+    // show/hide the "X selected" section
+    if (selSection) {
+      if (n > 0) selSection.removeAttribute('hidden');
+      else       selSection.setAttribute('hidden', '');
+    }
+
+    // select-all checkbox state
+    if (selectAll) {
+      selectAll.indeterminate = n > 0 && n < rowCbs.length;
+      selectAll.checked       = n > 0 && n === rowCbs.length;
+    }
+
+    // row highlight
+    rowCbs.forEach(c => c.closest('[data-row]')?.classList.toggle('is-selected', c.checked));
+  }
+
+  /* ── Wire checkboxes ── */
+  rowCbs.forEach(cb => cb.addEventListener('change', updateSelBar));
+
+  selectAll?.addEventListener('change', () => {
+    rowCbs.forEach(cb => (cb.checked = selectAll!.checked));
+    updateSelBar();
+  });
+
+  selClear?.addEventListener('click', () => {
+    rowCbs.forEach(cb => (cb.checked = false));
+    if (selectAll) selectAll.checked = false;
+    updateSelBar();
+  });
+
+  /* ── Modal helpers ── */
+  function openModal(title: string) {
+    modalTitle.textContent = title;
+    modal.removeAttribute('hidden');
+    modal.classList.remove('is-closing');
+    confirmBtn.focus();
+  }
+
+  function closeModal() {
+    modal.classList.add('is-closing');
+    setTimeout(() => {
+      modal.setAttribute('hidden', '');
+      modal.classList.remove('is-closing');
+      pendingForm  = null;
+      pendingItems = null;
+    }, 300);
+  }
+
+  /* ── Single-row delete ── */
+  document.querySelectorAll<HTMLButtonElement>('[data-del]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const form = btn.closest<HTMLFormElement>('.del-form');
+      if (!form) return;
+      pendingForm = form; pendingItems = null;
+      openModal('Eliminare questa voce?');
+    });
+  });
+
+  /* ── Bulk: selected ── */
+  selDelete?.addEventListener('click', () => {
+    const items = selectedItems();
+    if (!items.length) return;
+    pendingForm = null; pendingItems = items;
+    openModal(`Eliminare ${items.length} ${items.length === 1 ? 'voce' : 'voci'}?`);
+  });
+
+  /* ── Bulk: delete all ── */
+  delAllBtn?.addEventListener('click', () => {
+    const items = allItems();
+    pendingForm = null; pendingItems = items;
+    openModal(`Eliminare tutte le ${items.length} voci?`);
+  });
+
+  /* ── Confirm ── */
+  confirmBtn.addEventListener('click', async () => {
+    if (pendingForm) { pendingForm.submit(); return; }
+    if (pendingItems?.length) {
+      try {
+        const res  = await fetch('/api/management/segnalazioni/delete-bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: pendingItems }),
+        });
+        const json = await res.json();
+        window.location.href = `/management/segnalazioni?${json.ok ? 'ok' : 'err'}=1`;
+      } catch {
+        window.location.href = '/management/segnalazioni?err=1';
+      }
+    }
+  });
+
+  /* ── Close triggers ── */
+  cancelBtn.addEventListener('click',  closeModal);
+  backdrop.addEventListener('click',   closeModal);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !modal.hasAttribute('hidden')) closeModal();
+  });
+</script>

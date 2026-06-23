@@ -53,7 +53,20 @@ const notices = await getNotices(lang);
     </div>
   ))}
 
-  <!-- Modal -->
+  <!-- Success modal (partecipazione inviata) -->
+  <div id="ok-modal" class="ok-modal" aria-modal="true" role="dialog" hidden>
+    <div class="ok-backdrop"></div>
+    <div class="ok-box">
+      <svg class="ok-icon" width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden="true">
+        <circle cx="22" cy="22" r="20" stroke="#3d7a6a" stroke-width="1.8"/>
+        <path d="M14 22L19 27L30 16" stroke="#3d7a6a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h2 class="ok-title">{lang === 'it' ? 'Grazie!' : 'Thank you!'}</h2>
+      <p class="ok-body">{lang === 'it' ? 'Ti contatteremo presto.' : "We'll be in touch soon."}</p>
+    </div>
+  </div>
+
+  <!-- Notice modal -->
   <div id="notice-modal" class="nmodal" role="dialog" aria-modal="true" hidden>
     <div class="nmodal-backdrop" id="nmodal-backdrop"></div>
     <div class="nmodal-panel">
@@ -73,6 +86,56 @@ const notices = await getNotices(lang);
     display: flex; align-items: flex-end; justify-content: center;
   }
   .nmodal[hidden] { display: none; }
+  .nmodal.is-closing {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .45s ease;
+  }
+
+  /* ── Success popup ── */
+  .ok-modal {
+    position: fixed; inset: 0; z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+    padding: 1.5rem;
+  }
+  .ok-modal[hidden] { display: none; }
+  .ok-modal.is-closing {
+    opacity: 0; pointer-events: none;
+    transition: opacity .45s ease;
+  }
+  .ok-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(10,16,22,.55);
+    backdrop-filter: blur(6px);
+    animation: bdfade .2s ease;
+  }
+  @keyframes bdfade { from { opacity:0; } to { opacity:1; } }
+  .ok-box {
+    position: relative; z-index: 1;
+    background: theme('colors.sabbia');
+    border-radius: 1.2rem;
+    padding: 2.5rem 2.75rem;
+    max-width: 360px; width: 100%;
+    text-align: center;
+    box-shadow: 0 24px 60px rgba(0,0,0,.22);
+    animation: okup .28s cubic-bezier(.2,.7,.2,1);
+  }
+  @keyframes okup {
+    from { opacity:0; transform: translateY(16px) scale(.97); }
+    to   { opacity:1; transform: translateY(0) scale(1); }
+  }
+  .ok-icon { margin: 0 auto 1.25rem; display: block; }
+  .ok-title {
+    font-family: theme('fontFamily.hand');
+    font-size: 2rem; font-weight: 700;
+    color: theme('colors.ink');
+    margin: 0 0 .5rem; line-height: 1.15;
+  }
+  .ok-body {
+    font-size: .95rem;
+    color: theme('colors.ink-soft');
+    line-height: 1.6; margin: 0;
+  }
 
   .nmodal-backdrop {
     position: absolute; inset: 0;
@@ -270,6 +333,7 @@ const notices = await getNotices(lang);
   const body     = document.getElementById('nmodal-body');
   const backdrop = document.getElementById('nmodal-backdrop');
   const closeBtn = document.getElementById('nmodal-close');
+  const okModal  = document.getElementById('ok-modal');
 
   let currentSlug = '';
 
@@ -311,13 +375,22 @@ const notices = await getNotices(lang);
           <label for="ncf-tel">${t('Recapito telefonico', 'Phone number')}</label>
           <input id="ncf-tel" name="telefono" type="tel" autocomplete="tel" required />
         </div>
-        <button class="ncf-submit" type="submit">${t('Invia', 'Send')}</button>
+        <button class="ncf-submit" type="submit" disabled>${t('Invia', 'Send')}</button>
       </form>
     `;
     body.querySelector<HTMLButtonElement>('.ncf-back')!.addEventListener('click', () => {
       body!.innerHTML = savedHtml;
     });
-    body.querySelector<HTMLFormElement>('.ncf-form')!.addEventListener('submit', handleFormSubmit);
+
+    const ncForm   = body.querySelector<HTMLFormElement>('.ncf-form')!;
+    const ncSubmit = ncForm.querySelector<HTMLButtonElement>('.ncf-submit')!;
+    const ncInputs = ncForm.querySelectorAll<HTMLInputElement>('input[required]');
+    function updateSubmit() {
+      ncSubmit.disabled = !Array.from(ncInputs).every(el => el.value.trim().length > 0);
+    }
+    ncInputs.forEach(el => el.addEventListener('input', updateSubmit));
+
+    ncForm.addEventListener('submit', handleFormSubmit);
   }
 
   async function handleFormSubmit(e: SubmitEvent) {
@@ -338,11 +411,15 @@ const notices = await getNotices(lang);
         body: JSON.stringify({ notice_slug: currentSlug, nome, cognome, telefono }),
       });
       if (!res.ok) throw new Error();
-      body!.innerHTML = `
-        <div class="ncf-success">
-          <p>${t('Grazie! Ti contatteremo presto.', "Thank you! We'll be in touch soon.")}</p>
-        </div>
-      `;
+      closeModal();
+      okModal!.removeAttribute('hidden');
+      setTimeout(() => {
+        okModal!.classList.add('is-closing');
+        setTimeout(() => {
+          okModal!.setAttribute('hidden', '');
+          okModal!.classList.remove('is-closing');
+        }, 450);
+      }, 3000);
     } catch {
       submit.disabled = false;
       submit.textContent = t('Invia', 'Send');

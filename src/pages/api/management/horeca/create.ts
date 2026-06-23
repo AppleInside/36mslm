@@ -20,11 +20,11 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 
   try {
     await sql`
-      INSERT INTO places (lang, slug, title, kind, address, phone, website, tags, body, status)
+      INSERT INTO places (lang, slug, title, kind, address, phone, website, tripadvisor, michelin, tags, body, status)
       VALUES (
         'it', ${d.slug}, ${d.title}, ${d.kind}, ${d.address},
-        ${d.phone ?? null}, ${d.website ?? null},
-        ${JSON.stringify(tags)}, ${d.body ?? null}, ${d.status}
+        ${d.phone ?? null}, ${d.website ?? null}, ${d.tripadvisor ?? null},
+        ${d.michelin ?? null}, ${JSON.stringify(tags)}, ${d.body ?? null}, ${d.status}
       )
     `;
   } catch (err) {
