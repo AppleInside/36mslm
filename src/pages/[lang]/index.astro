@@ -2,7 +2,7 @@
 export const prerender = false;
 
 import Base from '../../layouts/Base.astro';
-import { getEvents, getNotices } from '../../server/db';
+import { sql, getEvents, getNotices } from '../../server/db';
 import { useTranslations, localizedPath } from '../../i18n/utils';
 import type { Lang } from '../../i18n/ui';
 
@@ -12,9 +12,35 @@ const now = new Date();
 
 const allEvents = await getEvents(lang);
 const upcoming = allEvents.filter(e => new Date(e.date) >= now).slice(0, 3);
-const [hero] = upcoming;
 
 const notices = (await getNotices(lang)).slice(0, 3);
+
+const staticCovers: Record<string, string> = {
+  'eventi-calendario': '/media/storico/cercavano-il-fresco-destate-sulla-Via-Alzaia-FILEminimizer.jpg',
+  'scopri-itinerari':  '/media/storico/Guareschi-sul-Po.jpg',
+  'scopri-ricettario': '/media/storico/Tortelli-1959-.jpg',
+  'scopri-storie':     '/media/storico/Giovanni-Guareschi-al-bar-in-piazza.jpg',
+  'eventi-bacheca':    '/media/storico/leggevano-il-giornale-in-piazza.jpg',
+};
+
+let pageCoverMap: Record<string, string> = {};
+try {
+  const rows = await sql<{ page_key: string; cover_url: string }[]>`
+    SELECT page_key, cover_url FROM page_covers
+    WHERE page_key IN ('eventi-calendario','scopri-itinerari','scopri-ricettario','scopri-storie','eventi-bacheca')
+  `;
+  for (const r of rows) { if (r.cover_url) pageCoverMap[r.page_key] = r.cover_url; }
+} catch {}
+
+const c = (key: string) => pageCoverMap[key] ?? staticCovers[key];
+
+const carouselSlides = [
+  { label: lang === 'it' ? 'Eventi'     : 'Events',       href: localizedPath(lang, 'eventi/calendario'), cover: c('eventi-calendario') },
+  { label: lang === 'it' ? 'Itinerari'  : 'Itineraries',  href: localizedPath(lang, 'scopri/itinerari'),  cover: c('scopri-itinerari')  },
+  { label: lang === 'it' ? 'Ricettario' : 'Recipes',      href: localizedPath(lang, 'scopri/ricettario'), cover: c('scopri-ricettario') },
+  { label: lang === 'it' ? 'Dialetto'   : 'Dialect',      href: localizedPath(lang, 'scopri/storie'),     cover: c('scopri-storie')     },
+  { label: lang === 'it' ? 'Bacheca'    : 'Notices',      href: localizedPath(lang, 'eventi/bacheca'),    cover: c('eventi-bacheca')    },
+];
 
 const monthsIt = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
 const monthsEn = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
@@ -33,35 +59,58 @@ function eventHref(slug: string) {
 }
 ---
 <Base title={t('nav.events')}>
-  {hero && (
-    <section class="hero">
-      <div class="text">
-        <p class="meta"><span class="dot"></span>{lang === 'it' ? 'Diario di golena · primavera 2026' : 'Floodplain diary · spring 2026'}</p>
-        <h1>
-          <span class="hand">{lang === 'it' ? 'Trentasei metri' : 'Thirty-six metres'}</span><br />
-          {lang === 'it' ? 'sopra il livello' : 'above the level'}<br />
-          {lang === 'it' ? <>del <em>fiume.</em></> : <>of the <em>river.</em></>}
-        </h1>
-        <p class="kicker">
+  <section class="section section-paper">
+    <div class="portal-grid">
+
+      <!-- Left: content -->
+      <div class="portal-left">
+        <p class="eyebrow">— {lang === 'it' ? 'Il portale' : 'The portal'} —</p>
+        <h2 class="portal-h2">{lang === 'it' ? <>Il <em>riferimento</em> digitale del paese</> : <>The village&apos;s <em>digital</em> home</>}</h2>
+        <div class="portal-rule"></div>
+        <p class="portal-lead">
           {lang === 'it'
-            ? "Un paese sull'argine del Po: il calendario degli eventi, le ricette di casa e gli itinerari dell'APS 36 m s.l.m. per chi vuole scoprire Polesine Parmense."
-            : 'A village on the Po riverbank: events, home recipes and itineraries by APS 36 m s.l.m. — your guide to Polesine Parmense.'}
+            ? 'Non è una brochure. È una piattaforma editoriale viva: eventi, itinerari del fiume, ricettario di casa, dialetto e modi di dire, bacheca degli avvisi.'
+            : "Not a brochure. A living editorial platform: events, river itineraries, home recipes, dialect and sayings, notice board."}
         </p>
-        <div class="ctas">
-          <a class="btn primary" href={localizedPath(lang, 'eventi')}>{lang === 'it' ? 'Cosa succede ora' : "What's happening"} <span class="arrow">→</span></a>
-          <a class="btn ghost" href={localizedPath(lang, 'partecipa')}>{lang === 'it' ? "Sostieni l'associazione" : 'Support us'}</a>
+        <ul class="portal-tags" role="list">
+          <li><a class="portal-tag" href={localizedPath(lang, 'eventi/calendario')}>{lang === 'it' ? 'Eventi' : 'Events'} →</a></li>
+          <li><a class="portal-tag" href={localizedPath(lang, 'scopri/itinerari')}>{lang === 'it' ? 'Itinerari' : 'Itineraries'} →</a></li>
+          <li><a class="portal-tag" href={localizedPath(lang, 'scopri/ricettario')}>{lang === 'it' ? 'Ricettario' : 'Recipes'} →</a></li>
+          <li><a class="portal-tag" href={localizedPath(lang, 'scopri/storie')}>{lang === 'it' ? 'Dialetto' : 'Dialect'} →</a></li>
+          <li><a class="portal-tag" href={localizedPath(lang, 'eventi/bacheca')}>{lang === 'it' ? 'Bacheca' : 'Notices'} →</a></li>
+        </ul>
+        <a class="portal-cta" href={localizedPath(lang, 'portale')}>
+          {lang === 'it' ? 'Scopri il portale' : 'Explore the portal'} <span class="portal-cta-arr">→</span>
+        </a>
+      </div>
+
+      <!-- Right: carousel -->
+      <div class="portal-carousel" id="portal-carousel">
+        <div class="carousel-slides">
+          {carouselSlides.map((slide, i) => (
+            <a class={`carousel-slide${i === 0 ? ' active' : ''}`} href={slide.href}>
+              <img src={slide.cover} alt={slide.label} loading={i === 0 ? 'eager' : 'lazy'} />
+              <div class="slide-overlay"></div>
+              <div class="slide-content">
+                <span class="slide-label">{slide.label}</span>
+                <span class="slide-arr">→</span>
+              </div>
+            </a>
+          ))}
+        </div>
+        <div class="carousel-dots">
+          {carouselSlides.map((slide, i) => (
+            <button class={`cdot${i === 0 ? ' active' : ''}`} data-idx={i} aria-label={slide.label}></button>
+          ))}
         </div>
       </div>
-      <div class="image">
-        {hero.cover_url && <img src={hero.cover_url} alt={hero.title} />}
-        <div class="quota">36<small>{lang === 'it' ? 'metri sul mare' : 'metres above sea'}</small></div>
-      </div>
-    </section>
-  )}
 
-  <div class="wave wave--sand" aria-hidden="true">
+    </div>
+  </section>
+
+  <div class="wave" style="background: #CCE4EF;" aria-hidden="true">
     <svg viewBox="0 0 1440 48" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M0,24 C240,48 480,0 720,24 C960,48 1200,0 1440,24 L1440,48 L0,48 Z" fill="#F2EDE0"/>
+      <path d="M0,24 C240,0 480,48 720,24 C960,0 1200,48 1440,24 L1440,48 L0,48 Z" fill="#F2EDE0"/>
     </svg>
   </div>
 
@@ -255,6 +304,34 @@ function eventHref(slug: string) {
   .section { padding: 6rem 4rem; }
   .section-sand { background: theme('colors.sabbia'); }
   .section-acqua { background: theme('colors.acqua'); }
+  .section-paper { background: theme('colors.paper'); }
+
+  .portal-lead {
+    font-style: italic; font-size: 1.25rem; max-width: 52ch;
+    color: theme('colors.ink-soft'); margin: 0 0 2rem 0;
+  }
+  .portal-tags {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-wrap: wrap; gap: .65rem;
+  }
+  .portal-tag {
+    display: inline-flex; align-items: center; gap: .35rem;
+    padding: .55rem 1.1rem;
+    border: 1.5px solid theme('colors.rule');
+    border-radius: 999px;
+    font-family: theme('fontFamily.mono'); font-size: .75rem;
+    text-transform: uppercase; letter-spacing: .16em;
+    color: theme('colors.acquadeep');
+    text-decoration: none;
+    background: rgba(255,255,255,0.55);
+    transition: background .2s, color .2s, border-color .2s, transform .2s;
+  }
+  .portal-tag:hover {
+    background: theme('colors.acquadeep');
+    color: #fff;
+    border-color: theme('colors.acquadeep');
+    transform: translateY(-2px);
+  }
 
   /* ── Wave dividers ── */
   .wave { display: block; line-height: 0; margin-bottom: -1px; }
@@ -457,11 +534,108 @@ function eventHref(slug: string) {
     font-size: .9rem; color: theme('colors.gold-deep');
   }
 
+  /* ── Portal preview grid ── */
+  .portal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+    align-items: center;
+  }
+  .portal-left { display: flex; flex-direction: column; }
+  .portal-h2 {
+    font-family: theme('fontFamily.serif');
+    font-weight: 300;
+    font-size: clamp(2.4rem, 4.5vw, 4rem);
+    line-height: 1; letter-spacing: -0.02em;
+    margin: .5rem 0 0 0;
+  }
+  .portal-h2 :global(em) { font-style: italic; color: theme('colors.acquadeep'); }
+  .portal-rule {
+    width: 100%; height: 1px;
+    background: theme('colors.rule');
+    border: none; margin: 1.75rem 0;
+  }
+  .portal-cta {
+    display: inline-flex; align-items: center; gap: .5rem;
+    margin-top: 2rem;
+    font-family: theme('fontFamily.mono'); font-size: .78rem;
+    text-transform: uppercase; letter-spacing: .16em;
+    color: theme('colors.acquadeep');
+    text-decoration: none;
+    transition: color .2s;
+  }
+  .portal-cta:hover { color: theme('colors.brand'); }
+  .portal-cta-arr { transition: transform .25s; }
+  .portal-cta:hover .portal-cta-arr { transform: translateX(4px); }
+
+  /* ── Carousel ── */
+  .portal-carousel {
+    position: relative;
+    height: 460px;
+    border-radius: .75rem;
+    overflow: hidden;
+    background: theme('colors.ink');
+    cursor: pointer;
+  }
+  .carousel-slides { position: relative; width: 100%; height: 100%; }
+  .carousel-slide {
+    position: absolute; inset: 0;
+    display: block; text-decoration: none;
+    opacity: 0;
+    transition: opacity .8s ease;
+  }
+  .carousel-slide.active { opacity: 1; }
+  .carousel-slide img,
+  .slide-color {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    filter: saturate(.85) contrast(1.05);
+  }
+  .slide-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(160deg, rgba(31,42,42,0.08) 0%, rgba(31,42,42,0.72) 100%);
+  }
+  .slide-content {
+    position: absolute;
+    bottom: 2rem; left: 2rem; right: 2rem;
+    display: flex; justify-content: space-between; align-items: flex-end;
+  }
+  .slide-label {
+    font-family: theme('fontFamily.hand');
+    font-weight: 700;
+    font-size: 3.2rem;
+    color: #fff;
+    line-height: 1;
+    text-shadow: 0 2px 16px rgba(0,0,0,.35);
+  }
+  .slide-arr {
+    font-family: theme('fontFamily.mono');
+    font-size: 1rem; color: rgba(255,255,255,.7);
+    transition: transform .3s;
+  }
+  .carousel-slide:hover .slide-arr { transform: translateX(5px); }
+  .carousel-dots {
+    position: absolute; top: 1.25rem; right: 1.25rem;
+    display: flex; gap: .5rem; z-index: 5;
+  }
+  .cdot {
+    width: 8px; height: 8px; border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.55);
+    background: transparent; cursor: pointer; padding: 0;
+    transition: background .25s, border-color .25s, transform .25s;
+  }
+  .cdot.active {
+    background: #fff; border-color: #fff; transform: scale(1.25);
+  }
+
   @media (max-width: 1000px) {
     .hero { grid-template-columns: 1fr; }
     .hero .text { padding: 3rem 1.5rem; }
     .hero .image { aspect-ratio: 4/3; min-height: 300px; }
     .hero .quota { font-size: 6rem; right: 1rem; bottom: 1rem; }
+    .portal-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+    .portal-carousel { height: 320px; }
     .events, .threecol, .cta { grid-template-columns: 1fr; }
     .threecol .col { border-right: none; border-bottom: 1px dashed theme('colors.rule'); }
     .section, .pull, .cta { padding: 3.5rem 1.5rem; }
@@ -469,3 +643,41 @@ function eventHref(slug: string) {
     .notice a { grid-template-columns: 1fr; gap: .35rem; padding: 1.25rem 0; }
   }
 </style>
+
+<script>
+  (function () {
+    const carousel = document.getElementById('portal-carousel');
+    if (!carousel) return;
+    const slides = Array.from(carousel.querySelectorAll<HTMLElement>('.carousel-slide'));
+    const dots   = Array.from(carousel.querySelectorAll<HTMLElement>('.cdot'));
+    if (!slides.length) return;
+    let current = 0;
+    let timer: ReturnType<typeof setInterval>;
+
+    function go(n: number) {
+      slides[current].classList.remove('active');
+      dots[current].classList.remove('active');
+      current = ((n % slides.length) + slides.length) % slides.length;
+      slides[current].classList.add('active');
+      dots[current].classList.add('active');
+    }
+
+    function start() {
+      timer = setInterval(() => go(current + 1), 4000);
+    }
+
+    dots.forEach((dot, i) => {
+      dot.addEventListener('click', (e) => {
+        e.preventDefault();
+        clearInterval(timer);
+        go(i);
+        start();
+      });
+    });
+
+    carousel.addEventListener('mouseenter', () => clearInterval(timer));
+    carousel.addEventListener('mouseleave', start);
+
+    start();
+  })();
+</script>
