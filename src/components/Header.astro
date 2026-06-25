@@ -45,7 +45,7 @@ let scopriCoverMap: Record<string, string> = {};
 try {
   const rows = await sql<{ page_key: string; cover_url: string }[]>`
     SELECT page_key, cover_url FROM page_covers
-    WHERE page_key IN ('scopri-itinerari','scopri-fauna','scopri-dove','scopri-ricettario','scopri-storie','scopri-immagini')
+    WHERE page_key IN ('scopri-itinerari','scopri-fauna','scopri-dove','scopri-ricettario','scopri-storie','scopri-immagini','contatti')
   `;
   for (const r of rows) scopriCoverMap[r.page_key] = r.cover_url;
 } catch {}
@@ -145,7 +145,7 @@ const navItems = [
       blurb: lang === 'it'
         ? 'Per qualsiasi cosa — eventi, foto, segnalazioni — rispondiamo nel giro di qualche giorno.'
         : 'For anything — events, photos, tips — we reply within a few days.',
-      img: '/media/legacy/wp-content_uploads_2021_09_Guareschi-sul-Po.jpg',
+      img: scopriCoverMap['contatti'] ?? '/media/storico/passeggiavano-nel-viale.jpg',
       href: localizedPath(lang, 'contatti'),
     },
     cols: [
@@ -161,7 +161,7 @@ const navItems = [
       {
         title: lang === 'it' ? 'Segnalazioni' : 'Reports',
         links: [
-          { label: lang === 'it' ? 'Segnala <em>un evento</em>' : 'Report <em>an event</em>', href: localizedPath(lang, 'eventi/segnala') },
+          { label: lang === 'it' ? 'Segnala <em>un evento</em>' : 'Report <em>an event</em>', href: localizedPath(lang, 'partecipa/segnalazioni') },
         ],
       },
     ],

@@ -35,8 +35,8 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   const d = parsed.data;
   try {
     await sql`
-      INSERT INTO reports (lang, name, email, subject, body, source)
-      VALUES (${d.lang}, ${d.name}, ${d.email}, ${d.subject}, ${d.body}, ${source})
+      INSERT INTO reports (name, email, subject, body, source)
+      VALUES (${d.name}, ${d.email}, ${d.subject}, ${d.body}, ${source})
     `;
   } catch {
     return wantsJson ? jsonErr() : redirect(`${back}?err=1`, 303);

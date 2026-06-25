@@ -19,6 +19,13 @@ export const POST: APIRoute = async ({ request, params, redirect }) => {
   if (d.mode_piedi === 'on') mode.push('piedi');
   if (d.mode_bici  === 'on') mode.push('bici');
 
+  let coordsParsed: unknown[];
+  try {
+    coordsParsed = JSON.parse(d.coords_json ?? '[]');
+  } catch {
+    coordsParsed = [];
+  }
+
   try {
     await sql`
       UPDATE itineraries SET
@@ -32,8 +39,8 @@ export const POST: APIRoute = async ({ request, params, redirect }) => {
         terrain        = ${d.terrain ?? null},
         duration_label = ${d.duration_label ?? null},
         body           = ${d.body ?? null},
-        mode           = ${JSON.stringify(mode)},
-        coords         = ${d.coords_json ?? '[]'},
+        mode           = ${mode},
+        coords         = ${coordsParsed},
         status         = ${d.status}
       WHERE id = ${Number(id)} AND lang = 'it'
     `;

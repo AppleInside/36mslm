@@ -18,6 +18,13 @@ export const POST: APIRoute = async ({ request, redirect }) => {
   if (d.mode_piedi === 'on') mode.push('piedi');
   if (d.mode_bici  === 'on') mode.push('bici');
 
+  let coordsParsed: unknown[];
+  try {
+    coordsParsed = JSON.parse(d.coords_json ?? '[]');
+  } catch {
+    coordsParsed = [];
+  }
+
   try {
     await sql`
       INSERT INTO itineraries
@@ -27,7 +34,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
         ('it', ${d.slug}, ${d.title}, ${d.category}, ${d.difficulty},
          ${d.description ?? null}, ${d.distance_km ?? null}, ${d.duration_min ?? null},
          ${d.terrain ?? null}, ${d.duration_label ?? null}, ${d.body ?? null},
-         ${JSON.stringify(mode)}, ${d.coords_json ?? '[]'}, ${d.status})
+         ${mode}, ${coordsParsed}, ${d.status})
     `;
   } catch (err) {
     console.error('[itinerari/create] db error:', err);

@@ -49,6 +49,7 @@ function fmtDate(d: string | null) {
         <h1 class="page-title">Avvisi</h1>
         <p class="page-count">
           {notices.length === 0 ? 'Nessun avviso' : `${notices.length} ${notices.length === 1 ? 'avviso' : 'avvisi'}`}
+          <span class="live-dot" id="liveDot" title="Aggiornamento automatico ogni 30 s" aria-hidden="true"></span>
         </p>
       </div>
       <a href="/management/avvisi/nuovo" class="btn-primary">
@@ -410,4 +411,36 @@ function fmtDate(d: string | null) {
     .hide-sm { display: none; }
     .page-title { font-size: 1.6rem; }
   }
+
+  .live-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #7BC4B4;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+    opacity: 0.7;
+    animation: live-pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes live-pulse {
+    0%, 100% { opacity: 0.7; transform: scale(1); }
+    50%       { opacity: 0.25; transform: scale(0.75); }
+  }
 </style>
+
+<script>
+  (function () {
+    const DELAY = 30_000;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    function schedule() {
+      if (timer) clearTimeout(timer);
+      if (!document.hidden) {
+        timer = setTimeout(() => location.reload(), DELAY);
+      }
+    }
+
+    document.addEventListener('visibilitychange', schedule);
+    schedule();
+  })();
+</script>
