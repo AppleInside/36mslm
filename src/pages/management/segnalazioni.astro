@@ -82,6 +82,17 @@ function fmtDate(iso: string) {
         </a>
       </nav>
 
+      {rows.length > 0 && (
+        <div id="sel-bar" class="sel-bar" aria-live="polite">
+          <span id="sel-section" class="sel-section" hidden>
+            <button id="sel-clear"  class="hdr-btn hdr-btn--ghost">Deseleziona</button>
+            <button id="sel-delete" class="hdr-btn">
+              Elimina selezionate
+            </button>
+          </span>
+        </div>
+      )}
+
     </div>
 
     {ok  && <div class="flash flash--ok">Eliminazione completata.</div>}
@@ -105,7 +116,6 @@ function fmtDate(iso: string) {
               <th>Contatto</th>
               <th>Oggetto</th>
               <th>Dettaglio</th>
-              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -139,22 +149,6 @@ function fmtDate(iso: string) {
                     : <span class="body-none">—</span>
                   }
                 </td>
-                <td class="cell-action">
-                  <form
-                    method="POST"
-                    action={`/api/management/segnalazioni/${r.id}/delete?type=${r.type}`}
-                    class="del-form"
-                  >
-                    <button type="button" class="del-btn" aria-label="Elimina" data-del>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <polyline points="3 6 5 6 21 6"/>
-                        <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-                        <path d="M10 11v6M14 11v6"/>
-                        <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
-                      </svg>
-                    </button>
-                  </form>
-                </td>
               </tr>
             ))}
           </tbody>
@@ -164,45 +158,6 @@ function fmtDate(iso: string) {
   </div>
 </Management>
 
-<!-- Floating action bar (always visible when rows exist) -->
-{rows.length > 0 && (
-  <div id="sel-bar" class="sel-bar" aria-live="polite">
-    <div class="sel-bar-inner">
-
-      <!-- Bulk-selection section (hidden until rows are checked) -->
-      <span id="sel-section" class="sel-section" hidden>
-        <span class="sel-info">
-          <span id="sel-count">0</span> selezionat*
-        </span>
-        <div class="sel-divider"></div>
-        <button id="sel-clear" class="sel-btn sel-btn--ghost">Deseleziona</button>
-        <button id="sel-delete" class="sel-btn sel-btn--danger">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="3 6 5 6 21 6"/>
-            <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-            <path d="M10 11v6M14 11v6"/>
-            <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
-          </svg>
-          Elimina selezionate
-        </button>
-      </span>
-
-      <!-- Permanent: delete all -->
-      <span id="all-section" class="all-section">
-        <button id="del-all-btn" class="sel-btn sel-btn--ghost-dim">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="3 6 5 6 21 6"/>
-            <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-            <path d="M10 11v6M14 11v6"/>
-            <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
-          </svg>
-          Elimina tutte
-        </button>
-      </span>
-
-    </div>
-  </div>
-)}
 
 <!-- Delete confirm modal -->
 <div id="del-modal" class="dm" aria-modal="true" role="dialog" hidden>
@@ -372,83 +327,38 @@ function fmtDate(iso: string) {
   .body-preview { color: rgba(232,220,200,0.4); font-size: .72rem; line-height: 1.5; }
   .body-none { color: rgba(232,220,200,0.2); }
 
-  .cell-action { width: 2.5rem; text-align: center; padding-left: .5rem; padding-right: .75rem; }
-  .del-btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 1.9rem; height: 1.9rem; border-radius: 6px;
-    border: 1px solid rgba(232,220,200,0.08);
-    background: transparent; color: rgba(232,220,200,0.25);
-    cursor: pointer;
-    transition: background .15s, color .15s, border-color .15s;
-  }
-  .del-btn:hover { background: rgba(181,69,27,.12); border-color: rgba(181,69,27,.25); color: #e07a55; }
 
-  /* ── Floating action bar ── */
-  .sel-bar {
-    position: fixed; bottom: 1.75rem; left: 50%; transform: translateX(-50%);
-    z-index: 200;
-    animation: bar-up .25s cubic-bezier(.2,.8,.2,1) both;
-  }
-  @keyframes bar-up {
-    from { opacity:0; transform: translateX(-50%) translateY(10px); }
-    to   { opacity:1; transform: translateX(-50%) translateY(0); }
-  }
-  .sel-bar-inner {
-    display: flex; align-items: center; gap: .4rem;
-    background: #1a2330;
-    border: 1px solid rgba(232,220,200,0.11);
-    border-radius: 999px;
-    padding: .4rem .4rem .4rem .4rem;
-    box-shadow: 0 8px 32px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.04);
-  }
+  /* ── Action bar (header right) ── */
+  .sel-bar { margin-left: auto; flex-shrink: 0; }
 
-  /* bulk-selection section */
   .sel-section {
-    display: contents;
+    display: inline-flex; align-items: center; gap: .5rem;
   }
   .sel-section[hidden] { display: none; }
-  .sel-info {
+
+  .hdr-btn {
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .65rem 1.25rem;
+    background: #D8A14A; color: #1A0E00;
     font-family: 'IBM Plex Mono', monospace;
-    font-size: .7rem; letter-spacing: .06em;
-    color: rgba(232,220,200,0.5); white-space: nowrap;
-    padding: 0 .6rem 0 .8rem;
-  }
-  .sel-info #sel-count { color: #E8DCC8; font-weight: 500; }
-
-  .sel-divider {
-    width: 1px; height: 1.2rem;
-    background: rgba(232,220,200,0.1);
-    flex-shrink: 0;
-  }
-
-  /* separator between sections */
-  .all-section {
-    display: contents;
-  }
-
-  /* Buttons */
-  .sel-btn {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: .63rem; letter-spacing: .1em; text-transform: uppercase;
-    padding: .48rem 1rem; border-radius: 999px; border: none;
-    cursor: pointer; display: inline-flex; align-items: center; gap: .4rem;
-    transition: background .15s, color .15s;
+    font-size: .78rem; font-weight: 500;
+    letter-spacing: .14em; text-transform: uppercase;
+    border: none; border-radius: 3px; cursor: pointer;
     white-space: nowrap;
+    transition: background .2s, transform .15s;
   }
-  .sel-btn--ghost {
-    background: rgba(232,220,200,0.07);
-    color: rgba(232,220,200,0.45);
-  }
-  .sel-btn--ghost:hover { background: rgba(232,220,200,0.13); color: rgba(232,220,200,0.8); }
-  .sel-btn--danger { background: rgba(181,69,27,.85); color: #fff; }
-  .sel-btn--danger:hover { background: rgba(181,69,27,1); }
-  /* subtle delete-all when nothing selected */
-  .sel-btn--ghost-dim {
+  .hdr-btn:hover { background: #E8B05A; transform: translateY(-1px); }
+
+  .hdr-btn--ghost {
     background: transparent;
-    color: rgba(192,96,74,.45);
-    border: none;
+    color: rgba(232,220,200,.55);
+    border: 1px solid rgba(232,220,200,.15);
   }
-  .sel-btn--ghost-dim:hover { background: rgba(181,69,27,.1); color: #e07a55; }
+  .hdr-btn--ghost:hover {
+    background: rgba(232,220,200,.08);
+    color: rgba(232,220,200,.85);
+    transform: none;
+  }
 
   /* ── Delete confirm modal ── */
   .dm {
@@ -527,10 +437,8 @@ function fmtDate(iso: string) {
   const cancelBtn  = document.getElementById('dm-cancel')   as HTMLButtonElement;
   const confirmBtn = document.getElementById('dm-confirm')  as HTMLButtonElement;
   const selSection = document.getElementById('sel-section') as HTMLElement | null;
-  const selCountEl = document.getElementById('sel-count')   as HTMLElement | null;
   const selClear   = document.getElementById('sel-clear')   as HTMLButtonElement | null;
   const selDelete  = document.getElementById('sel-delete')  as HTMLButtonElement | null;
-  const delAllBtn  = document.getElementById('del-all-btn') as HTMLButtonElement | null;
   const selectAll  = document.getElementById('select-all')  as HTMLInputElement | null;
   const rowCbs     = Array.from(document.querySelectorAll<HTMLInputElement>('.row-cb'));
 
@@ -550,9 +458,6 @@ function fmtDate(iso: string) {
   function updateSelBar() {
     const n = rowCbs.filter(c => c.checked).length;
 
-    if (selCountEl) selCountEl.textContent = String(n);
-
-    // show/hide the "X selected" section
     if (selSection) {
       if (n > 0) selSection.removeAttribute('hidden');
       else       selSection.setAttribute('hidden', '');
@@ -600,29 +505,12 @@ function fmtDate(iso: string) {
     }, 300);
   }
 
-  /* ── Single-row delete ── */
-  document.querySelectorAll<HTMLButtonElement>('[data-del]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const form = btn.closest<HTMLFormElement>('.del-form');
-      if (!form) return;
-      pendingForm = form; pendingItems = null;
-      openModal('Eliminare questa voce?');
-    });
-  });
-
   /* ── Bulk: selected ── */
   selDelete?.addEventListener('click', () => {
     const items = selectedItems();
     if (!items.length) return;
     pendingForm = null; pendingItems = items;
     openModal(`Eliminare ${items.length} ${items.length === 1 ? 'voce' : 'voci'}?`);
-  });
-
-  /* ── Bulk: delete all ── */
-  delAllBtn?.addEventListener('click', () => {
-    const items = allItems();
-    pendingForm = null; pendingItems = items;
-    openModal(`Eliminare tutte le ${items.length} voci?`);
   });
 
   /* ── Confirm ── */

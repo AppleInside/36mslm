@@ -49,7 +49,6 @@ function fmtDate(d: string | null) {
         <h1 class="page-title">Avvisi</h1>
         <p class="page-count">
           {notices.length === 0 ? 'Nessun avviso' : `${notices.length} ${notices.length === 1 ? 'avviso' : 'avvisi'}`}
-          <span class="live-dot" id="liveDot" title="Aggiornamento automatico ogni 30 s" aria-hidden="true"></span>
         </p>
       </div>
       <a href="/management/avvisi/nuovo" class="btn-primary">
