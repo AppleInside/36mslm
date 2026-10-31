@@ -36,6 +36,7 @@ const t = useTranslations(lang);
   <div class="colofon">
     <span>© {new Date().getFullYear()} — APS «{SITE.name}» · {SITE.codiceFiscale ? `CF ${SITE.codiceFiscale}` : lang === 'it' ? '— in attesa di registrazione —' : '— registration pending —'}</span>
     <span><a href={`mailto:${SITE.email}`}>{SITE.email}</a></span>
+    <span class="version">{__APP_VERSION__}</span>
   </div>
 </footer>
 
@@ -89,6 +90,7 @@ const t = useTranslations(lang);
     text-transform: uppercase;
     letter-spacing: .15em;
   }
+  .version { text-transform: none; opacity: .7; }
   @media (max-width: 1000px) {
     .site-footer { grid-template-columns: 1fr 1fr; padding: 2rem 1.5rem 1.5rem; gap: 1.5rem; }
     .colofon { grid-column: 1 / -1; flex-direction: column; gap: .5rem; }

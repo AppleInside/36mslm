@@ -925,8 +925,8 @@ const navItems = [
     items.forEach((item) => {
       const a = item.querySelector('a') as HTMLAnchorElement | null;
       if (!a) return;
-      const href = a.getAttribute('href') || '';
-      if (href !== '/' && path.startsWith(href)) item.classList.add('active');
+      const href = a.getAttribute('href');
+      if (href && href !== '/' && path.startsWith(href)) item.classList.add('active');
     });
     window.addEventListener('resize', () => {
       const a = nav?.querySelector('.nav-item.active');
