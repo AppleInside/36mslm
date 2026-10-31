@@ -13,6 +13,9 @@ function gitSha() {
 export default defineConfig({
   site: 'https://www.polesineparmense36.it',
   output: 'static',
+  redirects: {
+    '/': '/it/',
+  },
   adapter: vercel(),
   integrations: [mdx(), tailwind({ applyBaseStyles: false })],
   i18n: {
