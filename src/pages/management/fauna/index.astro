@@ -2,23 +2,58 @@
 export const prerender = false;
 import Management from '../../../layouts/Management.astro';
 import { sql } from '../../../server/db';
+import { getCollection } from 'astro:content';
 
 const userDisplayName = Astro.locals.userDisplayName;
 
 type SightingRow = {
   id: number;
   title: string;
+  slug: string;
   category: string;
   date: string;
   status: 'draft' | 'published';
+  coords: string | null;
 };
 
-const sightings = await sql<SightingRow[]>`
-  SELECT id, title, category, date::text, status
-  FROM sightings
-  WHERE lang = 'it'
-  ORDER BY date DESC, id DESC
-`;
+const [dbSightings, collectionEntries] = await Promise.all([
+  sql<SightingRow[]>`
+    SELECT id, title, slug, category, date::text, coords::text, status
+    FROM sightings
+    WHERE lang = 'it'
+    ORDER BY date DESC, id DESC
+  `,
+  getCollection('sightings'),
+]);
+
+const dbSlugs = new Set(dbSightings.map(s => s.slug).filter(Boolean));
+
+const fileSightings = collectionEntries
+  .filter(e => e.slug.startsWith('it/') && !dbSlugs.has(e.slug.replace('it/', '')))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
+  .map(e => ({
+    slug:     e.slug.replace('it/', ''),
+    title:    e.data.title,
+    category: e.data.category,
+    date:     e.data.date.toISOString().slice(0, 10),
+    draft:    e.data.draft,
+    coords:   e.data.coords as [number, number],
+  }));
+
+const totalCount = dbSightings.length + fileSightings.length;
+
+type MapMarker = { title: string; category: string; lat: number; lng: number; id?: number; slug?: string };
+const mapMarkers: MapMarker[] = [
+  ...dbSightings
+    .filter(s => s.coords)
+    .map(s => {
+      const [lat, lng] = JSON.parse(s.coords!) as [number, number];
+      return { title: s.title, category: s.category, lat, lng, id: s.id };
+    }),
+  ...fileSightings.map(f => ({
+    title: f.title, category: f.category, lat: f.coords[0], lng: f.coords[1], slug: f.slug,
+  })),
+];
 
 const ok  = Astro.url.searchParams.get('ok');
 const err = Astro.url.searchParams.get('err');
@@ -43,7 +78,7 @@ function fmtDate(d: string) {
       <div>
         <h1 class="page-title">Fauna e Flora</h1>
         <p class="page-count">
-          {sightings.length === 0 ? 'Nessun avvistamento' : `${sightings.length} ${sightings.length === 1 ? 'avvistamento' : 'avvistamenti'}`}
+          {totalCount === 0 ? 'Nessun avvistamento' : `${totalCount} ${totalCount === 1 ? 'avvistamento' : 'avvistamenti'}`}
         </p>
       </div>
       <a href="/management/fauna/nuovo" class="btn-primary">
@@ -74,7 +109,29 @@ function fmtDate(d: string) {
       </div>
     )}
 
-    {sightings.length === 0 && (
+    {fileSightings.length > 0 && (
+      <div class="import-banner">
+        <div class="import-banner-text">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <circle cx="7" cy="7" r="6.5" stroke="currentColor"/>
+            <line x1="7" y1="3.5" x2="7" y2="7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            <circle cx="7" cy="9.8" r="0.75" fill="currentColor"/>
+          </svg>
+          <span>{fileSightings.length} {fileSightings.length === 1 ? 'voce viene' : 'voci vengono'} dai file di contenuto e non {fileSightings.length === 1 ? 'è modificabile' : 'sono modificabili'}.</span>
+        </div>
+        <form method="POST" action="/api/management/fauna/importa">
+          <button type="submit" class="import-btn">Importa nel database</button>
+        </form>
+      </div>
+    )}
+
+    {mapMarkers.length > 0 && (
+      <div class="map-section">
+        <div id="mgmt-map" class="mgmt-map"></div>
+      </div>
+    )}
+
+    {totalCount === 0 && (
       <div class="empty">
         <svg class="empty-icon" width="52" height="52" viewBox="0 0 52 52" fill="none" aria-hidden="true">
           <path d="M26 8C26 8 18 16 18 24C18 30 22 33 26 33C30 33 34 30 34 24C34 16 26 8 26 8Z" stroke="currentColor" stroke-width="1.4"/>
@@ -87,7 +144,7 @@ function fmtDate(d: string) {
       </div>
     )}
 
-    {sightings.length > 0 && (
+    {totalCount > 0 && (
       <div class="table-wrap">
         <table class="table">
           <thead>
@@ -100,7 +157,7 @@ function fmtDate(d: string) {
             </tr>
           </thead>
           <tbody>
-            {sightings.map((s, i) => (
+            {dbSightings.map((s, i) => (
               <tr style={`--i:${i}`}>
                 <td><span class="ev-title">{s.title}</span></td>
                 <td class="hide-sm">
@@ -136,6 +193,30 @@ function fmtDate(d: string) {
                       </button>
                     </form>
                   </div>
+                </td>
+              </tr>
+            ))}
+            {fileSightings.map((f, i) => (
+              <tr style={`--i:${dbSightings.length + i}`} class="row-file">
+                <td>
+                  <a href={`/it/scopri/fauna#${f.slug}`} class="ev-title ev-title--link" target="_blank" rel="noopener">
+                    {f.title}
+                  </a>
+                </td>
+                <td class="hide-sm">
+                  <span class="badge badge--dim">{categoryLabel[f.category] ?? f.category}</span>
+                </td>
+                <td class="hide-md">
+                  <span class="ev-meta">{fmtDate(f.date)}</span>
+                </td>
+                <td>
+                  {f.draft
+                    ? <span class="badge badge--dim">Bozza</span>
+                    : <span class="badge badge--teal">Pubblicato</span>
+                  }
+                </td>
+                <td>
+                  <span class="file-pill" title="Contenuto da file — modifica il file .mdx">file</span>
                 </td>
               </tr>
             ))}
@@ -209,6 +290,66 @@ function fmtDate(d: string) {
   });
 </script>
 
+<script id="map-data" type="application/json" is:inline set:html={JSON.stringify(mapMarkers)}></script>
+<script is:inline>
+  (function () {
+    const el = document.getElementById('mgmt-map');
+    if (!el) return;
+
+    const markers = JSON.parse(document.getElementById('map-data').textContent || '[]');
+
+    const cssLink = document.createElement('link');
+    cssLink.rel = 'stylesheet';
+    cssLink.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(cssLink);
+
+    const jsScript = document.createElement('script');
+    jsScript.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    jsScript.onload = function () {
+      const catColor = {
+        uccello:'#3a7abf', mammifero:'#9b6020', pesce:'#1f8a9a',
+        rettile:'#5a8a1e', anfibio:'#2e7a3e', pianta:'#2d6a4f', altro:'#6b7280',
+      };
+      const catLabel = {
+        uccello:'Uccello', mammifero:'Mammifero', pesce:'Pesce',
+        rettile:'Rettile', anfibio:'Anfibio', pianta:'Pianta', altro:'Altro',
+      };
+
+      var map = L.map(el, { scrollWheelZoom: false, zoomControl: true, attributionControl: false });
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+
+      if (markers.length === 0) {
+        map.setView([44.96, 10.10], 13);
+        return;
+      }
+
+      var group = L.featureGroup();
+      markers.forEach(function (m) {
+        var color = catColor[m.category] || '#6b7280';
+        var label = catLabel[m.category] || m.category;
+        var action = m.id
+          ? '<a href="/management/fauna/' + m.id + '" style="color:#D8A14A;font-size:0.68rem;text-decoration:none;letter-spacing:0.1em;text-transform:uppercase;font-family:\'IBM Plex Mono\',monospace">Modifica →</a>'
+          : '<span style="color:rgba(232,220,200,0.3);font-size:0.68rem;font-family:\'IBM Plex Mono\',monospace;letter-spacing:0.08em">da file</span>';
+        var popup = '<div style="font-family:\'IBM Plex Mono\',monospace;padding:10px 13px;min-width:140px;background:#111f1e;border-radius:5px">'
+          + '<strong style="font-size:0.88rem;color:#E8DCC8;font-weight:400">' + m.title + '</strong>'
+          + '<div style="font-size:0.7rem;color:rgba(232,220,200,0.4);margin-top:3px;letter-spacing:0.08em;text-transform:uppercase">' + label + '</div>'
+          + '<div style="margin-top:8px">' + action + '</div>'
+          + '</div>';
+        var marker = L.circleMarker([m.lat, m.lng], {
+          radius: 8, fillColor: color, color: 'rgba(255,255,255,0.5)',
+          weight: 1.5, opacity: 1, fillOpacity: 0.88,
+        });
+        marker.bindPopup(popup, { className: 'mgmt-popup' });
+        group.addLayer(marker);
+        map.addLayer(marker);
+      });
+
+      map.fitBounds(group.getBounds().pad(0.35));
+    };
+    document.head.appendChild(jsScript);
+  })();
+</script>
+
 <style>
   .page { display: flex; flex-direction: column; gap: 1.5rem; animation: page-in 0.45s cubic-bezier(0.22,1,0.36,1) both; }
   @keyframes page-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -217,6 +358,15 @@ function fmtDate(d: string) {
   .page-count { margin-top: 0.4rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(232,220,200,0.3); }
   .btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.25rem; background: #D8A14A; color: #1A0E00; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none; border: none; border-radius: 3px; cursor: pointer; white-space: nowrap; transition: background 0.2s, transform 0.15s; }
   .btn-primary:hover { background: #E8B05A; transform: translateY(-1px); }
+  .import-banner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.75rem 1rem; border-radius: 4px; background: rgba(216,161,74,0.07); border: 1px solid rgba(216,161,74,0.2); }
+  .import-banner-text { display: flex; align-items: center; gap: 0.55rem; font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; letter-spacing: 0.02em; color: rgba(216,161,74,0.75); }
+  .import-btn { padding: 0.45rem 1rem; background: rgba(216,161,74,0.15); border: 1px solid rgba(216,161,74,0.35); border-radius: 3px; font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: #D8A14A; cursor: pointer; white-space: nowrap; transition: background 0.15s, border-color 0.15s; }
+  .import-btn:hover { background: rgba(216,161,74,0.25); border-color: rgba(216,161,74,0.55); }
+  .map-section { border: 1px solid rgba(232,220,200,0.07); border-radius: 6px; overflow: hidden; }
+  .mgmt-map { width: 100%; height: 360px; background: #0d1c1b; }
+  :global(.mgmt-popup .leaflet-popup-content-wrapper) { background: #111f1e !important; border: 1px solid rgba(232,220,200,0.12) !important; border-radius: 5px !important; box-shadow: 0 8px 28px rgba(0,0,0,0.5) !important; padding: 0 !important; }
+  :global(.mgmt-popup .leaflet-popup-content) { margin: 0 !important; }
+  :global(.mgmt-popup .leaflet-popup-tip) { background: #111f1e !important; }
   .flash { display: flex; align-items: center; gap: 0.55rem; padding: 0.75rem 1rem; border-radius: 4px; border: 1px solid; font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; letter-spacing: 0.03em; }
   .flash--ok  { color: #7BC4B4; background: rgba(74,102,112,0.1); border-color: rgba(74,102,112,0.28); }
   .flash--err { color: #E07B5A; background: rgba(224,123,90,0.07); border-color: rgba(224,123,90,0.22); }
@@ -247,6 +397,10 @@ function fmtDate(d: string) {
   .act-edit:hover { color: #D8A14A; background: rgba(216,161,74,0.10); border-color: rgba(216,161,74,0.22); }
   .act-delete { color: rgba(224,123,90,0.45); }
   .act-delete:hover { color: #E07B5A; background: rgba(224,123,90,0.10); border-color: rgba(224,123,90,0.22); }
+  .ev-title--link { text-decoration: none; color: inherit; transition: color 0.15s; }
+  .ev-title--link:hover { color: #D8A14A; }
+  .row-file { opacity: 0.82; }
+  .file-pill { display: inline-flex; align-items: center; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.62rem; font-weight: 400; letter-spacing: 0.18em; text-transform: uppercase; background: rgba(232,220,200,0.04); color: rgba(232,220,200,0.25); border: 1px solid rgba(232,220,200,0.08); white-space: nowrap; }
   @media (max-width: 900px) { .hide-md { display: none; } }
   @media (max-width: 600px) { .hide-sm { display: none; } .page-title { font-size: 1.6rem; } }
   .modal-backdrop { position: fixed; inset: 0; background: rgba(11,25,24,0.75); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.2s; }

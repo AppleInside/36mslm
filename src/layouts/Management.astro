@@ -27,7 +27,9 @@ try {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>{title} · Gestione · {SITE.name}</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-48.png" type="image/png" sizes="48x48" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+    <link rel="manifest" href="/site.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=IBM+Plex+Mono:wght@300;400;500&display=swap" />
@@ -112,7 +114,7 @@ try {
 
           <a
             href="/management/fauna"
-            class={`nav-item${pathname.startsWith('/management/fauna') ? ' active' : ''}`}
+            class="nav-item nav-item--soon"
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
               <path d="M7.5 2C7.5 2 5 4 5 6.5C5 8.5 6.5 9.5 7.5 9.5C8.5 9.5 10 8.5 10 6.5C10 4 7.5 2 7.5 2Z" stroke="currentColor" stroke-width="1.2"/>
