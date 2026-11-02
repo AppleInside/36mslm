@@ -218,6 +218,25 @@ const itinerariesJson = Object.fromEntries(
     })}
   </section>
 
+  <!-- ── Itinerary modal (mobile) ──────────────────── -->
+  <div class="it-overlay" id="itModal" aria-modal="true" role="dialog">
+    <div class="it-box">
+      <div class="it-band" id="itBand">
+        <span class="it-cat" id="itCat"></span>
+      </div>
+      <div class="it-scroll">
+        <h2 class="it-title" id="itTitle"></h2>
+        <div class="pills it-pills" id="itPills"></div>
+        <div class="it-map" id="itMap"></div>
+        <p class="it-desc" id="itDesc"></p>
+        <div class="it-links" id="itLinks"></div>
+        <button type="button" class="it-close" id="itClose">
+          {lang === 'it' ? 'Chiudi' : 'Close'}
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Leaflet ─────────────────────────────────── -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -232,12 +251,13 @@ const itinerariesJson = Object.fromEntries(
         var map = L.map(el, {
           zoomControl: false,
           scrollWheelZoom: false,
-          attributionControl: false,
           dragging: false,
         });
+        map.attributionControl.setPrefix(false);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-          maxZoom: 18,
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
         }).addTo(map);
 
         var line = L.polyline(coords, { color: color, weight: 4, opacity: 0.9 }).addTo(map);
@@ -291,7 +311,7 @@ const itinerariesJson = Object.fromEntries(
   <script is:inline define:vars={{ itinerariesJson, lang }}>
     (function () {
       var MOBILE_BP = 700;
-      function isMobile() { return window.innerWidth < MOBILE_BP; }
+      function isMobile() { return window.innerWidth <= MOBILE_BP; }
 
       var catLabels = {
         naturalistico: lang === 'it' ? 'Naturalistico' : 'Nature',
@@ -354,7 +374,7 @@ const itinerariesJson = Object.fromEntries(
               '<img src="/icons/apple-icon-4.png" width="16" height="16" alt=""> Apple Maps' +
             '</a>' +
             '<a class="it-map-btn it-map-btn--google" href="' + googleHref + '" target="_blank" rel="noopener">' +
-              '<img src="/icons/google-logo.png" width="16" height="16" alt=""> Google Maps' +
+              '<img src="/icons/google-favicon-2025.png" width="16" height="16" alt=""> Google Maps' +
             '</a>';
         } else {
           linksEl.innerHTML = '';
@@ -370,9 +390,13 @@ const itinerariesJson = Object.fromEntries(
           if (!data.coords || !data.coords.length) return;
           _map = L.map(mapEl, {
             zoomControl: false, scrollWheelZoom: false,
-            attributionControl: false, dragging: false,
+            dragging: false,
           });
-          L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 18 }).addTo(_map);
+          _map.attributionControl.setPrefix(false);
+          L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
+          }).addTo(_map);
           var line = L.polyline(data.coords, { color: data.color, weight: 4, opacity: 0.9 }).addTo(_map);
           var dot = L.divIcon({
             html: '<div style="width:9px;height:9px;background:' + data.color + ';border:2px solid white;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>',
@@ -414,23 +438,6 @@ const itinerariesJson = Object.fromEntries(
   </script>
 </Base>
 
-<!-- ── Itinerary modal (mobile) ──────────────────── -->
-<div class="it-overlay" id="itModal" aria-modal="true" role="dialog">
-  <div class="it-box">
-    <div class="it-band" id="itBand">
-      <span class="it-cat" id="itCat"></span>
-      <button class="it-close" id="itClose" aria-label="Chiudi">×</button>
-    </div>
-    <div class="it-scroll">
-      <h2 class="it-title" id="itTitle"></h2>
-      <div class="pills it-pills" id="itPills"></div>
-      <div class="it-map" id="itMap"></div>
-      <p class="it-desc" id="itDesc"></p>
-      <div class="it-links" id="itLinks"></div>
-    </div>
-  </div>
-</div>
-
 <style>
   /* ── Modal overlay ────────────────────────────── */
   .it-overlay {
@@ -439,15 +446,14 @@ const itinerariesJson = Object.fromEntries(
     inset: 0;
     background: rgba(10,18,24,.55);
     z-index: 900;
-    align-items: flex-end;
+    align-items: stretch;
     justify-content: center;
   }
   .it-overlay.open { display: flex; }
 
   .it-box {
     width: 100%;
-    max-height: 92dvh;
-    border-radius: 1rem 1rem 0 0;
+    height: 100dvh;
     background: theme('colors.paper');
     overflow: hidden;
     display: flex;
@@ -470,19 +476,22 @@ const itinerariesJson = Object.fromEntries(
     font-weight: 600;
   }
   .it-close {
-    background: rgba(255,255,255,.2);
-    border: none;
+    width: 100%;
+    margin-top: .5rem;
+    padding: 1rem;
+    background: theme('colors.ink');
     color: #fff;
-    font-size: 1.4rem;
-    line-height: 1;
-    width: 2rem;
-    height: 2rem;
-    border-radius: 50%;
+    border: none;
+    border-radius: 999px;
+    font-family: theme('fontFamily.mono');
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .22em;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    transition: opacity .18s;
   }
+  .it-close:active { opacity: .8; }
 
   .it-scroll {
     overflow-y: auto;
@@ -528,18 +537,20 @@ const itinerariesJson = Object.fromEntries(
   :global(.it-map-btn) {
     display: inline-flex;
     align-items: center;
-    gap: .45rem;
-    padding: .55rem 1rem;
-    border-radius: .45rem;
+    flex: 1 1 0;
+    justify-content: center;
+    gap: .6rem;
+    padding: .95rem 1.1rem;
+    border-radius: .6rem;
     font-family: theme('fontFamily.mono');
-    font-size: .75rem;
+    font-size: .9rem;
     text-decoration: none;
     background: theme('colors.paper');
     border: 1px solid theme('colors.rule');
     color: theme('colors.ink');
     white-space: nowrap;
   }
-  :global(.it-map-btn img) { width: 16px; height: 16px; object-fit: contain; }
+  :global(.it-map-btn img) { width: 20px; height: 20px; object-fit: contain; }
 </style>
 
 <style>
@@ -724,7 +735,8 @@ const itinerariesJson = Object.fromEntries(
     gap: .4rem;
     align-items: center;
   }
-  .pill {
+  /* :global perché le pill della modale sono generate via JS */
+  .pills :global(.pill) {
     display: inline-flex;
     align-items: center;
     gap: .32rem;
@@ -736,10 +748,10 @@ const itinerariesJson = Object.fromEntries(
     padding: .22rem .7rem;
     white-space: nowrap;
   }
-  .pill--diff.pill--facile      { color: #2a6245; border-color: rgba(42, 98, 69, .3);   background: #f0faf3; }
-  .pill--diff.pill--medio       { color: #8b4e14; border-color: rgba(139, 78, 20, .3);  background: #fdf6ec; }
-  .pill--diff.pill--impegnativo { color: #991b1b; border-color: rgba(153, 27, 27, .3);  background: #fff1f0; }
-  .pill--terrain {
+  .pills :global(.pill--diff.pill--facile)     { color: #2a6245; border-color: rgba(42, 98, 69, .3);   background: #f0faf3; }
+  .pills :global(.pill--diff.pill--medio)      { color: #8b4e14; border-color: rgba(139, 78, 20, .3);  background: #fdf6ec; }
+  .pills :global(.pill--diff.pill--impegnativo){ color: #991b1b; border-color: rgba(153, 27, 27, .3);  background: #fff1f0; }
+  .pills :global(.pill--terrain) {
     color: #718096;
     border-style: dashed;
     font-style: italic;
@@ -760,7 +772,15 @@ const itinerariesJson = Object.fromEntries(
     .lista { grid-template-columns: 1fr; padding: 2rem 1rem 4rem; gap: 1.5rem; }
     .scheda-testo { padding: 1.5rem; }
     .scheda-mappa { min-height: 180px; }
-    .filtri-inner { padding: 0 1rem; overflow-x: auto; }
+    .filtri-inner {
+      padding: .85rem 1rem;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .filtri-inner::-webkit-scrollbar { display: none; }
+    .filtri-label, .filtri-btn { flex-shrink: 0; }
 
     /* compact card on mobile */
     .scheda-desc    { display: none; }

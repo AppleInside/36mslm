@@ -118,20 +118,23 @@ const t = useTranslations(lang);
     flex-wrap: wrap;
   }
   .social-btn {
+    flex: 1 1 0;
     display: inline-flex;
     align-items: center;
-    gap: .55rem;
-    padding: .65rem 1.25rem;
-    border-radius: .4rem;
+    justify-content: center;
+    gap: .75rem;
+    padding: 1rem 1.4rem;
+    border-radius: .6rem;
     border: 1px solid theme('colors.rule');
     background: theme('colors.paper');
     font-family: theme('fontFamily.mono');
-    font-size: .8rem;
+    font-size: .95rem;
     letter-spacing: .06em;
     color: theme('colors.ink');
     text-decoration: none;
     font-weight: 600;
     transition: background .18s, transform .18s;
   }
+  .social-btn img { width: 34px; height: 34px; object-fit: contain; }
   .social-btn:hover { background: theme('colors.paper-2'); transform: translateY(-1px); }
 </style>

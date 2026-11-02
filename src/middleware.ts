@@ -1,9 +1,16 @@
 import { defineMiddleware } from 'astro:middleware';
 import { verifySession, COOKIE_NAME } from './lib/auth';
 import { sql } from './server/db';
+import { languages } from './i18n/ui';
 
 export const onRequest = defineMiddleware(async (ctx, next) => {
   const { pathname } = ctx.url;
+
+  // [lang] catch-all: /favicon.svg, /qualcosa ecc. non sono lingue → 404 invece di crash
+  const lang = ctx.params.lang;
+  if (lang !== undefined && !(lang in languages)) {
+    return new Response('Not found', { status: 404 });
+  }
 
   const isApiRoute = pathname.startsWith('/api/management/') &&
     !pathname.startsWith('/api/management/login') &&

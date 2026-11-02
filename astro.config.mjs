@@ -26,6 +26,10 @@ export default defineConfig({
     define: {
       __APP_VERSION__: JSON.stringify(`v${pkg.version} · ${gitSha()}`),
     },
+    server: {
+      // output di build: se osservato dal dev server provoca EMFILE su Windows
+      watch: { ignored: ['**/dist/**', '**/.vercel/**'] },
+    },
   },
   security: {
     checkOrigin: false,

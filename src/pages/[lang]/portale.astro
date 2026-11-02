@@ -9,6 +9,8 @@ export function getStaticPaths() {
 }
 const lang = Astro.params.lang as Lang;
 const it = lang === 'it';
+// Strategia e Vantaggi APS sono contenuti interni: nascosti al pubblico
+const showInternal = false;
 ---
 
 <Base title={it ? 'Un portale unico — 36 m s.l.m.' : 'Our portal — 36 m s.l.m.'}>
@@ -24,12 +26,14 @@ const it = lang === 'it';
     <button class="wdot" data-to="s-chi">
       <span class="wdot-tip">{it ? 'A chi parla' : "Who it's for"}</span>
     </button>
-    <button class="wdot" data-to="s-obiettivi">
-      <span class="wdot-tip">{it ? 'Gli obiettivi' : 'The goals'}</span>
-    </button>
-    <button class="wdot" data-to="s-vantaggi">
-      <span class="wdot-tip">{it ? 'Vantaggi' : 'Benefits'}</span>
-    </button>
+    {showInternal && <>
+      <button class="wdot" data-to="s-obiettivi">
+        <span class="wdot-tip">{it ? 'Gli obiettivi' : 'The goals'}</span>
+      </button>
+      <button class="wdot" data-to="s-vantaggi">
+        <span class="wdot-tip">{it ? 'Vantaggi' : 'Benefits'}</span>
+      </button>
+    </>}
   </nav>
 
   <!-- ──────────────────────────────────────────────────── -->
@@ -107,36 +111,21 @@ const it = lang === 'it';
       </h2>
       <div class="waudience">
         <div class="wcard">
-          <div class="wcard-mark" aria-hidden="true">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-              <circle cx="14" cy="14" r="13" stroke="currentColor" stroke-width="1.2"/>
-              <path d="M8 14h12M16 10l4 4-4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
           <h3>{it ? 'I turisti' : 'Tourists'}</h3>
           <p>{it ? 'Che cercano cosa vedere, dove mangiare, come arrivare. Li accoglie con itinerari, indirizzi e calendario eventi.' : 'Looking for what to see, where to eat, how to get here. Welcomed with itineraries, addresses and events.'}</p>
           <a class="wcard-link" href={localizedPath(lang, 'scopri')}>{it ? 'Scopri →' : 'Discover →'}</a>
         </div>
         <div class="wcard-sep" aria-hidden="true"></div>
         <div class="wcard">
-          <div class="wcard-mark" aria-hidden="true">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-              <circle cx="14" cy="14" r="13" stroke="currentColor" stroke-width="1.2"/>
-              <circle cx="14" cy="10" r="3" stroke="currentColor" stroke-width="1.4"/>
-              <path d="M7 22c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-            </svg>
-          </div>
           <h3>{it ? 'I residenti' : 'Residents'}</h3>
           <p>{it ? 'Che vogliono sapere cosa succede questa settimana, come partecipare e rimanere aggiornati sugli avvisi.' : "Who want to know what's on this week, how to get involved, and stay updated on notices."}</p>
           <a class="wcard-link" href={localizedPath(lang, 'partecipa')}>{it ? 'Partecipa →' : 'Get involved →'}</a>
         </div>
       </div>
-      <p class="waudience-note">
-        <em>{it ? 'Un sito solo, due percorsi di lettura.' : 'One site, two reading paths.'}</em>
-      </p>
     </div>
   </section>
 
+  {showInternal && <>
   <!-- wave -->
   <div class="wwave" aria-hidden="true" style="background:#F2EDE0">
     <svg viewBox="0 0 1440 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
@@ -221,6 +210,7 @@ const it = lang === 'it';
       </div>
     </div>
   </section>
+  </>}
 
 </Base>
 
@@ -428,10 +418,6 @@ const it = lang === 'it';
     flex-direction: column;
     gap: .65rem;
   }
-  .wcard-mark {
-    color: theme('colors.acquadeep');
-    width: 28px;
-  }
   .wcard h3 {
     font-family: theme('fontFamily.hand');
     font-size: 2rem;
@@ -460,17 +446,6 @@ const it = lang === 'it';
     transition: color .2s;
   }
   .wcard-link:hover { color: theme('colors.brand'); }
-  .waudience-note {
-    margin: 2rem 0 0;
-    font-family: theme('fontFamily.serif');
-    font-style: italic;
-    font-size: 1.2rem;
-    color: theme('colors.acquadeep');
-    opacity: 0;
-    transition: opacity 0.5s 0.9s ease;
-  }
-  .ws.wvis .waudience-note { opacity: 1; }
-
   /* ─── S4 goals list ──────────────────────────────────── */
   .wgoals {
     list-style: none;
