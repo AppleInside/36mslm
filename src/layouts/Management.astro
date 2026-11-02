@@ -168,6 +168,115 @@ try {
       btn?.addEventListener('click', () => sidebar?.classList.toggle('open'));
     </script>
 
+    <script>
+      // Dropdown personalizzato al posto della tendina nativa delle select dei form.
+      // La select resta nel DOM (nascosta) e sincronizzata: invio form, required e
+      // listener 'change' delle pagine continuano a funzionare.
+      let openDd: HTMLElement | null = null;
+
+      function closeDd(dd: HTMLElement | null = openDd) {
+        if (!dd) return;
+        dd.classList.remove('dd--open');
+        dd.querySelector('.dd-btn')?.setAttribute('aria-expanded', 'false');
+        if (openDd === dd) openDd = null;
+      }
+
+      function enhance(select: HTMLSelectElement, n: number) {
+        const dd = document.createElement('div');
+        dd.className = 'dd';
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'dd-btn';
+        btn.setAttribute('aria-haspopup', 'listbox');
+        btn.setAttribute('aria-expanded', 'false');
+        const label = document.createElement('span');
+        label.className = 'dd-label';
+        btn.append(label);
+
+        const list = document.createElement('ul');
+        list.className = 'dd-list';
+        list.id = `dd-list-${n}`;
+        list.setAttribute('role', 'listbox');
+        btn.setAttribute('aria-controls', list.id);
+
+        const items = [...select.options].map((opt, i) => {
+          const li = document.createElement('li');
+          li.className = 'dd-opt';
+          li.setAttribute('role', 'option');
+          li.textContent = opt.textContent;
+          li.addEventListener('click', () => { choose(i); closeDd(dd); btn.focus(); });
+          list.append(li);
+          return li;
+        });
+
+        let active = select.selectedIndex;
+
+        function render() {
+          label.textContent = select.options[select.selectedIndex]?.textContent ?? '';
+          items.forEach((li, i) => {
+            li.setAttribute('aria-selected', String(i === select.selectedIndex));
+            li.classList.toggle('dd-opt--active', i === active);
+          });
+        }
+
+        function choose(i: number) {
+          if (i === select.selectedIndex) return;
+          select.selectedIndex = i;
+          select.dispatchEvent(new Event('input', { bubbles: true }));
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        function open() {
+          if (openDd && openDd !== dd) closeDd();
+          active = select.selectedIndex;
+          render();
+          dd.classList.add('dd--open');
+          btn.setAttribute('aria-expanded', 'true');
+          openDd = dd;
+          items[active]?.scrollIntoView({ block: 'nearest' });
+        }
+
+        btn.addEventListener('click', () => dd.classList.contains('dd--open') ? closeDd(dd) : open());
+        btn.addEventListener('keydown', (e) => {
+          const isOpen = dd.classList.contains('dd--open');
+          if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (!isOpen) { open(); return; }
+            active = Math.max(0, Math.min(items.length - 1, active + (e.key === 'ArrowDown' ? 1 : -1)));
+            render();
+            items[active]?.scrollIntoView({ block: 'nearest' });
+          } else if ((e.key === 'Enter' || e.key === ' ') && isOpen) {
+            e.preventDefault();
+            choose(active);
+            closeDd(dd);
+          } else if (e.key === 'Escape' && isOpen) {
+            e.preventDefault();
+            closeDd(dd);
+          } else if (e.key === 'Tab') {
+            closeDd(dd);
+          }
+        });
+
+        select.addEventListener('change', render);
+        select.addEventListener('focus', () => btn.focus());
+        select.tabIndex = -1;
+        select.classList.add('dd-native');
+        select.setAttribute('aria-hidden', 'true');
+
+        select.after(dd);
+        dd.append(btn, list);
+        render();
+      }
+
+      document.querySelectorAll<HTMLSelectElement>('.content select:not([multiple]):not([size])')
+        .forEach((s, i) => enhance(s, i));
+
+      document.addEventListener('click', (e) => {
+        if (openDd && !openDd.contains(e.target as Node)) closeDd();
+      });
+    </script>
+
   </body>
 </html>
 
@@ -464,8 +573,115 @@ try {
 
   body .content :is(.field, .ed-field) select option { background: #0D2220; color: #E8DCC8; }
 
+  /* ── Dropdown personalizzato (vedi script nel layout) ── */
+  body .content select.dd-native {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    min-height: 0;
+    padding: 0;
+    margin: -1px;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .dd { position: relative; width: 100%; }
+
+  .dd-btn {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    width: 100%;
+    min-height: 2.75rem;
+    padding: .65rem .85rem;
+    background: rgba(232,220,200,0.04);
+    border: 1px solid rgba(232,220,200,0.10);
+    border-radius: 4px;
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: .95rem;
+    font-weight: 300;
+    color: #E8DCC8;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+  }
+  .dd-btn:hover { border-color: rgba(232,220,200,0.2); }
+  .dd-btn:focus-visible,
+  .dd--open .dd-btn {
+    outline: none;
+    border-color: rgba(216,161,74,0.45);
+    background: rgba(232,220,200,0.06);
+  }
+  .dd-btn::after {
+    content: '';
+    flex-shrink: 0;
+    width: 12px;
+    height: 8px;
+    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1.5l5 5 5-5' fill='none' stroke='%23D8A14A' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat center / contain;
+    transition: transform .2s;
+  }
+  .dd--open .dd-btn::after { transform: rotate(180deg); }
+  .dd-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .dd-list {
+    position: absolute;
+    z-index: 30;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: .35rem;
+    list-style: none;
+    max-height: 16rem;
+    overflow-y: auto;
+    background: #0F2624;
+    border: 1px solid rgba(216,161,74,0.28);
+    border-radius: 6px;
+    box-shadow: 0 14px 34px rgba(0,0,0,.45);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: opacity .15s, transform .15s, visibility 0s .15s;
+  }
+  .dd--open .dd-list {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: opacity .15s, transform .15s;
+  }
+
+  .dd-opt {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    padding: .7rem .75rem;
+    border-radius: 4px;
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: .95rem;
+    font-weight: 300;
+    color: rgba(232,220,200,0.75);
+    cursor: pointer;
+  }
+  .dd-opt:hover,
+  .dd-opt--active { background: rgba(232,220,200,0.06); color: #E8DCC8; }
+  .dd-opt[aria-selected="true"] { color: #D8A14A; }
+  .dd-opt[aria-selected="true"]::after {
+    content: '';
+    width: 12px;
+    height: 9px;
+    flex-shrink: 0;
+    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='9' viewBox='0 0 12 9'><path d='M1 4.5l3.5 3.5L11 1' fill='none' stroke='%23D8A14A' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat center / contain;
+  }
+
   @media (max-width: 600px) {
     /* ≥16px evita lo zoom automatico di iOS al focus */
-    body .content :is(.field, .ed-field) :is(input, select, textarea) { font-size: 16px; }
+    body .content :is(.field, .ed-field) :is(input, select, textarea),
+    .dd-btn, .dd-opt { font-size: 16px; }
   }
 </style>

@@ -11,7 +11,7 @@ type NoticeRow = {
   date: string | null;
   expires_at: string | null;
   priority: boolean;
-  status: 'draft' | 'published';
+  status: 'draft' | 'published' | 'archived';
   publish_at: Date | null;
 };
 
@@ -21,12 +21,12 @@ const notices = await sql<NoticeRow[]>`
   SELECT id, title, date::text, expires_at::text, priority, status, publish_at
   FROM notices
   WHERE lang = 'it'
-    AND archived_at IS ${archivedView ? sql`NOT NULL` : sql`NULL`}
+    AND status ${archivedView ? sql`=` : sql`<>`} 'archived'
   ORDER BY priority DESC, created_at DESC
 `;
 
 const [{ archived_count }] = await sql<{ archived_count: number }[]>`
-  SELECT COUNT(*)::int AS archived_count FROM notices WHERE lang = 'it' AND archived_at IS NOT NULL
+  SELECT COUNT(*)::int AS archived_count FROM notices WHERE lang = 'it' AND status = 'archived'
 `;
 
 const ok  = Astro.url.searchParams.get('ok');
@@ -56,7 +56,7 @@ function fmtDate(d: string | null) {
         <h1 class="page-title">Avvisi</h1>
         <p class="page-count">
           {notices.length === 0 ? 'Nessun avviso' : `${notices.length} ${notices.length === 1 ? 'avviso' : 'avvisi'}`}
-          {archivedView && ' archiviati'}
+          {archivedView && notices.length > 0 && (notices.length === 1 ? ' archiviato' : ' archiviati')}
         </p>
       </div>
       <a href="/management/avvisi/nuovo" class="btn-primary">
@@ -98,7 +98,7 @@ function fmtDate(d: string | null) {
     {notices.length === 0 && archivedView && (
       <div class="empty">
         <p class="empty-title">Nessun avviso archiviato</p>
-        <p class="empty-sub">Gli avvisi archiviati non compaiono sul sito e si possono ripristinare in qualsiasi momento.</p>
+        <p class="empty-sub">Per archiviare un avviso imposta lo stato su "Archiviato": non comparirà più sul sito.</p>
       </div>
     )}
 
@@ -152,11 +152,13 @@ function fmtDate(d: string | null) {
                   }
                 </td>
                 <td>
-                  {n.status === 'published' && n.publish_at && new Date(n.publish_at) > now
-                    ? <span class="badge badge--amber">Programmato</span>
-                    : n.status === 'published'
-                      ? <span class="badge badge--teal">Pubblicato</span>
-                      : <span class="badge badge--dim">Bozza</span>
+                  {n.status === 'archived'
+                    ? <span class="badge badge--dim">Archiviato</span>
+                    : n.status === 'published' && n.publish_at && new Date(n.publish_at) > now
+                      ? <span class="badge badge--amber">Programmato</span>
+                      : n.status === 'published'
+                        ? <span class="badge badge--teal">Pubblicato</span>
+                        : <span class="badge badge--dim">Bozza</span>
                   }
                 </td>
                 <td>
@@ -167,26 +169,6 @@ function fmtDate(d: string | null) {
                         <path d="M8 4L10 6" stroke="currentColor" stroke-width="1.2"/>
                       </svg>
                     </a>
-                    <form method="POST" action={`/api/management/avvisi/${n.id}/archive`}>
-                      <input type="hidden" name="archive" value={archivedView ? '0' : '1'} />
-                      <button
-                        type="submit"
-                        class="act-archive"
-                        title={archivedView ? 'Ripristina' : 'Archivia'}
-                        aria-label={archivedView ? 'Ripristina' : 'Archivia'}
-                      >
-                        {archivedView ? (
-                          <svg width="18" height="18" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                            <path d="M2.5 7A4.5 4.5 0 1 0 4 3.6M2.5 1.8V4.3H5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-                          </svg>
-                        ) : (
-                          <svg width="18" height="18" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                            <rect x="1.5" y="2.5" width="11" height="3" rx=".5" stroke="currentColor" stroke-width="1.2"/>
-                            <path d="M2.5 5.5V11C2.5 11.28 2.72 11.5 3 11.5H11C11.28 11.5 11.5 11.28 11.5 11V5.5M5.5 8H8.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-                          </svg>
-                        )}
-                      </button>
-                    </form>
                     <form
                       method="POST"
                       action={`/api/management/avvisi/${n.id}/delete`}
@@ -427,7 +409,6 @@ function fmtDate(d: string | null) {
   }
 
   .act-edit,
-  .act-archive,
   .act-delete {
     display: flex;
     align-items: center;
@@ -445,9 +426,6 @@ function fmtDate(d: string | null) {
 
   .act-edit  { color: rgba(216,161,74,0.55); text-decoration: none; }
   .act-edit:hover  { color: #D8A14A; background: rgba(216,161,74,0.10); border-color: rgba(216,161,74,0.22); }
-
-  .act-archive { color: rgba(123,196,180,0.5); }
-  .act-archive:hover { color: #7BC4B4; background: rgba(74,102,112,0.14); border-color: rgba(74,102,112,0.3); }
 
   .tabs {
     display: flex;

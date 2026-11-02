@@ -12,7 +12,7 @@ export const managementNoticeSchema = z.object({
   cta:        optionalStr,
   tags:       optionalStr,
   expires_at: optionalDate,
-  status:     z.enum(['draft', 'published']),
+  status:     z.enum(['draft', 'published', 'archived']),
   publish_at: z.string().transform(v => v.trim() || null).nullable().optional().default(null),
 });
 

@@ -118,7 +118,6 @@ export async function getNotices(lang: string): Promise<DbNotice[]> {
     WHERE lang = ${lang}
       AND status = 'published'
       AND slug IS NOT NULL
-      AND archived_at IS NULL
       AND (expires_at IS NULL OR expires_at > now())
       AND (publish_at IS NULL OR publish_at <= NOW())
     ORDER BY priority DESC, date DESC NULLS LAST, created_at DESC

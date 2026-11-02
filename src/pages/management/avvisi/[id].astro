@@ -16,7 +16,7 @@ type NoticeRow = {
   cta: string | null;
   tags: string[];
   expires_at: Date | null;
-  status: 'draft' | 'published';
+  status: 'draft' | 'published' | 'archived';
   publish_at: Date | null;
 };
 
@@ -105,6 +105,7 @@ const publishAtStr = notice.publish_at
           <select id="status" name="status">
             <option value="draft"     selected={notice.status === 'draft'}>Bozza</option>
             <option value="published" selected={notice.status === 'published'}>Pubblicato</option>
+            <option value="archived"  selected={notice.status === 'archived'}>Archiviato</option>
           </select>
         </div>
         <div class="field">

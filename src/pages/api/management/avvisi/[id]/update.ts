@@ -39,5 +39,5 @@ export const POST: APIRoute = async ({ request, redirect, params }) => {
     return redirect('/management/avvisi?err=db', 303);
   }
 
-  return redirect('/management/avvisi?ok=1', 303);
+  return redirect(`/management/avvisi?ok=1${d.status === 'archived' ? '&vista=archiviati' : ''}`, 303);
 };
